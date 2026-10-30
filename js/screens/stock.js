@@ -21,8 +21,10 @@ import {
   changeStock,
   deleteProduct,
   countRelated,
+  clearAllSuppression,
   ValidationError,
 } from '../data/productRepo.js';
+import { refreshFromStock } from '../data/shoppingRepo.js';
 import { INVENTORY_UNITS, shortage } from '../domain/product.js';
 import { INPUT_UNITS } from '../domain/units.js';
 import { esc } from '../lib/util.js';
@@ -34,11 +36,16 @@ export function mount(el) {
     <div class="stack">
       <div id="stock-summary" class="stock-summary"></div>
       <div id="stock-groups" class="stack"></div>
+      <div id="review-done" hidden>
+        <button type="button" class="btn btn-primary btn-block" data-action="review-done">見直し完了 → 買い物リストを更新</button>
+        <p class="note" style="margin-top:6px">在庫を実物に合わせたら押してください。足りない物が買い物リストに入ります。</p>
+      </div>
     </div>
     <button type="button" class="fab" data-action="add">＋ 商品</button>
   `;
   const summaryEl = el.querySelector('#stock-summary');
   const groupsEl = el.querySelector('#stock-groups');
+  const reviewEl = el.querySelector('#review-done');
 
   /** 最新のカテゴリ一覧（シートで使う） */
   let categories = [];
@@ -61,6 +68,9 @@ export function mount(el) {
       case 'dec':
         changeStock(id, -1);
         break;
+      case 'review-done':
+        reviewDone();
+        break;
     }
   });
 
@@ -70,6 +80,7 @@ export function mount(el) {
     ([cats, products]) => {
       categories = cats;
 
+      reviewEl.hidden = products.length === 0;
       if (products.length === 0) {
         summaryEl.innerHTML = '';
         groupsEl.innerHTML = `
@@ -107,6 +118,14 @@ export function mount(el) {
   );
 }
 
+/** 見直し完了：購入済みの印をすべて外し、リストを更新して買い物リストへ移動 */
+async function reviewDone() {
+  await clearAllSuppression();
+  const r = await refreshFromStock();
+  location.hash = '#/list';
+  toast(r.added || r.updated ? `リストを更新しました（追加 ${r.added}品目）` : '足りない物はありません');
+}
+
 /** 商品1行分の HTML */
 function rowHtml(p) {
   const short = shortage(p);
@@ -118,7 +137,7 @@ function rowHtml(p) {
         <div class="stock-meta">
           <span>目標 ${p.targetStock}${unit}</span>
           ${short ? `<span class="badge badge-short">あと${short}${unit}</span>` : ''}
-          ${p.autoAddSuppressed ? '<span class="badge badge-muted">購入済み</span>' : ''}
+          ${p.autoAddSuppressed ? '<span class="badge badge-muted">購入済み・在庫未更新</span>' : ''}
         </div>
       </button>
       <div class="qty">

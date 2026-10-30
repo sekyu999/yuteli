@@ -31,10 +31,14 @@ function show() {
   const key = currentRoute();
   const screen = ROUTES[key];
 
-  // 前の画面の監視を止めてから中身を入れ替える
+  // 前の画面の監視を止めてから中身を入れ替える。
+  // 画面ごとに新しい入れ物を作るので、前の画面のタップ処理は入れ物ごと消える。
   if (typeof cleanup === 'function') cleanup();
-  screenEl.replaceChildren();
-  cleanup = screen.mount(screenEl) ?? null;
+  // 開いたままのシート（戻るジェスチャーで画面が変わった時など）を閉じる
+  document.querySelectorAll('dialog.sheet[open]').forEach((d) => d.close());
+  const container = document.createElement('div');
+  screenEl.replaceChildren(container);
+  cleanup = screen.mount(container) ?? null;
 
   titleEl.textContent = screen.title;
   document.title = `${screen.title} | YUTELI`;

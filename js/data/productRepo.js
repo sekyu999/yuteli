@@ -83,6 +83,14 @@ export async function changeStock(id, delta) {
   });
 }
 
+/**
+ * 購入済み抑制フラグを設定する（買い物リストで購入済みにした時・取り消した時に使う）。
+ * updatedAt は変えない（ユーザーが商品を編集したわけではないため）。
+ */
+export async function setSuppressed(id, flag) {
+  await db.products.update(id, { autoAddSuppressed: !!flag });
+}
+
 /** 「見直し完了」：全商品の購入済み抑制を解除する */
 export async function clearAllSuppression() {
   await db.products.toCollection().modify({ autoAddSuppressed: false });

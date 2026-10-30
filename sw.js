@@ -2,7 +2,8 @@
 // 方針：ネットにつながる時は常に最新のファイルを取り、つながらない時だけ保存済みのものを使う。
 // そのため、ファイルを更新したときにキャッシュが原因で古い画面が出る、ということが起きにくい。
 
-const CACHE = 'yuteli-v2';
+// アプリを更新したら版を上げる（js/lib/version.js と合わせる）
+const CACHE = 'yuteli-1.0.0';
 
 // オフラインでも開けるように最初に保存しておくファイル
 const APP_FILES = [
@@ -11,26 +12,38 @@ const APP_FILES = [
   'manifest.webmanifest',
   'css/base.css',
   'css/components.css',
+  'icons/apple-touch-icon.png',
+  'icons/icon-192.png',
   'js/app.js',
-  'js/lib/util.js',
-  'js/ui/live.js',
-  'js/ui/sheet.js',
-  'js/ui/form.js',
-  'js/ui/toast.js',
-  'js/data/db.js',
-  'js/data/storage.js',
+  'js/content/healthRecommendations.js',
+  'js/data/backup.js',
   'js/data/categoryRepo.js',
+  'js/data/db.js',
+  'js/data/metaRepo.js',
+  'js/data/priceRepo.js',
   'js/data/productRepo.js',
-  'js/domain/units.js',
+  'js/data/shoppingRepo.js',
+  'js/data/storage.js',
+  'js/data/storeRepo.js',
+  'js/domain/backupFormat.js',
+  'js/domain/pricing.js',
   'js/domain/product.js',
+  'js/domain/shelf.js',
+  'js/domain/shoppingList.js',
+  'js/domain/units.js',
+  'js/lib/util.js',
+  'js/lib/version.js',
+  'js/screens/health.js',
+  'js/screens/priceSheet.js',
+  'js/screens/prices.js',
+  'js/screens/settings.js',
   'js/screens/shopping.js',
   'js/screens/stock.js',
-  'js/screens/prices.js',
-  'js/screens/health.js',
-  'js/screens/settings.js',
+  'js/ui/form.js',
+  'js/ui/live.js',
+  'js/ui/sheet.js',
+  'js/ui/toast.js',
   'vendor/dexie.mjs',
-  'icons/icon-192.png',
-  'icons/apple-touch-icon.png',
 ];
 
 self.addEventListener('install', (event) => {

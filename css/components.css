@@ -14,8 +14,8 @@
 
 .screen {
   padding: var(--gap);
-  /* 下のタブに隠れないよう余白をとる */
-  padding-bottom: calc(var(--tabbar-h) + var(--safe-bottom) + var(--gap) * 2);
+  /* 下のタブと右下のボタンに隠れないよう余白をとる */
+  padding-bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 96px);
   max-width: 640px;
   margin: 0 auto;
   outline: none;
@@ -324,4 +324,194 @@ html.sheet-open { overflow: hidden; }
   transition: opacity 0.15s, transform 0.15s;
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
+.toast.has-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: calc(100% - 32px);
+  max-width: 560px;
+  padding: 6px 6px 6px 16px;
+  border-radius: 14px;
+  pointer-events: auto;
+}
+.toast-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.toast-action {
+  flex: none;
+  min-height: 40px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  color: var(--accent-soft);
+  font-weight: 700;
+  font-size: 15px;
+}
+@media (prefers-color-scheme: dark) { .toast-action { color: var(--accent); filter: brightness(0.7); } }
 .stepper-btn:disabled { opacity: 0.35; }
+
+/* ===== 買い物リスト ===== */
+.toolbar { display: flex; align-items: center; gap: 12px; }
+.toolbar-label { flex: none; font-weight: 600; }
+.toolbar .select { flex: 1; }
+.notice-link { display: block; color: inherit; text-decoration: none; }
+.item-row { gap: 4px !important; padding-left: 4px !important; }
+.check {
+  flex: none;
+  width: var(--tap);
+  height: var(--tap);
+  border: none;
+  background: none;
+  position: relative;
+}
+.check::before {
+  content: "";
+  position: absolute;
+  inset: 11px;
+  border: 2px solid var(--text-sub);
+  border-radius: 50%;
+}
+.item-row.done .check::before {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.item-row.done .check::after {
+  content: "";
+  position: absolute;
+  left: 19px;
+  top: 15px;
+  width: 7px;
+  height: 13px;
+  border: solid #fff;
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
+}
+.item-row.done .item-name { text-decoration: line-through; color: var(--text-sub); }
+.item-main {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 0;
+  border: none;
+  background: none;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.item-name { font-weight: 600; font-size: 18px; }
+.item-qty {
+  flex: none;
+  min-width: 48px;
+  text-align: right;
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.item-qty small { display: block; font-size: 12px; font-weight: 400; color: var(--text-sub); }
+
+/* ===== 切り替えボタン ===== */
+.segmented {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--border);
+}
+.segmented button {
+  min-height: 40px;
+  border: none;
+  border-radius: 9px;
+  background: none;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+.segmented button[aria-selected="true"] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
+}
+
+/* ===== 価格 ===== */
+.row-button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 4px 0;
+  border: none;
+  background: none;
+  text-align: left;
+}
+.list > li:has(> .row-button) { padding-top: 6px; padding-bottom: 6px; }
+.row-button .grow { display: flex; flex-direction: column; gap: 2px; }
+.price-line { font-size: 15px; }
+.stale { color: var(--danger) !important; }
+.compare-row.is-cheapest { background: var(--accent-soft); }
+.compare-row .grow { display: flex; flex-direction: column; gap: 2px; }
+.compare-price {
+  flex: none;
+  text-align: right;
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.compare-price small { display: block; font-size: 11px; font-weight: 400; color: var(--text-sub); }
+.icon-btn {
+  flex: none;
+  min-width: 44px;
+  height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: 15px;
+}
+.icon-btn:disabled { opacity: 0.3; }
+.shelf-list > li { gap: 8px; }
+.shelf-no {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== 健康・食材 ===== */
+.concern-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.concern {
+  min-height: 52px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-weight: 600;
+}
+.concern[aria-checked="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.rec-title { font-size: 20px; }
+.food-row { align-items: flex-start !important; padding-top: 12px !important; padding-bottom: 12px !important; }
+.food-howto { display: block; margin-top: 4px; font-size: 14px; }
+.add-food { align-self: center; color: var(--accent); font-weight: 700; white-space: nowrap; }
+.add-food:disabled { color: var(--text-sub); opacity: 1; font-weight: 400; font-size: 13px; }
+.tips { margin: 0; padding-left: 1.2em; }
+.tips li + li { margin-top: 6px; }
+.disclaimer { padding: 12px; border: 1px solid var(--border); border-radius: var(--radius); }
+.badge + .badge { margin-left: 0; }
+.chips .badge { font-weight: 500; }
+
+/* ===== 設定 ===== */
+.btn-danger { color: var(--danger); border-color: var(--danger); background: var(--surface); }
+.compare-table { width: 100%; margin-top: 12px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.compare-table th, .compare-table td { padding: 8px 4px; border-bottom: 1px solid var(--border); text-align: right; }
+.compare-table th:first-child { text-align: left; font-weight: 600; }
+.compare-table thead th { font-size: 13px; color: var(--text-sub); font-weight: 600; }
