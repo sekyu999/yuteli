@@ -2,7 +2,7 @@
 // 方針：ネットにつながる時は常に最新のファイルを取り、つながらない時だけ保存済みのものを使う。
 // そのため、ファイルを更新したときにキャッシュが原因で古い画面が出る、ということが起きにくい。
 
-const CACHE = 'yuteli-v1';
+const CACHE = 'yuteli-v2';
 
 // オフラインでも開けるように最初に保存しておくファイル
 const APP_FILES = [
@@ -14,11 +14,15 @@ const APP_FILES = [
   'js/app.js',
   'js/lib/util.js',
   'js/ui/live.js',
+  'js/ui/sheet.js',
+  'js/ui/form.js',
+  'js/ui/toast.js',
   'js/data/db.js',
   'js/data/storage.js',
   'js/data/categoryRepo.js',
   'js/data/productRepo.js',
   'js/domain/units.js',
+  'js/domain/product.js',
   'js/screens/shopping.js',
   'js/screens/stock.js',
   'js/screens/prices.js',
