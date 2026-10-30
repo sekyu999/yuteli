@@ -1,0 +1,144 @@
+/* ===== 画面の枠 ===== */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: calc(var(--header-h) + var(--safe-top));
+  padding: var(--safe-top) var(--gap) 0;
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.app-header h1 { font-size: 20px; font-weight: 700; }
+
+.screen {
+  padding: var(--gap);
+  /* 下のタブに隠れないよう余白をとる */
+  padding-bottom: calc(var(--tabbar-h) + var(--safe-bottom) + var(--gap) * 2);
+  max-width: 640px;
+  margin: 0 auto;
+  outline: none;
+}
+
+/* ===== 下部タブ ===== */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  height: calc(var(--tabbar-h) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+.tabbar a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--text-sub);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 600;
+}
+.tabbar svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tabbar a[aria-current="page"] { color: var(--accent); }
+
+/* ===== カード・リスト ===== */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--gap);
+}
+.stack > * + * { margin-top: var(--gap); }
+
+.section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-sub);
+  margin-bottom: 8px;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.list > li {
+  min-height: var(--tap);
+  padding: 10px var(--gap);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.list > li + li { border-top: 1px solid var(--border); }
+.list .grow { flex: 1; min-width: 0; }
+.list .sub { color: var(--text-sub); font-size: 14px; }
+
+/* ===== ボタン ===== */
+.btn {
+  min-height: var(--tap);
+  padding: 0 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+@media (prefers-color-scheme: dark) {
+  .btn-primary { color: #10170f; }
+}
+.btn-block { width: 100%; }
+.btn:active { opacity: 0.7; }
+
+/* ===== 表示用の小物 ===== */
+.note {
+  font-size: 14px;
+  color: var(--text-sub);
+}
+.notice {
+  padding: 12px var(--gap);
+  border-radius: var(--radius);
+  background: var(--warn-soft);
+  font-size: 15px;
+}
+.placeholder {
+  padding: 32px var(--gap);
+  text-align: center;
+  color: var(--text-sub);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.num { font-variant-numeric: tabular-nums; }
