@@ -515,3 +515,77 @@ html.sheet-open { overflow: hidden; }
 .compare-table th, .compare-table td { padding: 8px 4px; border-bottom: 1px solid var(--border); text-align: right; }
 .compare-table th:first-child { text-align: left; font-weight: 600; }
 .compare-table thead th { font-size: 13px; color: var(--text-sub); font-weight: 600; }
+
+/* ===== 商品フォームの区切り ===== */
+.form-section {
+  margin: 24px 0 0;
+  padding: 14px var(--gap) var(--gap);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.form-section legend { padding: 0 6px; font-weight: 700; }
+.meal-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.meal-input label { display: block; font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+.meal-input .input { min-width: 0; padding: 0 8px; text-align: right; }
+.unit-suffix { flex: none; color: var(--text-sub); font-size: 14px; }
+.more-nutrients { margin-top: 18px; }
+.more-nutrients summary { min-height: 44px; display: flex; align-items: center; color: var(--accent); font-weight: 600; }
+.nut-field + .nut-field { margin-top: 12px; }
+
+/* ===== 在庫の「リストへ」ボタン ===== */
+.stock-row { padding-right: 8px !important; }
+.qty .stepper-btn { width: 40px; height: 40px; }
+.cart-btn {
+  flex: none;
+  width: 48px;
+  min-height: 48px;
+  padding: 2px 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  color: var(--text-sub);
+  font-size: 9.5px;
+  font-weight: 700;
+}
+.cart-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.cart-btn.is-listed { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.food-results .row-button .grow { gap: 2px; }
+
+/* ===== 食事（栄養・食費） ===== */
+.card-title { font-size: 17px; margin-bottom: 10px; }
+.notice-card { background: var(--warn-soft); border-color: transparent; }
+.meal-tabs button { min-height: 36px; }
+.nutri-list { list-style: none; margin: 0; padding: 0; }
+.nutri-row { padding: 8px 0; border-top: 1px solid var(--border); }
+.nutri-row:first-child { border-top: none; }
+.nutri-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.nutri-name { font-weight: 600; }
+.nutri-value { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.nutri-value small { font-size: 12px; font-weight: 400; color: var(--text-sub); margin-left: 2px; }
+.nutri-bar { position: relative; height: 6px; margin: 6px 0 4px; border-radius: 3px; background: var(--bg); overflow: hidden; }
+.nutri-bar span { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 3px; }
+.nutri-bar i { position: absolute; top: 0; bottom: 0; left: 66.6%; width: 2px; background: var(--text-sub); }
+.nutri-foot { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+.nutri-status { font-weight: 700; color: var(--accent); }
+.nutri-row.is-low .nutri-bar span { background: #d99a1e; }
+.nutri-row.is-low .nutri-status { color: #a86d00; }
+.nutri-row.is-high .nutri-bar span { background: var(--danger); }
+.nutri-row.is-high .nutri-status { color: var(--danger); }
+@media (prefers-color-scheme: dark) { .nutri-row.is-low .nutri-status { color: #f0c46b; } }
+.cost-main { display: flex; gap: 24px; align-items: flex-end; }
+.cost-main > div { display: flex; flex-direction: column; }
+.cost-big { font-size: 28px; font-variant-numeric: tabular-nums; }
+.cost-meals { display: flex; gap: 16px; margin-top: 8px; font-variant-numeric: tabular-nums; }
+.cost-meals > div { display: flex; gap: 6px; align-items: baseline; }
+.meal-heading { font-size: 15px; margin: 14px 0 6px; color: var(--text-sub); }
+.link-btn { padding: 0; min-height: 32px; border: none; background: none; color: var(--accent); font-weight: 600; text-decoration: underline; }
+.seg-radio { display: flex; align-items: center; justify-content: center; min-height: 40px; border-radius: 9px; font-weight: 600; color: var(--text-sub); cursor: pointer; }
+.seg-radio input { position: absolute; opacity: 0; pointer-events: none; }
+.seg-radio:has(input:checked) { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgb(0 0 0 / 0.12); }
+.radio-row { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; font-weight: 400 !important; }
+.radio-row input { width: 22px; height: 22px; margin-top: 2px; accent-color: var(--accent); flex: none; }

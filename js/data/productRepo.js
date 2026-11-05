@@ -1,7 +1,8 @@
 // 商品マスタの読み書き
 // 購入済み抑制フラグ（autoAddSuppressed）の切り替えはこのファイルの中だけで行う。
 import { db } from './db.js';
-import { newId, nowIso } from '../lib/util.js';
+import { newId, nowIso, todayLocal } from '../lib/util.js';
+import { effectiveStock, round2 } from '../domain/consumption.js';
 import { validateProductInput, nameKey } from '../domain/product.js';
 
 /**
@@ -15,6 +16,10 @@ import { validateProductInput, nameKey } from '../domain/product.js';
  * @property {number|null} packageContent 内容量（任意。g / ml / 個 に正規化済み）
  * @property {'g'|'ml'|'個'|null} packageContentUnit
  * @property {boolean} autoAddSuppressed  購入済みのため自動追加を止めている
+ * @property {{breakfast:number, lunch:number, dinner:number}} consumption 毎日の量（入力単位）
+ * @property {number|null} gramsPerUnit   入力単位1つの重さ g（個・パックで入力する場合の栄養計算用）
+ * @property {{source:'mext'|'label', code?:string, name:string, per100g:object, basisGrams?:number}|null} nutrition
+ * @property {string} stockUpdatedOn      currentStock を確定した日（ここから毎日の量ぶん自動で減る）
  * @property {string} createdAt
  * @property {string} updatedAt
  */
@@ -51,7 +56,14 @@ export async function createProduct(raw) {
   if (!r.ok) throw new ValidationError(r.errors);
   const t = nowIso();
   /** @type {Product} */
-  const product = { id: newId(), ...r.value, autoAddSuppressed: false, createdAt: t, updatedAt: t };
+  const product = {
+    id: newId(),
+    ...r.value,
+    autoAddSuppressed: false,
+    stockUpdatedOn: todayLocal(),
+    createdAt: t,
+    updatedAt: t,
+  };
   await db.transaction('rw', db.products, async () => {
     await assertUniqueName(product.name);
     await db.products.add(product);
@@ -78,8 +90,9 @@ export async function changeStock(id, delta) {
   await db.transaction('rw', db.products, async () => {
     const cur = await db.products.get(id);
     if (!cur) return;
-    const next = Math.min(999, Math.max(0, cur.currentStock + delta));
-    await applyChanges(id, { currentStock: next });
+    // 自動で減った分を反映した「今日の在庫」から増減する
+    const next = Math.min(999, Math.max(0, round2(effectiveStock(cur, todayLocal()) + delta)));
+    await applyChanges(id, { currentStock: next }, { userChangedStock: true });
   });
 }
 
@@ -119,14 +132,22 @@ export async function countRelated(id) {
 
 // ---- 内部用 ----
 
-/** 変更を書き込む共通処理。必ずトランザクションの中から呼ぶ */
-async function applyChanges(id, changes) {
+/**
+ * 変更を書き込む共通処理。必ずトランザクションの中から呼ぶ。
+ * - 在庫は「今日の在庫（自動で減った後）」で確定し直す（毎日の量を変えても過去の分がずれないように）
+ * - ユーザーが在庫数か目標在庫を変えたら購入済み抑制を解除する
+ */
+async function applyChanges(id, changes, { userChangedStock = false } = {}) {
   const cur = await db.products.get(id);
   if (!cur) throw new Error('商品が見つかりません');
+  const today = todayLocal();
+  const nowStock = effectiveStock(cur, today);
+  const nextStock = 'currentStock' in changes ? changes.currentStock : nowStock;
   const stockChanged =
-    ('currentStock' in changes && changes.currentStock !== cur.currentStock) ||
+    userChangedStock ||
+    Math.abs(nextStock - nowStock) > 0.004 ||
     ('targetStock' in changes && changes.targetStock !== cur.targetStock);
-  const next = { ...changes, updatedAt: nowIso() };
+  const next = { ...changes, currentStock: nextStock, stockUpdatedOn: today, updatedAt: nowIso() };
   delete next.id;
   delete next.createdAt;
   if (stockChanged) next.autoAddSuppressed = false;

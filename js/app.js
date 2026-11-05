@@ -3,7 +3,7 @@
 import * as shopping from './screens/shopping.js';
 import * as stock from './screens/stock.js';
 import * as prices from './screens/prices.js';
-import * as health from './screens/health.js';
+import * as meals from './screens/meals.js';
 import * as settings from './screens/settings.js';
 import { db } from './data/db.js';
 import { requestPersistence } from './data/storage.js';
@@ -13,7 +13,9 @@ import { requestPersistence } from './data/storage.js';
  *   title           … ヘッダーに出す名前
  *   mount(el)       … el の中に画面を作る。片付け用の関数を返す（任意）
  */
-const ROUTES = { list: shopping, stock, prices, health, settings };
+const ROUTES = { list: shopping, stock, prices, meals, settings };
+/** 以前の URL（#/health）で開いても食事画面を出す */
+const ALIASES = { health: 'meals' };
 const DEFAULT_ROUTE = 'list';
 
 const screenEl = document.getElementById('screen');
@@ -23,7 +25,8 @@ const tabs = document.querySelectorAll('.tabbar a');
 let cleanup = null;
 
 function currentRoute() {
-  const key = location.hash.replace(/^#\/?/, '').split('/')[0];
+  const raw = location.hash.replace(/^#\/?/, '').split('/')[0];
+  const key = ALIASES[raw] ?? raw;
   return key in ROUTES ? key : DEFAULT_ROUTE;
 }
 
@@ -61,6 +64,17 @@ async function start() {
 
   window.addEventListener('hashchange', show);
   show();
+
+  // 日付が変わってからアプリに戻った時は描き直す（毎日の在庫の自動減少を反映するため）
+  let shownDate = new Date().toDateString();
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    const d = new Date().toDateString();
+    if (d !== shownDate) {
+      shownDate = d;
+      show();
+    }
+  });
 
   requestPersistence();
 

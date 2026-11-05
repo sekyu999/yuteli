@@ -23,7 +23,8 @@ import {
 import { groupByCategory } from '../domain/shelf.js';
 import { shortage } from '../domain/product.js';
 import { openPriceSheet } from './priceSheet.js';
-import { esc } from '../lib/util.js';
+import { esc, todayLocal } from '../lib/util.js';
+import { effectiveStock } from '../domain/consumption.js';
 
 export const title = '買い物リスト';
 
@@ -138,7 +139,7 @@ function itemRowHtml(it, product) {
   const badges = [];
   if (it.source === 'manual' && !it.productId) badges.push('<span class="badge badge-muted">手動</span>');
   if (it.source === 'health') badges.push('<span class="badge badge-muted">健康提案</span>');
-  if (product && shortage(product) === 0) badges.push('<span class="badge">在庫は足りています</span>');
+  if (product && shortage({ ...product, currentStock: effectiveStock(product, todayLocal()) }) === 0) badges.push('<span class="badge">在庫は足りています</span>');
   return `
     <li class="item-row">
       <button type="button" class="check" data-action="buy" data-id="${it.id}" aria-label="${esc(it.name)}を購入済みにする"></button>

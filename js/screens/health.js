@@ -8,7 +8,7 @@ import { listItems, addManualItem } from '../data/shoppingRepo.js';
 import { nameKey } from '../domain/product.js';
 import { esc } from '../lib/util.js';
 
-export const title = '健康・食材';
+export const title = '食材の提案';
 
 /** 選んでいる悩み（画面を離れても覚えておく） */
 let selectedId = null;

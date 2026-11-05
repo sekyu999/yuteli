@@ -9,12 +9,13 @@
 // }
 
 export const APP_ID = 'yuteli';
-export const CURRENT_SCHEMA_VERSION = 1;
+export const CURRENT_SCHEMA_VERSION = 2;
 
 const isStr = (v) => typeof v === 'string' && v.length > 0;
 const isStrOrNull = (v) => v === null || v === undefined || typeof v === 'string';
 const isNum = (v) => typeof v === 'number' && Number.isFinite(v);
 const isCount = (v) => Number.isInteger(v) && v >= 0;
+const isAmount = (v) => isNum(v) && v >= 0;
 
 /** テーブルごとの必須項目チェック。問題があれば理由を返す */
 const RULES = {
@@ -26,7 +27,7 @@ const RULES = {
         ? 'categoryId'
         : !isStr(r.inventoryUnit)
           ? 'inventoryUnit'
-          : !isCount(r.currentStock)
+          : !isAmount(r.currentStock)
             ? 'currentStock'
             : !isCount(r.targetStock)
               ? 'targetStock'
@@ -56,11 +57,23 @@ export const BACKUP_TABLES = Object.keys(RULES);
  * 古い版のバックアップを今の版に変換する関数。
  * 例：版2で項目を追加したら  2: (b) => { …版1→版2の変換… ; return b; }
  */
-const MIGRATIONS = {};
+const MIGRATIONS = {
+  // 版1 → 版2：商品に毎日の量・栄養データなどを追加。設定（プロフィール）欄を追加
+  2: (b) => {
+    for (const p of b.data.products ?? []) {
+      p.consumption ??= { breakfast: 0, lunch: 0, dinner: 0 };
+      p.gramsPerUnit ??= null;
+      p.nutrition ??= null;
+      p.stockUpdatedOn ??= (b.exportedAt ?? '').slice(0, 10) || null;
+    }
+    b.settings ??= {};
+    return b;
+  },
+};
 
-/** バックアップ用のオブジェクトを作る */
-export function buildBackup(data, exportedAt) {
-  const out = { app: APP_ID, schemaVersion: CURRENT_SCHEMA_VERSION, exportedAt, data: {} };
+/** バックアップ用のオブジェクトを作る（settings：プロフィールなどの設定） */
+export function buildBackup(data, exportedAt, settings = {}) {
+  const out = { app: APP_ID, schemaVersion: CURRENT_SCHEMA_VERSION, exportedAt, settings, data: {} };
   for (const t of BACKUP_TABLES) out.data[t] = data[t] ?? [];
   return out;
 }
@@ -114,6 +127,10 @@ export function parseBackup(text) {
     counts[t] = rows.length;
   }
   if (counts.categories === 0) return { ok: false, error: 'カテゴリが1件もありません。' };
+  if (backup.settings !== undefined && (typeof backup.settings !== 'object' || backup.settings === null)) {
+    return { ok: false, error: '設定の形式が正しくありません。' };
+  }
+  backup.settings ??= {};
 
   return { ok: true, backup, counts };
 }

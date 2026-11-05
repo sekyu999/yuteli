@@ -22,6 +22,7 @@ import { ValidationError } from '../data/productRepo.js';
 import { parseBackup, BACKUP_TABLES } from '../domain/backupFormat.js';
 import { move } from '../domain/shelf.js';
 import { APP_VERSION } from '../lib/version.js';
+import { openProfileSheet, profileSummary } from './profileSheet.js';
 import { esc } from '../lib/util.js';
 
 export const title = '設定';
@@ -64,6 +65,14 @@ export function mount(el) {
       </section>
 
       <section>
+        <h2 class="section-title">栄養の目標</h2>
+        <ul class="list">
+          <li><button type="button" class="row-button" data-action="profile">
+            <span class="grow">性別・年齢・活動量<span class="note" style="display:block" id="profile-summary"></span></span><span class="note">›</span></button></li>
+        </ul>
+      </section>
+
+      <section>
         <h2 class="section-title">カテゴリ</h2>
         <ul class="list">
           <li><button type="button" class="row-button" data-action="categories">
@@ -81,7 +90,9 @@ export function mount(el) {
         <button type="button" class="btn btn-block btn-danger" data-action="reset">すべてのデータを消去</button>
       </section>
 
-      <p class="note" style="text-align:center">YUTELI ${esc(APP_VERSION)}</p>
+      <p class="note" style="text-align:center">YUTELI ${esc(APP_VERSION)}<br>
+        栄養データ：日本食品標準成分表（八訂）増補2023年（文部科学省）<br>
+        栄養の目標：日本人の食事摂取基準（2025年版）（厚生労働省）</p>
     </div>
   `;
 
@@ -122,6 +133,9 @@ export function mount(el) {
       case 'categories':
         openCategorySheet();
         break;
+      case 'profile':
+        openProfileSheet();
+        break;
       case 'reset':
         if (!window.confirm('すべてのデータ（商品・在庫・買い物リスト・店舗・価格記録）を消去します。よろしいですか？')) return;
         if (!window.confirm('本当に消去しますか？この操作は取り消せません。\n必要なら先にバックアップを保存してください。')) return;
@@ -134,8 +148,9 @@ export function mount(el) {
   const lastEl = el.querySelector('#last-backup');
   const countsEl = el.querySelector('#counts');
   return watch(
-    () => Promise.all([currentCounts(), getMeta(META.lastBackupAt)]),
-    ([counts, last]) => {
+    () => Promise.all([currentCounts(), getMeta(META.lastBackupAt), getMeta(META.profile)]),
+    ([counts, last, profile]) => {
+      el.querySelector('#profile-summary').textContent = profileSummary(profile);
       lastEl.innerHTML = last ? esc(formatDateTime(last)) : '<span class="stale">まだありません</span>';
       countsEl.innerHTML = Object.entries(TABLE_LABELS)
         .map(([k, label]) => `<li><span class="grow">${label}</span><span class="num">${counts[k]} 件</span></li>`)

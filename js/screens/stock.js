@@ -1,35 +1,22 @@
 // ② 在庫・商品管理
 // ・カテゴリ別に商品を表示し、± で現在庫をその場で変える
+// ・毎日食べる物は在庫が自動で減り、「あと◯日」を表示
+// ・🛒ボタンでその商品を買い物リストへ入れる
 // ・商品名をタップすると編集シート、右下の「＋ 商品」で登録シート
 import { watch } from '../ui/live.js';
-import { openSheet } from '../ui/sheet.js';
-import {
-  stepperField,
-  bindSteppers,
-  bindErrorClear,
-  clearError,
-  showErrors,
-  formValues,
-} from '../ui/form.js';
 import { toast } from '../ui/toast.js';
 import { listCategories } from '../data/categoryRepo.js';
-import {
-  listProducts,
-  getProduct,
-  createProduct,
-  saveProduct,
-  changeStock,
-  deleteProduct,
-  countRelated,
-  clearAllSuppression,
-  ValidationError,
-} from '../data/productRepo.js';
-import { refreshFromStock } from '../data/shoppingRepo.js';
-import { INVENTORY_UNITS, shortage } from '../domain/product.js';
-import { INPUT_UNITS } from '../domain/units.js';
-import { esc } from '../lib/util.js';
+import { listProducts, changeStock, clearAllSuppression } from '../data/productRepo.js';
+import { refreshFromStock, listItems, addProductToList, removeProductFromList } from '../data/shoppingRepo.js';
+import { shortage } from '../domain/product.js';
+import { effectiveStock, dailyStockUse, daysLeft, formatStock, stockInContent, isDaily } from '../domain/consumption.js';
+import { openProductSheet } from './productSheet.js';
+import { esc, todayLocal } from '../lib/util.js';
 
 export const title = '在庫';
+
+/** これ以下の日数で「もうすぐなくなる」と表示 */
+const LOW_DAYS = 3;
 
 export function mount(el) {
   el.innerHTML = `
@@ -46,21 +33,18 @@ export function mount(el) {
   const summaryEl = el.querySelector('#stock-summary');
   const groupsEl = el.querySelector('#stock-groups');
   const reviewEl = el.querySelector('#review-done');
+  let inList = new Set();
 
-  /** 最新のカテゴリ一覧（シートで使う） */
-  let categories = [];
-
-  // ---- タップ操作（画面全体で1つのリスナーにまとめる） ----
-  el.addEventListener('click', (e) => {
+  el.addEventListener('click', async (e) => {
     const target = e.target.closest('[data-action]');
     if (!target) return;
     const id = target.dataset.id;
     switch (target.dataset.action) {
       case 'add':
-        openProductSheet(categories);
+        openProductSheet();
         break;
       case 'edit':
-        openProductSheet(categories, id);
+        openProductSheet(id);
         break;
       case 'inc':
         changeStock(id, 1);
@@ -68,17 +52,29 @@ export function mount(el) {
       case 'dec':
         changeStock(id, -1);
         break;
+      case 'to-list': {
+        if (inList.has(id)) {
+          await removeProductFromList(id);
+          toast('リストから外しました');
+        } else {
+          const r = await addProductToList(id);
+          toast(`「${r.item.name}」${r.item.quantity}${r.item.unit ?? ''}をリストに入れました`);
+        }
+        break;
+      }
       case 'review-done':
         reviewDone();
         break;
     }
   });
 
-  // ---- 表示（データが変わるたびに自動で呼ばれる） ----
   return watch(
-    () => Promise.all([listCategories(), listProducts()]),
-    ([cats, products]) => {
-      categories = cats;
+    () => Promise.all([listCategories(), listProducts(), listItems()]),
+    ([cats, products, items]) => {
+      const today = todayLocal();
+      inList = new Set(items.filter((i) => i.productId).map((i) => i.productId));
+      // 自動で減った分を反映した「今日の在庫」で表示する
+      const view = products.map((p) => ({ ...p, stockNow: effectiveStock(p, today), left: daysLeft(p, today) }));
 
       reviewEl.hidden = products.length === 0;
       if (products.length === 0) {
@@ -91,18 +87,19 @@ export function mount(el) {
         return;
       }
 
-      const shortCount = products.filter((p) => shortage(p) > 0).length;
+      const shortCount = view.filter((p) => shortage({ ...p, currentStock: p.stockNow }) > 0).length;
+      const lowCount = view.filter((p) => p.left !== null && p.left <= LOW_DAYS).length;
       summaryEl.innerHTML = `
         <span class="badge badge-muted">${products.length} 品目</span>
         ${shortCount ? `<span class="badge badge-short">不足 ${shortCount} 品目</span>` : '<span class="badge">不足なし</span>'}
+        ${lowCount ? `<span class="badge badge-short">${LOW_DAYS}日以内になくなる ${lowCount} 品目</span>` : ''}
       `;
 
-      // カテゴリ順にまとめる。カテゴリが消えた商品は「未分類」へ
       const known = new Set(cats.map((c) => c.id));
       const groups = cats
-        .map((c) => ({ name: c.name, items: products.filter((p) => p.categoryId === c.id) }))
+        .map((c) => ({ name: c.name, items: view.filter((p) => p.categoryId === c.id) }))
         .filter((g) => g.items.length);
-      const orphans = products.filter((p) => !known.has(p.categoryId));
+      const orphans = view.filter((p) => !known.has(p.categoryId));
       if (orphans.length) groups.push({ name: '未分類', items: orphans });
 
       groupsEl.innerHTML = groups
@@ -110,7 +107,7 @@ export function mount(el) {
           (g) => `
           <section>
             <h2 class="section-title">${esc(g.name)}</h2>
-            <ul class="list">${g.items.map(rowHtml).join('')}</ul>
+            <ul class="list">${g.items.map((p) => rowHtml(p, inList.has(p.id))).join('')}</ul>
           </section>`
         )
         .join('');
@@ -127,150 +124,40 @@ async function reviewDone() {
 }
 
 /** 商品1行分の HTML */
-function rowHtml(p) {
-  const short = shortage(p);
+function rowHtml(p, listed) {
+  const short = shortage({ ...p, currentStock: p.stockNow });
   const unit = esc(p.inventoryUnit);
+  const inContent = stockInContent(p, p.stockNow);
+  const daily = isDaily(p);
+  const meta = [`<span>目標 ${p.targetStock}${unit}</span>`];
+  if (daily) {
+    meta.push(
+      `<span class="badge ${p.left <= LOW_DAYS ? 'badge-short' : 'badge-muted'}">毎日 ${formatStock(Math.round(dailyStockUse(p) * 100) / 100)}${unit}・あと${p.left}日</span>`
+    );
+  }
+  if (short) meta.push(`<span class="badge badge-short">あと${short}${unit}必要</span>`);
+  if (p.autoAddSuppressed) meta.push('<span class="badge badge-muted">購入済み・在庫未更新</span>');
   return `
     <li class="stock-row">
       <button type="button" class="stock-main" data-action="edit" data-id="${p.id}">
         <div class="stock-name">${esc(p.name)}</div>
-        <div class="stock-meta">
-          <span>目標 ${p.targetStock}${unit}</span>
-          ${short ? `<span class="badge badge-short">あと${short}${unit}</span>` : ''}
-          ${p.autoAddSuppressed ? '<span class="badge badge-muted">購入済み・在庫未更新</span>' : ''}
-        </div>
+        <div class="stock-meta">${meta.join('')}</div>
       </button>
       <div class="qty">
         <button type="button" class="stepper-btn" data-action="dec" data-id="${p.id}"
-                aria-label="${esc(p.name)}を1減らす" ${p.currentStock <= 0 ? 'disabled' : ''}>−</button>
-        <div class="qty-value" aria-label="現在庫 ${p.currentStock}${unit}">${p.currentStock}<small>${unit}</small></div>
+                aria-label="${esc(p.name)}を1減らす" ${p.stockNow <= 0 ? 'disabled' : ''}>−</button>
+        <div class="qty-value" aria-label="現在庫 ${formatStock(p.stockNow)}${unit}">${formatStock(p.stockNow)}<small>${unit}</small>${
+          inContent !== null && daily ? `<small>${inContent}${esc(p.packageContentUnit)}</small>` : ''
+        }</div>
         <button type="button" class="stepper-btn" data-action="inc" data-id="${p.id}"
                 aria-label="${esc(p.name)}を1増やす">＋</button>
       </div>
+      <button type="button" class="cart-btn ${listed ? 'is-listed' : ''}" data-action="to-list" data-id="${p.id}"
+              aria-pressed="${listed}" aria-label="${esc(p.name)}を${listed ? '買い物リストから外す' : '買い物リストに入れる'}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.4 11h10.2L20 7H6.2"/><circle cx="9" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/>${
+          listed ? '<path d="M10 10.5l2 2 3.5-3.5" class="cart-check"/>' : ''
+        }</svg>
+        <span>${listed ? 'リスト済' : 'リストへ'}</span>
+      </button>
     </li>`;
-}
-
-/**
- * 商品の登録・編集シートを開く。
- * @param {Array} categories
- * @param {string} [id] 指定すると編集、省略すると新規登録
- */
-async function openProductSheet(categories, id) {
-  const product = id ? await getProduct(id) : null;
-  if (id && !product) return;
-
-  const v = product ?? {
-    name: '',
-    categoryId: '',
-    inventoryUnit: '',
-    currentStock: 0,
-    targetStock: 1,
-    packageContent: null,
-    packageContentUnit: 'g',
-  };
-
-  const body = `
-    <form novalidate>
-      <div class="field">
-        <label for="f-name">商品名</label>
-        <input id="f-name" name="name" class="input" value="${esc(v.name)}" autocomplete="off" enterkeyhint="next">
-        <p class="field-error" data-error-for="name"></p>
-      </div>
-
-      <div class="field">
-        <label for="f-categoryId">カテゴリ</label>
-        <select id="f-categoryId" name="categoryId" class="select">
-          <option value="">選んでください</option>
-          ${categories
-            .map((c) => `<option value="${c.id}" ${c.id === v.categoryId ? 'selected' : ''}>${esc(c.name)}</option>`)
-            .join('')}
-        </select>
-        <p class="field-error" data-error-for="categoryId"></p>
-      </div>
-
-      <div class="field">
-        <label for="f-inventoryUnit">数える単位</label>
-        <input id="f-inventoryUnit" name="inventoryUnit" class="input" value="${esc(v.inventoryUnit)}"
-               placeholder="パック、本 など" autocomplete="off">
-        <div class="chips">
-          ${INVENTORY_UNITS.map((u) => `<button type="button" class="chip" data-unit="${esc(u)}">${esc(u)}</button>`).join('')}
-        </div>
-        <p class="field-error" data-error-for="inventoryUnit"></p>
-      </div>
-
-      ${stepperField({ name: 'currentStock', label: '今ある数', value: v.currentStock, suffix: v.inventoryUnit })}
-      ${stepperField({ name: 'targetStock', label: '常に置いておきたい数（目標）', value: v.targetStock, suffix: v.inventoryUnit })}
-
-      <div class="field">
-        <label for="f-packageContent">1つあたりの内容量 <span class="optional">任意・価格比較に使います</span></label>
-        <div class="row">
-          <input id="f-packageContent" name="packageContent" class="input grow" inputmode="decimal"
-                 value="${v.packageContent ?? ''}" placeholder="例：1000" autocomplete="off">
-          <select name="packageContentUnit" class="select" style="width:96px" aria-label="内容量の単位">
-            ${INPUT_UNITS.map(
-              (u) => `<option value="${u}" ${u === (v.packageContentUnit ?? 'g') ? 'selected' : ''}>${u}</option>`
-            ).join('')}
-          </select>
-        </div>
-        <p class="field-error" data-error-for="packageContent"></p>
-      </div>
-
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary btn-block">${product ? '保存' : '登録'}</button>
-        ${product ? '<button type="button" class="btn-danger-text" data-delete>この商品を削除</button>' : ''}
-      </div>
-    </form>
-  `;
-
-  const sheet = openSheet({ title: product ? '商品を編集' : '商品を登録', body });
-  const form = sheet.el.querySelector('form');
-  bindSteppers(form);
-  bindErrorClear(form);
-
-  // 単位の候補をタップしたら入力欄に入れる。± の横の単位表示も合わせて変える
-  const unitInput = form.elements.namedItem('inventoryUnit');
-  const syncSuffix = () =>
-    form.querySelectorAll('.stepper-suffix').forEach((s) => (s.textContent = unitInput.value));
-  form.addEventListener('click', (e) => {
-    const chip = e.target.closest('[data-unit]');
-    if (!chip) return;
-    unitInput.value = chip.dataset.unit;
-    syncSuffix();
-    clearError(form, 'inventoryUnit');
-  });
-  unitInput.addEventListener('input', syncSuffix);
-
-  if (!product) form.elements.namedItem('name').focus();
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const values = formValues(form);
-    try {
-      if (product) await saveProduct(product.id, values);
-      else await createProduct(values);
-      sheet.close();
-      toast(product ? '保存しました' : `「${values.name.trim()}」を登録しました`);
-    } catch (err) {
-      if (err instanceof ValidationError) showErrors(form, err.errors);
-      else {
-        console.error(err);
-        toast('保存できませんでした');
-      }
-    }
-  });
-
-  form.querySelector('[data-delete]')?.addEventListener('click', async () => {
-    const rel = await countRelated(product.id);
-    const extra = [];
-    if (rel.listItems) extra.push(`買い物リストの項目 ${rel.listItems}件`);
-    if (rel.priceRecords) extra.push(`価格の記録 ${rel.priceRecords}件`);
-    const msg =
-      `「${product.name}」を削除しますか？` +
-      (extra.length ? `\n${extra.join('、')}も一緒に削除されます。` : '') +
-      '\nこの操作は取り消せません。';
-    if (!window.confirm(msg)) return;
-    await deleteProduct(product.id);
-    sheet.close();
-    toast('削除しました');
-  });
 }

@@ -14,4 +14,5 @@ export async function setMeta(key, value) {
 export const META = {
   selectedStoreId: 'selectedStoreId', // 買い物リストで選んでいる店舗
   lastBackupAt: 'lastBackupAt', // 最後にバックアップを保存した日時
+  profile: 'profile', // 栄養の目標に使う { sex, age, activity, menstruation }
 };

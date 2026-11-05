@@ -11,7 +11,7 @@ export function stepperField({ name, label, value = 0, suffix = '' }) {
       <label for="f-${name}">${esc(label)}</label>
       <div class="stepper">
         <button type="button" class="stepper-btn" data-step="-1" data-target="${name}" aria-label="${esc(label)}を1減らす">−</button>
-        <input id="f-${name}" name="${name}" type="text" inputmode="numeric" pattern="[0-9]*"
+        <input id="f-${name}" name="${name}" type="text" inputmode="decimal"
                value="${esc(value)}" autocomplete="off">
         <button type="button" class="stepper-btn" data-step="1" data-target="${name}" aria-label="${esc(label)}を1増やす">＋</button>
         ${suffix ? `<span class="stepper-suffix" data-suffix-for="${name}">${esc(suffix)}</span>` : ''}
@@ -27,9 +27,9 @@ export function bindSteppers(form) {
     const btn = e.target.closest('[data-step]');
     if (!btn) return;
     const input = form.elements.namedItem(btn.dataset.target);
-    const n = parseInt(input.value, 10);
+    const n = parseFloat(input.value);
     const next = Math.min(999, Math.max(0, (Number.isNaN(n) ? 0 : n) + Number(btn.dataset.step)));
-    input.value = String(next);
+    input.value = String(Math.round(next * 100) / 100);
     clearError(form, input.name);
   });
 }

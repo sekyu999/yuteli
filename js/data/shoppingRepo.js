@@ -1,8 +1,9 @@
 // 買い物リストの読み書き
 import { db } from './db.js';
-import { newId, nowIso } from '../lib/util.js';
+import { newId, nowIso, todayLocal } from '../lib/util.js';
+import { effectiveStock } from '../domain/consumption.js';
 import { planRefresh } from '../domain/shoppingList.js';
-import { nameKey } from '../domain/product.js';
+import { nameKey, shortage } from '../domain/product.js';
 import { setSuppressed } from './productRepo.js';
 
 /**
@@ -31,7 +32,10 @@ export function listItems() {
 export async function refreshFromStock() {
   return db.transaction('rw', db.products, db.shoppingListItems, async () => {
     const [products, items] = await Promise.all([db.products.toArray(), db.shoppingListItems.toArray()]);
-    const { toAdd, toUpdate } = planRefresh(products, items);
+    // 毎日の量で自動的に減った「今日の在庫」で判定する
+    const today = todayLocal();
+    const current = products.map((p) => ({ ...p, currentStock: effectiveStock(p, today) }));
+    const { toAdd, toUpdate } = planRefresh(current, items);
     const t = nowIso();
     await db.shoppingListItems.bulkAdd(
       toAdd.map((a) => ({
@@ -100,6 +104,41 @@ export async function addManualItem(input) {
     await db.shoppingListItems.add(item);
     return { status: 'added', item };
   });
+}
+
+/**
+ * 在庫画面から商品をリストに入れる。数量は不足数（足りていれば1）
+ * @returns {Promise<{status:'added'|'exists', item:ShoppingListItem}>}
+ */
+export async function addProductToList(productId) {
+  return db.transaction('rw', db.products, db.shoppingListItems, async () => {
+    const p = await db.products.get(productId);
+    if (!p) throw new Error('商品が見つかりません');
+    const existing = await db.shoppingListItems.where('productId').equals(productId).first();
+    if (existing) return { status: 'exists', item: existing };
+    const need = shortage({ ...p, currentStock: effectiveStock(p, todayLocal()) });
+    const t = nowIso();
+    const item = {
+      id: newId(),
+      productId: p.id,
+      name: p.name,
+      quantity: need || 1,
+      unit: p.inventoryUnit,
+      categoryId: p.categoryId,
+      type: 'master',
+      source: 'manual',
+      status: 'pending',
+      createdAt: t,
+      updatedAt: t,
+    };
+    await db.shoppingListItems.add(item);
+    return { status: 'added', item };
+  });
+}
+
+/** リストから商品を外す（在庫画面の「リスト済み」をもう一度押した時。抑制はかけない） */
+export async function removeProductFromList(productId) {
+  await db.shoppingListItems.where('productId').equals(productId).delete();
 }
 
 /** 数量・単位・カテゴリを変更する */

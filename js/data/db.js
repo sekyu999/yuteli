@@ -1,6 +1,6 @@
 // データベース定義。Dexie を直接使うのは data/ フォルダの中だけ。
 import Dexie from '../../vendor/dexie.mjs';
-import { newId } from '../lib/util.js';
+import { newId, todayLocal } from '../lib/util.js';
 import { CURRENT_SCHEMA_VERSION } from '../domain/backupFormat.js';
 
 /** データ構造の版（バックアップにも記録する） */
@@ -18,6 +18,21 @@ db.version(1).stores({
   priceRecords: 'id, productId, storeId, [productId+storeId], purchasedAt',
   meta: 'key',
 });
+
+// 版2：毎日の量（朝昼晩）・栄養データ・1個の重さ・在庫を確定した日 を商品に追加
+db.version(2)
+  .stores({})
+  .upgrade((tx) =>
+    tx
+      .table('products')
+      .toCollection()
+      .modify((p) => {
+        p.consumption ??= { breakfast: 0, lunch: 0, dinner: 0 };
+        p.gramsPerUnit ??= null;
+        p.nutrition ??= null;
+        p.stockUpdatedOn ??= todayLocal();
+      })
+  );
 
 /** 初回起動時に入れるカテゴリ（設定画面で変更できる） */
 export const DEFAULT_CATEGORIES = [

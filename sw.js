@@ -3,7 +3,7 @@
 // そのため、ファイルを更新したときにキャッシュが原因で古い画面が出る、ということが起きにくい。
 
 // アプリを更新したら版を上げる（js/lib/version.js と合わせる）
-const CACHE = 'yuteli-1.0.0';
+const CACHE = 'yuteli-1.1.0';
 
 // オフラインでも開けるように最初に保存しておくファイル
 const APP_FILES = [
@@ -12,13 +12,16 @@ const APP_FILES = [
   'manifest.webmanifest',
   'css/base.css',
   'css/components.css',
+  'data/foods.json',
   'icons/apple-touch-icon.png',
   'icons/icon-192.png',
   'js/app.js',
+  'js/content/dri2025.js',
   'js/content/healthRecommendations.js',
   'js/data/backup.js',
   'js/data/categoryRepo.js',
   'js/data/db.js',
+  'js/data/foodDb.js',
   'js/data/metaRepo.js',
   'js/data/priceRepo.js',
   'js/data/productRepo.js',
@@ -26,6 +29,9 @@ const APP_FILES = [
   'js/data/storage.js',
   'js/data/storeRepo.js',
   'js/domain/backupFormat.js',
+  'js/domain/consumption.js',
+  'js/domain/cost.js',
+  'js/domain/nutrition.js',
   'js/domain/pricing.js',
   'js/domain/product.js',
   'js/domain/shelf.js',
@@ -34,8 +40,12 @@ const APP_FILES = [
   'js/lib/util.js',
   'js/lib/version.js',
   'js/screens/health.js',
+  'js/screens/meals.js',
+  'js/screens/nutritionSheet.js',
   'js/screens/priceSheet.js',
   'js/screens/prices.js',
+  'js/screens/productSheet.js',
+  'js/screens/profileSheet.js',
   'js/screens/settings.js',
   'js/screens/shopping.js',
   'js/screens/stock.js',

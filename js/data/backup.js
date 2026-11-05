@@ -1,6 +1,6 @@
 // バックアップの書き出し・復元・初期化
 import { db, DATA_TABLES, SCHEMA_VERSION, defaultCategoryRows } from './db.js';
-import { setMeta, META } from './metaRepo.js';
+import { setMeta, getMeta, META } from './metaRepo.js';
 import { buildBackup, backupFileName } from '../domain/backupFormat.js';
 import { nowIso } from '../lib/util.js';
 
@@ -10,7 +10,8 @@ export async function createBackupFile() {
   await db.transaction('r', DATA_TABLES.map((t) => db.table(t)), async () => {
     for (const t of DATA_TABLES) data[t] = await db.table(t).toArray();
   });
-  const json = JSON.stringify(buildBackup(data, nowIso()), null, 2);
+  const settings = { profile: await getMeta(META.profile) };
+  const json = JSON.stringify(buildBackup(data, nowIso(), settings), null, 2);
   return { json, filename: backupFileName() };
 }
 
@@ -63,6 +64,7 @@ export async function restoreBackup(backup) {
       await db.table(t).bulkAdd(backup.data[t] ?? []);
     }
     await db.meta.delete(META.selectedStoreId);
+    if (backup.settings?.profile) await db.meta.put({ key: META.profile, value: backup.settings.profile });
     await db.meta.put({ key: 'schemaVersion', value: SCHEMA_VERSION });
   });
 }
