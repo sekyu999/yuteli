@@ -34,12 +34,12 @@ export const HEALTH_RECOMMENDATIONS = [
     explanation:
       '食物繊維には、水に溶ける「水溶性」と溶けない「不溶性」があり、両方をとるのが基本です。食物繊維を増やす時は水分も一緒にとりましょう。',
     foods: [
-      { name: 'オートミール', unit: '袋', category: 'パン・米・麺', cost: 'low', point: '水溶性の食物繊維を手軽にとれる', howTo: '牛乳やお湯で1〜2分レンジ加熱。ご飯の代わりにも' },
-      { name: 'ごぼう', unit: '本', category: '野菜・果物', cost: 'low', point: '不溶性の食物繊維が多い', howTo: 'ささがきを味噌汁やきんぴらに。カット済みの水煮も便利' },
-      { name: 'キウイ', unit: '個', category: '野菜・果物', cost: 'low', point: '食物繊維とビタミンCを一度にとれる', howTo: '半分に切ってスプーンで食べる' },
-      { name: '納豆', unit: 'パック', category: '納豆・豆腐', cost: 'low', point: '発酵食品で食物繊維も含む', howTo: 'ご飯にのせる、オクラやめかぶと混ぜる' },
+      { name: 'オートミール', unit: '袋', category: '米', cost: 'low', point: '水溶性の食物繊維を手軽にとれる', howTo: '牛乳やお湯で1〜2分レンジ加熱。ご飯の代わりにも' },
+      { name: 'ごぼう', unit: '本', category: '野菜', cost: 'low', point: '不溶性の食物繊維が多い', howTo: 'ささがきを味噌汁やきんぴらに。カット済みの水煮も便利' },
+      { name: 'キウイ', unit: '個', category: '果物', cost: 'low', point: '食物繊維とビタミンCを一度にとれる', howTo: '半分に切ってスプーンで食べる' },
+      { name: '納豆', unit: 'パック', category: '納豆', cost: 'low', point: '発酵食品で食物繊維も含む', howTo: 'ご飯にのせる、オクラやめかぶと混ぜる' },
       { name: 'わかめ（乾燥）', unit: '袋', category: 'その他', cost: 'low', point: '水溶性の食物繊維。日持ちする', howTo: '味噌汁やスープにひとつまみ' },
-      { name: 'さつまいも', unit: '本', category: '野菜・果物', cost: 'low', point: '食物繊維が多く、甘くて続けやすい', howTo: '洗ってラップでレンジ加熱。皮ごと食べる' },
+      { name: 'さつまいも', unit: '本', category: '野菜', cost: 'low', point: '食物繊維が多く、甘くて続けやすい', howTo: '洗ってラップでレンジ加熱。皮ごと食べる' },
     ],
     suggestions: [
       '朝食にオートミールやバナナを足す',
@@ -55,11 +55,11 @@ export const HEALTH_RECOMMENDATIONS = [
       '肌はたんぱく質から作られ、ビタミン類がその働きを支えます。特定の食品に頼るより、たんぱく質と色の濃い野菜・果物を毎日少しずつとるのが近道です。',
     foods: [
       { name: '卵', unit: 'パック', category: '卵', cost: 'low', point: 'たんぱく質とビタミンB2を手軽にとれる', howTo: 'ゆで卵を作り置き、朝食や間食に' },
-      { name: 'ブロッコリー', unit: '株', category: '野菜・果物', cost: 'low', point: 'ビタミンCが多い', howTo: '小房に分けてレンジ蒸し。冷凍品も便利' },
-      { name: 'にんじん', unit: '本', category: '野菜・果物', cost: 'low', point: 'βカロテンが多い（油と一緒だと吸収されやすい）', howTo: '細切りを油で炒める、ツナと和える' },
-      { name: '鮭', unit: '切れ', category: '肉・魚', cost: 'mid', point: 'たんぱく質とビタミンB群', howTo: 'フライパンやトースターで焼くだけ' },
-      { name: '納豆', unit: 'パック', category: '納豆・豆腐', cost: 'low', point: 'たんぱく質とビタミンB2', howTo: 'ご飯にのせる、卵と混ぜる' },
-      { name: 'キウイ', unit: '個', category: '野菜・果物', cost: 'low', point: 'ビタミンCが多い', howTo: '朝食やデザートに' },
+      { name: 'ブロッコリー', unit: '株', category: '野菜', cost: 'low', point: 'ビタミンCが多い', howTo: '小房に分けてレンジ蒸し。冷凍品も便利' },
+      { name: 'にんじん', unit: '本', category: '野菜', cost: 'low', point: 'βカロテンが多い（油と一緒だと吸収されやすい）', howTo: '細切りを油で炒める、ツナと和える' },
+      { name: '鮭', unit: '切れ', category: '魚', cost: 'mid', point: 'たんぱく質とビタミンB群', howTo: 'フライパンやトースターで焼くだけ' },
+      { name: '納豆', unit: 'パック', category: '納豆', cost: 'low', point: 'たんぱく質とビタミンB2', howTo: 'ご飯にのせる、卵と混ぜる' },
+      { name: 'キウイ', unit: '個', category: '果物', cost: 'low', point: 'ビタミンCが多い', howTo: '朝食やデザートに' },
     ],
     suggestions: [
       '毎食、手のひら1枚分のたんぱく質（卵・魚・肉・大豆製品）を入れる',
@@ -74,12 +74,12 @@ export const HEALTH_RECOMMENDATIONS = [
     explanation:
       'ビタミンB1は糖質をエネルギーに変えるのに使われます。食事を抜いたり主食を極端に減らしたりせず、たんぱく質や鉄も含めてバランスよくとることが大切です。疲れが長く続く場合は医療機関に相談してください。',
     foods: [
-      { name: '豚肉（もも・こま切れ）', unit: 'パック', category: '肉・魚', cost: 'mid', point: 'ビタミンB1が特に多い', howTo: '玉ねぎと炒める、豚汁にする' },
-      { name: '納豆', unit: 'パック', category: '納豆・豆腐', cost: 'low', point: 'ビタミンB群とたんぱく質', howTo: 'ご飯にのせる' },
+      { name: '豚肉（もも・こま切れ）', unit: 'パック', category: '肉', cost: 'mid', point: 'ビタミンB1が特に多い', howTo: '玉ねぎと炒める、豚汁にする' },
+      { name: '納豆', unit: 'パック', category: '納豆', cost: 'low', point: 'ビタミンB群とたんぱく質', howTo: 'ご飯にのせる' },
       { name: '卵', unit: 'パック', category: '卵', cost: 'low', point: '良質なたんぱく質', howTo: '目玉焼き・ゆで卵' },
-      { name: '小松菜', unit: '袋', category: '野菜・果物', cost: 'low', point: '鉄やカルシウムを含み、アク抜き不要', howTo: 'ざく切りで炒め物や味噌汁に' },
-      { name: '玉ねぎ', unit: '個', category: '野菜・果物', cost: 'low', point: '豚肉と合わせて使いやすい', howTo: '豚肉と炒める、スープに' },
-      { name: 'ツナ缶', unit: '缶', category: 'その他', cost: 'low', point: '常温保存できるたんぱく質源', howTo: 'サラダやおにぎりの具に' },
+      { name: '小松菜', unit: '袋', category: '野菜', cost: 'low', point: '鉄やカルシウムを含み、アク抜き不要', howTo: 'ざく切りで炒め物や味噌汁に' },
+      { name: '玉ねぎ', unit: '個', category: '野菜', cost: 'low', point: '豚肉と合わせて使いやすい', howTo: '豚肉と炒める、スープに' },
+      { name: 'ツナ缶', unit: '缶', category: '缶詰', cost: 'low', point: '常温保存できるたんぱく質源', howTo: 'サラダやおにぎりの具に' },
     ],
     suggestions: [
       '朝食を抜かず、主食＋たんぱく質をとる',
@@ -95,9 +95,9 @@ export const HEALTH_RECOMMENDATIONS = [
       'トリプトファンは体内で睡眠に関わる物質の材料になります。食品よりも、夕食を寝る2〜3時間前までに済ませる、夕方以降のカフェインやお酒を控えるといった習慣の影響が大きいとされています。',
     foods: [
       { name: '牛乳', unit: '本', category: '乳製品', cost: 'low', point: 'トリプトファンを含む', howTo: '温めて飲む' },
-      { name: 'バナナ', unit: '房', category: '野菜・果物', cost: 'low', point: 'ビタミンB6やマグネシウムを含む', howTo: 'そのまま、ヨーグルトと一緒に' },
-      { name: '豆腐', unit: '丁', category: '納豆・豆腐', cost: 'low', point: 'たんぱく質とマグネシウム。夕食でも胃にやさしい', howTo: '湯豆腐・冷奴・味噌汁に' },
-      { name: '納豆', unit: 'パック', category: '納豆・豆腐', cost: 'low', point: 'トリプトファンとマグネシウム', howTo: 'ご飯にのせる' },
+      { name: 'バナナ', unit: '房', category: '果物', cost: 'low', point: 'ビタミンB6やマグネシウムを含む', howTo: 'そのまま、ヨーグルトと一緒に' },
+      { name: '豆腐', unit: '丁', category: '豆腐', cost: 'low', point: 'たんぱく質とマグネシウム。夕食でも胃にやさしい', howTo: '湯豆腐・冷奴・味噌汁に' },
+      { name: '納豆', unit: 'パック', category: '納豆', cost: 'low', point: 'トリプトファンとマグネシウム', howTo: 'ご飯にのせる' },
       { name: '卵', unit: 'パック', category: '卵', cost: 'low', point: 'トリプトファンを含むたんぱく質', howTo: '朝食で。朝にたんぱく質をとるのもリズム作りに役立ちます' },
     ],
     suggestions: [
@@ -114,11 +114,11 @@ export const HEALTH_RECOMMENDATIONS = [
       '菌を含む発酵食品と、腸内の菌のエサになる食物繊維・オリゴ糖を組み合わせてとるのが基本です。1つの食品を大量にとるより、いろいろな種類を毎日少しずつ続けましょう。',
     foods: [
       { name: 'ヨーグルト', unit: '個', category: '乳製品', cost: 'low', point: '乳酸菌などを含む', howTo: 'バナナやオートミールをのせる' },
-      { name: '納豆', unit: 'パック', category: '納豆・豆腐', cost: 'low', point: '納豆菌と食物繊維を一度にとれる', howTo: 'キムチと混ぜる' },
+      { name: '納豆', unit: 'パック', category: '納豆', cost: 'low', point: '納豆菌と食物繊維を一度にとれる', howTo: 'キムチと混ぜる' },
       { name: 'キムチ', unit: 'パック', category: 'その他', cost: 'mid', point: '乳酸菌を含む発酵食品', howTo: '納豆や豆腐にのせる（塩分に注意）' },
       { name: '味噌', unit: 'パック', category: '調味料', cost: 'low', point: '発酵食品で毎日使いやすい', howTo: '具だくさんの味噌汁に' },
-      { name: '玉ねぎ', unit: '個', category: '野菜・果物', cost: 'low', point: 'オリゴ糖を含む', howTo: 'スープ・炒め物・味噌汁に' },
-      { name: 'バナナ', unit: '房', category: '野菜・果物', cost: 'low', point: 'オリゴ糖と食物繊維', howTo: 'ヨーグルトと一緒に' },
+      { name: '玉ねぎ', unit: '個', category: '野菜', cost: 'low', point: 'オリゴ糖を含む', howTo: 'スープ・炒め物・味噌汁に' },
+      { name: 'バナナ', unit: '房', category: '果物', cost: 'low', point: 'オリゴ糖と食物繊維', howTo: 'ヨーグルトと一緒に' },
     ],
     suggestions: [
       '「ヨーグルト＋バナナ」「納豆＋キムチ」のように発酵食品と食物繊維を組み合わせる',
@@ -133,12 +133,12 @@ export const HEALTH_RECOMMENDATIONS = [
     explanation:
       '体の守りの働きには、たんぱく質と各種ビタミン・ミネラルが関わります。特定の食品で風邪を防げるわけではないので、睡眠・手洗いとあわせて、偏りのない食事を心がけましょう。',
     foods: [
-      { name: 'ブロッコリー', unit: '株', category: '野菜・果物', cost: 'low', point: 'ビタミンCが多い', howTo: 'レンジ蒸しで副菜に' },
-      { name: '鮭', unit: '切れ', category: '肉・魚', cost: 'mid', point: 'ビタミンDとたんぱく質', howTo: '焼き鮭、鮭フレークをおにぎりに' },
-      { name: 'しいたけ', unit: 'パック', category: '野菜・果物', cost: 'low', point: 'ビタミンDを含む（干すと増える）', howTo: '味噌汁・炒め物に。干ししいたけも便利' },
+      { name: 'ブロッコリー', unit: '株', category: '野菜', cost: 'low', point: 'ビタミンCが多い', howTo: 'レンジ蒸しで副菜に' },
+      { name: '鮭', unit: '切れ', category: '魚', cost: 'mid', point: 'ビタミンDとたんぱく質', howTo: '焼き鮭、鮭フレークをおにぎりに' },
+      { name: 'しいたけ', unit: 'パック', category: '野菜', cost: 'low', point: 'ビタミンDを含む（干すと増える）', howTo: '味噌汁・炒め物に。干ししいたけも便利' },
       { name: '卵', unit: 'パック', category: '卵', cost: 'low', point: 'たんぱく質・ビタミンA・D', howTo: '毎日1〜2個を目安に' },
-      { name: '豚肉（もも・こま切れ）', unit: 'パック', category: '肉・魚', cost: 'mid', point: '亜鉛とたんぱく質', howTo: '野菜と一緒に炒める' },
-      { name: 'みかん', unit: '袋', category: '野菜・果物', cost: 'low', point: 'ビタミンCを手軽にとれる', howTo: '間食に' },
+      { name: '豚肉（もも・こま切れ）', unit: 'パック', category: '肉', cost: 'mid', point: '亜鉛とたんぱく質', howTo: '野菜と一緒に炒める' },
+      { name: 'みかん', unit: '袋', category: '果物', cost: 'low', point: 'ビタミンCを手軽にとれる', howTo: '間食に' },
     ],
     suggestions: [
       '野菜か果物を毎食どこかに入れる',
@@ -153,12 +153,12 @@ export const HEALTH_RECOMMENDATIONS = [
     explanation:
       '筋肉の材料はたんぱく質で、1日にまとめてとるより毎食に分けてとるのがよいとされています。エネルギーが足りないとたんぱく質がエネルギーに使われてしまうため、主食も抜かないようにしましょう。',
     foods: [
-      { name: '鶏むね肉', unit: 'パック', category: '肉・魚', cost: 'low', point: '安くて高たんぱく・低脂質', howTo: '塩をふってレンジ蒸し、サラダチキンに' },
+      { name: '鶏むね肉', unit: 'パック', category: '肉', cost: 'low', point: '安くて高たんぱく・低脂質', howTo: '塩をふってレンジ蒸し、サラダチキンに' },
       { name: '卵', unit: 'パック', category: '卵', cost: 'low', point: '良質なたんぱく質で調理が簡単', howTo: 'ゆで卵の作り置き' },
-      { name: 'サバ缶', unit: '缶', category: 'その他', cost: 'low', point: 'たんぱく質とビタミンD。常温保存できる', howTo: 'そのまま、味噌汁やパスタに' },
-      { name: '納豆', unit: 'パック', category: '納豆・豆腐', cost: 'low', point: '植物性たんぱく質', howTo: 'ご飯にのせる' },
+      { name: 'サバ缶', unit: '缶', category: '缶詰', cost: 'low', point: 'たんぱく質とビタミンD。常温保存できる', howTo: 'そのまま、味噌汁やパスタに' },
+      { name: '納豆', unit: 'パック', category: '納豆', cost: 'low', point: '植物性たんぱく質', howTo: 'ご飯にのせる' },
       { name: 'ヨーグルト', unit: '個', category: '乳製品', cost: 'low', point: 'たんぱく質とカルシウム', howTo: '運動後や朝食に' },
-      { name: '豆腐', unit: '丁', category: '納豆・豆腐', cost: 'low', point: '安価なたんぱく質', howTo: '冷奴・味噌汁・炒め物に' },
+      { name: '豆腐', unit: '丁', category: '豆腐', cost: 'low', point: '安価なたんぱく質', howTo: '冷奴・味噌汁・炒め物に' },
     ],
     suggestions: [
       '朝・昼・夕それぞれにたんぱく質を入れる',
@@ -173,11 +173,11 @@ export const HEALTH_RECOMMENDATIONS = [
     explanation:
       'たんぱく質と食物繊維は満足感を得やすく、かさのある野菜やきのこはカロリーを抑えながら量を食べられます。極端な食事制限は続かず体調を崩すもとになるため、主食を少し減らして野菜とたんぱく質を増やすくらいの調整がおすすめです。',
     foods: [
-      { name: '鶏むね肉', unit: 'パック', category: '肉・魚', cost: 'low', point: '高たんぱく・低脂質', howTo: 'レンジ蒸しやそぎ切りで炒める' },
-      { name: '豆腐', unit: '丁', category: '納豆・豆腐', cost: 'low', point: '低カロリーでたんぱく質がとれる', howTo: 'ご飯の一部を豆腐に置き換える' },
-      { name: 'きのこ（しめじ等）', unit: 'パック', category: '野菜・果物', cost: 'low', point: '低カロリーで食物繊維が多い', howTo: '炒め物・スープでかさ増し' },
-      { name: 'キャベツ', unit: '玉', category: '野菜・果物', cost: 'low', point: 'かさがあり、よく噛む', howTo: '食事の最初にせん切りを食べる' },
-      { name: 'もやし', unit: '袋', category: '野菜・果物', cost: 'low', point: 'とても安く、かさ増しに便利', howTo: 'レンジでナムル、炒め物に' },
+      { name: '鶏むね肉', unit: 'パック', category: '肉', cost: 'low', point: '高たんぱく・低脂質', howTo: 'レンジ蒸しやそぎ切りで炒める' },
+      { name: '豆腐', unit: '丁', category: '豆腐', cost: 'low', point: '低カロリーでたんぱく質がとれる', howTo: 'ご飯の一部を豆腐に置き換える' },
+      { name: 'きのこ（しめじ等）', unit: 'パック', category: '野菜', cost: 'low', point: '低カロリーで食物繊維が多い', howTo: '炒め物・スープでかさ増し' },
+      { name: 'キャベツ', unit: '玉', category: '野菜', cost: 'low', point: 'かさがあり、よく噛む', howTo: '食事の最初にせん切りを食べる' },
+      { name: 'もやし', unit: '袋', category: '野菜', cost: 'low', point: 'とても安く、かさ増しに便利', howTo: 'レンジでナムル、炒め物に' },
       { name: 'わかめ（乾燥）', unit: '袋', category: 'その他', cost: 'low', point: 'ほぼカロリーなしで食物繊維', howTo: 'スープ・酢の物に' },
     ],
     suggestions: [
@@ -189,4 +189,4 @@ export const HEALTH_RECOMMENDATIONS = [
 ];
 
 export const HEALTH_DISCLAIMER =
-  'ここに表示する内容は一般的な栄養情報にもとづく食生活のヒントで、病気の診断や治療の代わりにはなりません。持病がある方、薬を飲んでいる方（例：ワルファリンを服用中の方の納豆など、食品との飲み合わせに注意が必要な場合があります）、妊娠中の方、食物アレルギーがある方は、医師や管理栄養士に相談してください。体調不良が続く場合は医療機関を受診してください。';
+  '一般的な栄養情報で、診断や治療の代わりにはなりません。持病・服薬中（例：ワルファリンと納豆）・妊娠中・アレルギーのある方は医師や管理栄養士に相談を。';

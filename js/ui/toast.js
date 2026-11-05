@@ -26,14 +26,14 @@ export function toast(message, opts = {}) {
   el.onclick = (e) => {
     const btn = e.target.closest('.toast-action');
     if (!btn) return;
-    hide();
+    hideToast();
     actions[Number(btn.dataset.i)].onClick();
   };
   el.classList.add('show');
   clearTimeout(timer);
-  timer = setTimeout(hide, opts.duration ?? (actions.length ? 6000 : 2200));
+  timer = setTimeout(hideToast, opts.duration ?? (actions.length ? 6000 : 2200));
 }
 
-function hide() {
+export function hideToast() {
   document.getElementById('toast')?.classList.remove('show');
 }

@@ -1,8 +1,8 @@
 // 商品マスタの読み書き
 // 購入済み抑制フラグ（autoAddSuppressed）の切り替えはこのファイルの中だけで行う。
 import { db } from './db.js';
-import { newId, nowIso, todayLocal } from '../lib/util.js';
-import { effectiveStock, round2 } from '../domain/consumption.js';
+import { newId, nowIso } from '../lib/util.js';
+import { round2 } from '../domain/consumption.js';
 import { validateProductInput, nameKey } from '../domain/product.js';
 
 /**
@@ -19,7 +19,7 @@ import { validateProductInput, nameKey } from '../domain/product.js';
  * @property {{breakfast:number, lunch:number, dinner:number}} consumption 毎日の量（入力単位）
  * @property {number|null} gramsPerUnit   入力単位1つの重さ g（個・パックで入力する場合の栄養計算用）
  * @property {{source:'mext'|'label', code?:string, name:string, per100g:object, basisGrams?:number}|null} nutrition
- * @property {string} stockUpdatedOn      currentStock を確定した日（ここから毎日の量ぶん自動で減る）
+
  * @property {string} createdAt
  * @property {string} updatedAt
  */
@@ -60,7 +60,6 @@ export async function createProduct(raw) {
     id: newId(),
     ...r.value,
     autoAddSuppressed: false,
-    stockUpdatedOn: todayLocal(),
     createdAt: t,
     updatedAt: t,
   };
@@ -90,8 +89,7 @@ export async function changeStock(id, delta) {
   await db.transaction('rw', db.products, async () => {
     const cur = await db.products.get(id);
     if (!cur) return;
-    // 自動で減った分を反映した「今日の在庫」から増減する
-    const next = Math.min(999, Math.max(0, round2(effectiveStock(cur, todayLocal()) + delta)));
+    const next = Math.min(999, Math.max(0, round2(cur.currentStock + delta)));
     await applyChanges(id, { currentStock: next }, { userChangedStock: true });
   });
 }
@@ -114,7 +112,9 @@ export async function clearAllSuppression() {
  * （商品がなくなると価格記録は表示できないため）。画面側で件数を見せて確認してから呼ぶ。
  */
 export async function deleteProduct(id) {
-  await db.transaction('rw', db.products, db.shoppingListItems, db.priceRecords, async () => {
+  const { removeProductFromGroups } = await import('./groupRepo.js');
+  await db.transaction('rw', db.products, db.shoppingListItems, db.priceRecords, db.foodGroups, async () => {
+    await removeProductFromGroups(id);
     await db.shoppingListItems.where('productId').equals(id).delete();
     await db.priceRecords.where('productId').equals(id).delete();
     await db.products.delete(id);
@@ -134,22 +134,21 @@ export async function countRelated(id) {
 
 /**
  * 変更を書き込む共通処理。必ずトランザクションの中から呼ぶ。
- * - 在庫は「今日の在庫（自動で減った後）」で確定し直す（毎日の量を変えても過去の分がずれないように）
- * - ユーザーが在庫数か目標在庫を変えたら購入済み抑制を解除する
+ * ユーザーが在庫数か目標在庫を変えたら購入済み抑制を解除する。
  */
 async function applyChanges(id, changes, { userChangedStock = false } = {}) {
   const cur = await db.products.get(id);
   if (!cur) throw new Error('商品が見つかりません');
-  const today = todayLocal();
-  const nowStock = effectiveStock(cur, today);
-  const nextStock = 'currentStock' in changes ? changes.currentStock : nowStock;
   const stockChanged =
     userChangedStock ||
-    Math.abs(nextStock - nowStock) > 0.004 ||
+    ('currentStock' in changes && Math.abs(changes.currentStock - cur.currentStock) > 0.004) ||
     ('targetStock' in changes && changes.targetStock !== cur.targetStock);
-  const next = { ...changes, currentStock: nextStock, stockUpdatedOn: today, updatedAt: nowIso() };
+  const next = { ...changes, updatedAt: nowIso() };
   delete next.id;
   delete next.createdAt;
+  delete next.ownConsumption;
+  delete next.groupIds;
   if (stockChanged) next.autoAddSuppressed = false;
   await db.products.update(id, next);
 }
+

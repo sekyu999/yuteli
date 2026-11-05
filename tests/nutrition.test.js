@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { nutrientsOf, sumNutrients, targetsFor, evaluate, ageBand, labelToPer100g, gramsPerIntakeUnit } from '../js/domain/nutrition.js';
+import { nutrientsOf, sumNutrients, targetsFor, evaluate, ageBand, labelToPer100g, gramsPerIntakeUnit, bodyStats } from '../js/domain/nutrition.js';
 import { dailyCost, pricePerIntakeUnit } from '../js/domain/cost.js';
 
 // 成分表：鶏卵 全卵 生 / 糸引き納豆 / 精白米めし（100gあたり）
@@ -95,4 +95,20 @@ test('食費：店舗で容量が違えばその容量で割る', () => {
     { storeId: 'B', price: 218, quantity: 1, purchasedAt: '2026-11-01', createdAt: 'b', packageContent: 900, packageContentUnit: 'ml' },
   ];
   assert.equal(Math.round(pricePerIntakeUnit(milk, recs).price * 1000) / 1000, 0.238);
+});
+
+test('体重から基礎代謝と必要エネルギー：40歳女性 55kg・ふつう', () => {
+  const p = { sex: 'female', age: 40, activity: 'II', height: 160, weight: 55 };
+  const b = bodyStats(p);
+  assert.equal(b.bmr, 1205); // 21.9 × 55
+  assert.equal(b.energy, 2108); // × 1.75
+  assert.equal(Math.round(b.bmi * 10) / 10, 21.5);
+  assert.deepEqual(b.bmiRange, [18.5, 24.9]);
+  assert.equal(targetsFor(p).energy.value, 2108);
+  assert.equal(bodyStats({ sex: 'female', age: 40, activity: 'II' }), null);
+  assert.equal(targetsFor({ sex: 'female', age: 40, activity: 'II' }).energy.value, 2050);
+});
+
+test('75歳以上で活動量「高い」は「ふつう」の係数', () => {
+  assert.equal(bodyStats({ sex: 'male', age: 80, activity: 'III', weight: 60 }).energy, Math.round(21.5 * 60 * 1.7));
 });

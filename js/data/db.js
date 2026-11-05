@@ -2,6 +2,7 @@
 import Dexie from '../../vendor/dexie.mjs';
 import { newId, todayLocal } from '../lib/util.js';
 import { CURRENT_SCHEMA_VERSION } from '../domain/backupFormat.js';
+import { DEFAULT_CATEGORIES, splitCategories } from '../domain/categories.js';
 
 /** データ構造の版（バックアップにも記録する） */
 export const SCHEMA_VERSION = CURRENT_SCHEMA_VERSION;
@@ -34,19 +35,21 @@ db.version(2)
       })
   );
 
-/** 初回起動時に入れるカテゴリ（設定画面で変更できる） */
-export const DEFAULT_CATEGORIES = [
-  '野菜・果物',
-  '肉・魚',
-  '乳製品',
-  '卵',
-  '納豆・豆腐',
-  'パン・米・麺',
-  '調味料',
-  '飲料',
-  '日用品',
-  'その他',
-];
+// 版3：食事グループを追加。「野菜・果物」などの「・」区切りカテゴリを分け、「缶詰」を追加
+db.version(3)
+  .stores({ foodGroups: 'id' })
+  .upgrade(async (tx) => {
+    const categories = await tx.table('categories').toArray();
+    const storeShelfOrders = await tx.table('storeShelfOrders').toArray();
+    const r = splitCategories({ categories, storeShelfOrders }, newId);
+    if (!r.changed) return;
+    await tx.table('categories').clear();
+    await tx.table('categories').bulkAdd(r.categories);
+    await tx.table('storeShelfOrders').clear();
+    await tx.table('storeShelfOrders').bulkAdd(r.storeShelfOrders);
+  });
+
+export { DEFAULT_CATEGORIES };
 
 /** 初期カテゴリのデータを作る（初回起動・初期化で使う） */
 export function defaultCategoryRows() {
@@ -67,6 +70,7 @@ export const DATA_TABLES = [
   'storeShelfOrders',
   'shoppingListItems',
   'priceRecords',
+  'foodGroups',
 ];
 
 /** 全テーブル名 */
@@ -77,5 +81,6 @@ export const TABLES = [
   'storeShelfOrders',
   'shoppingListItems',
   'priceRecords',
+  'foodGroups',
   'meta',
 ];

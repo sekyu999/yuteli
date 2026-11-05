@@ -1,7 +1,6 @@
 // 買い物リストの読み書き
 import { db } from './db.js';
-import { newId, nowIso, todayLocal } from '../lib/util.js';
-import { effectiveStock } from '../domain/consumption.js';
+import { newId, nowIso } from '../lib/util.js';
 import { planRefresh } from '../domain/shoppingList.js';
 import { nameKey, shortage } from '../domain/product.js';
 import { setSuppressed } from './productRepo.js';
@@ -32,10 +31,7 @@ export function listItems() {
 export async function refreshFromStock() {
   return db.transaction('rw', db.products, db.shoppingListItems, async () => {
     const [products, items] = await Promise.all([db.products.toArray(), db.shoppingListItems.toArray()]);
-    // 毎日の量で自動的に減った「今日の在庫」で判定する
-    const today = todayLocal();
-    const current = products.map((p) => ({ ...p, currentStock: effectiveStock(p, today) }));
-    const { toAdd, toUpdate } = planRefresh(current, items);
+    const { toAdd, toUpdate } = planRefresh(products, items);
     const t = nowIso();
     await db.shoppingListItems.bulkAdd(
       toAdd.map((a) => ({
@@ -116,7 +112,7 @@ export async function addProductToList(productId) {
     if (!p) throw new Error('商品が見つかりません');
     const existing = await db.shoppingListItems.where('productId').equals(productId).first();
     if (existing) return { status: 'exists', item: existing };
-    const need = shortage({ ...p, currentStock: effectiveStock(p, todayLocal()) });
+    const need = shortage(p);
     const t = nowIso();
     const item = {
       id: newId(),

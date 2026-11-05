@@ -1,6 +1,5 @@
 // ② 在庫・商品管理
 // ・カテゴリ別に商品を表示し、± で現在庫をその場で変える
-// ・毎日食べる物は在庫が自動で減り、「あと◯日」を表示
 // ・🛒ボタンでその商品を買い物リストへ入れる
 // ・商品名をタップすると編集シート、右下の「＋ 商品」で登録シート
 import { watch } from '../ui/live.js';
@@ -9,28 +8,22 @@ import { listCategories } from '../data/categoryRepo.js';
 import { listProducts, changeStock, clearAllSuppression } from '../data/productRepo.js';
 import { refreshFromStock, listItems, addProductToList, removeProductFromList } from '../data/shoppingRepo.js';
 import { shortage } from '../domain/product.js';
-import { effectiveStock, dailyStockUse, daysLeft, formatStock, stockInContent, isDaily } from '../domain/consumption.js';
+import { formatStock } from '../domain/consumption.js';
 import { openProductSheet } from './productSheet.js';
-import { esc, todayLocal } from '../lib/util.js';
+import { esc } from '../lib/util.js';
 
 export const title = '在庫';
-
-/** これ以下の日数で「もうすぐなくなる」と表示 */
-const LOW_DAYS = 3;
 
 export function mount(el) {
   el.innerHTML = `
     <div class="stack">
-      <div id="stock-summary" class="stock-summary"></div>
       <div id="stock-groups" class="stack"></div>
       <div id="review-done" hidden>
         <button type="button" class="btn btn-primary btn-block" data-action="review-done">見直し完了 → 買い物リストを更新</button>
-        <p class="note" style="margin-top:6px">在庫を実物に合わせたら押してください。足りない物が買い物リストに入ります。</p>
       </div>
     </div>
     <button type="button" class="fab" data-action="add">＋ 商品</button>
   `;
-  const summaryEl = el.querySelector('#stock-summary');
   const groupsEl = el.querySelector('#stock-groups');
   const reviewEl = el.querySelector('#review-done');
   let inList = new Set();
@@ -71,14 +64,11 @@ export function mount(el) {
   return watch(
     () => Promise.all([listCategories(), listProducts(), listItems()]),
     ([cats, products, items]) => {
-      const today = todayLocal();
       inList = new Set(items.filter((i) => i.productId).map((i) => i.productId));
-      // 自動で減った分を反映した「今日の在庫」で表示する
-      const view = products.map((p) => ({ ...p, stockNow: effectiveStock(p, today), left: daysLeft(p, today) }));
+      const view = products;
 
       reviewEl.hidden = products.length === 0;
       if (products.length === 0) {
-        summaryEl.innerHTML = '';
         groupsEl.innerHTML = `
           <div class="placeholder">
             <p>まだ商品がありません。</p>
@@ -87,13 +77,6 @@ export function mount(el) {
         return;
       }
 
-      const shortCount = view.filter((p) => shortage({ ...p, currentStock: p.stockNow }) > 0).length;
-      const lowCount = view.filter((p) => p.left !== null && p.left <= LOW_DAYS).length;
-      summaryEl.innerHTML = `
-        <span class="badge badge-muted">${products.length} 品目</span>
-        ${shortCount ? `<span class="badge badge-short">不足 ${shortCount} 品目</span>` : '<span class="badge">不足なし</span>'}
-        ${lowCount ? `<span class="badge badge-short">${LOW_DAYS}日以内になくなる ${lowCount} 品目</span>` : ''}
-      `;
 
       const known = new Set(cats.map((c) => c.id));
       const groups = cats
@@ -125,17 +108,10 @@ async function reviewDone() {
 
 /** 商品1行分の HTML */
 function rowHtml(p, listed) {
-  const short = shortage({ ...p, currentStock: p.stockNow });
+  const short = shortage(p);
   const unit = esc(p.inventoryUnit);
-  const inContent = stockInContent(p, p.stockNow);
-  const daily = isDaily(p);
   const meta = [`<span>目標 ${p.targetStock}${unit}</span>`];
-  if (daily) {
-    meta.push(
-      `<span class="badge ${p.left <= LOW_DAYS ? 'badge-short' : 'badge-muted'}">毎日 ${formatStock(Math.round(dailyStockUse(p) * 100) / 100)}${unit}・あと${p.left}日</span>`
-    );
-  }
-  if (short) meta.push(`<span class="badge badge-short">あと${short}${unit}必要</span>`);
+  if (short) meta.push(`<span class="badge badge-short">あと${short}${unit}</span>`);
   if (p.autoAddSuppressed) meta.push('<span class="badge badge-muted">購入済み・在庫未更新</span>');
   return `
     <li class="stock-row">
@@ -145,10 +121,8 @@ function rowHtml(p, listed) {
       </button>
       <div class="qty">
         <button type="button" class="stepper-btn" data-action="dec" data-id="${p.id}"
-                aria-label="${esc(p.name)}を1減らす" ${p.stockNow <= 0 ? 'disabled' : ''}>−</button>
-        <div class="qty-value" aria-label="現在庫 ${formatStock(p.stockNow)}${unit}">${formatStock(p.stockNow)}<small>${unit}</small>${
-          inContent !== null && daily ? `<small>${inContent}${esc(p.packageContentUnit)}</small>` : ''
-        }</div>
+                aria-label="${esc(p.name)}を1減らす" ${p.currentStock <= 0 ? 'disabled' : ''}>−</button>
+        <div class="qty-value" aria-label="現在庫 ${formatStock(p.currentStock)}${unit}">${formatStock(p.currentStock)}<small>${unit}</small></div>
         <button type="button" class="stepper-btn" data-action="inc" data-id="${p.id}"
                 aria-label="${esc(p.name)}を1増やす">＋</button>
       </div>

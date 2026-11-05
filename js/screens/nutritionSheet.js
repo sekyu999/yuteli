@@ -48,11 +48,10 @@ export function openNutritionSheet({ current, initialQuery = '', onSelect }) {
     body.innerHTML = `
       <div class="field">
         <label for="f-q">食品名</label>
-        <input id="f-q" class="input" type="search" value="${esc(initialQuery)}" placeholder="例：卵、納豆、ご飯、鶏むね" autocomplete="off" enterkeyhint="search">
-        <p class="note" style="margin-top:4px">スペースで区切ると絞り込めます（例：「鶏 むね」「牛乳 普通」）。</p>
+        <input id="f-q" class="input" type="search" value="${esc(initialQuery)}" placeholder="例：卵、納豆、鶏 むね" autocomplete="off" enterkeyhint="search">
       </div>
       <ul class="list food-results" id="food-results" style="margin-top:12px"></ul>
-      <p class="note" style="margin-top:8px">出典：日本食品標準成分表（八訂）増補2023年（文部科学省）。値は可食部100gあたり。</p>
+      <p class="note" style="margin-top:8px">出典：日本食品標準成分表（八訂）増補2023年</p>
     `;
     const q = body.querySelector('#f-q');
     const results = body.querySelector('#food-results');
@@ -100,7 +99,7 @@ export function openNutritionSheet({ current, initialQuery = '', onSelect }) {
   // ---------- パッケージ表示を入力 ----------
   function renderLabel() {
     const prev = current?.source === 'label' ? current : null;
-    const basis = prev?.basisGrams ?? '';
+    const basis = prev?.basisGrams ?? 100;
     const prevVal = (key) => {
       const v = prev?.per100g?.[key];
       return v === null || v === undefined || !prev ? '' : Math.round(((v * prev.basisGrams) / 100) * 100) / 100;
@@ -122,7 +121,7 @@ export function openNutritionSheet({ current, initialQuery = '', onSelect }) {
             <input id="f-basis" name="basis" class="input grow" inputmode="decimal" value="${basis}" placeholder="例：45" autocomplete="off">
             <span class="unit-suffix">g あたり</span>
           </div>
-          <p class="note" style="margin-top:4px">「1パック（45g）あたり」なら 45、「100gあたり」なら 100 を入れます。ml 表示の飲み物は ml の数をそのまま入れてください。</p>
+          <p class="note" style="margin-top:4px">「1パック（45g）あたり」なら 45</p>
           <p class="field-error" data-error-for="basis"></p>
         </div>
         ${NUTRIENTS.filter((n) => LABEL_NUTRIENTS.includes(n.key)).map(field).join('')}
@@ -130,7 +129,6 @@ export function openNutritionSheet({ current, initialQuery = '', onSelect }) {
           <summary>その他の栄養素（表示があれば）</summary>
           ${NUTRIENTS.filter((n) => !LABEL_NUTRIENTS.includes(n.key)).map(field).join('')}
         </details>
-        <p class="note" style="margin-top:8px">空欄の項目は「不明」として扱い、合計には入りません。</p>
         <div class="form-actions"><button type="submit" class="btn btn-primary btn-block">この内容で使う</button></div>
       </form>`;
     const form = body.querySelector('form');

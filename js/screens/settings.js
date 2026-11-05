@@ -1,5 +1,5 @@
 // ⑤ 設定・バックアップ
-// ・データ保護の状態と最終バックアップ日
+// ・文字の大きさ、からだの情報
 // ・バックアップの保存／復元（復元前に確認画面）
 // ・カテゴリの管理
 // ・すべてのデータの初期化
@@ -7,7 +7,7 @@ import { watch } from '../ui/live.js';
 import { openSheet } from '../ui/sheet.js';
 import { showErrors, bindErrorClear, formValues } from '../ui/form.js';
 import { toast } from '../ui/toast.js';
-import { isPersisted, isStandalone, requestPersistence } from '../data/storage.js';
+import { FONT_LEVELS, getFontScale, setFontScale } from '../ui/fontSize.js';
 import { getMeta, META } from '../data/metaRepo.js';
 import { saveBackup, currentCounts, restoreBackup, resetAll } from '../data/backup.js';
 import {
@@ -34,6 +34,7 @@ const TABLE_LABELS = {
   storeShelfOrders: '売り場順',
   shoppingListItems: '買い物リスト',
   priceRecords: '価格記録',
+  foodGroups: '食事グループ',
 };
 
 export function mount(el) {
@@ -42,33 +43,30 @@ export function mount(el) {
       <section>
         <h2 class="section-title">バックアップ</h2>
         <ul class="list">
-          <li><span class="grow">最後のバックアップ</span><span id="last-backup" class="num"></span></li>
+          <li><span class="grow">最終バックアップ</span><span id="last-backup" class="num"></span></li>
         </ul>
         <div class="form-actions" style="margin-top:12px">
           <button type="button" class="btn btn-primary btn-block" data-action="backup">バックアップを保存</button>
           <button type="button" class="btn btn-block" data-action="restore">バックアップから復元</button>
           <input type="file" id="restore-file" accept="application/json,.json" hidden>
         </div>
-        <p class="note" style="margin-top:8px">iPhone では「"ファイル"に保存」を選び、iCloud Drive などに保存してください。</p>
+        <p class="note" style="margin-top:8px">「"ファイル"に保存」で iCloud Drive などへ</p>
       </section>
 
       <section>
-        <h2 class="section-title">データの保護</h2>
-        <ul class="list">
-          <li><span class="grow">ホーム画面から起動</span><span id="st-standalone"></span></li>
-          <li><span class="grow">データ保護</span><span id="st-persist"></span></li>
-        </ul>
-        <p class="notice" style="margin-top:12px">
-          データはこの端末の中だけに保存されます。Safari の履歴・Webサイトデータの削除、機種変更、端末の故障で消えてしまうため、定期的にバックアップを保存してください。
-          ホーム画面に追加して使うと、しばらく開かなくても消えにくくなります。
-        </p>
+        <h2 class="section-title">文字の大きさ</h2>
+        <div class="segmented font-levels" role="radiogroup">
+          ${FONT_LEVELS.map(
+            (f, i) => `<button type="button" role="radio" data-font="${f.scale}" aria-label="${f.label}" style="font-size:${14 + i * 2}px">あ</button>`
+          ).join('')}
+        </div>
       </section>
 
       <section>
-        <h2 class="section-title">栄養の目標</h2>
+        <h2 class="section-title">からだの情報</h2>
         <ul class="list">
           <li><button type="button" class="row-button" data-action="profile">
-            <span class="grow">性別・年齢・活動量<span class="note" style="display:block" id="profile-summary"></span></span><span class="note">›</span></button></li>
+            <span class="grow" id="profile-summary"></span><span class="note">›</span></button></li>
         </ul>
       </section>
 
@@ -76,13 +74,8 @@ export function mount(el) {
         <h2 class="section-title">カテゴリ</h2>
         <ul class="list">
           <li><button type="button" class="row-button" data-action="categories">
-            <span class="grow">カテゴリの追加・名前変更・並び順</span><span class="note">›</span></button></li>
+            <span class="grow">追加・名前変更・並び順</span><span class="note">›</span></button></li>
         </ul>
-      </section>
-
-      <section>
-        <h2 class="section-title">保存されているデータ</h2>
-        <ul class="list" id="counts"></ul>
       </section>
 
       <section>
@@ -96,15 +89,18 @@ export function mount(el) {
     </div>
   `;
 
-  // ---- 状態表示 ----
-  el.querySelector('#st-standalone').innerHTML = isStandalone()
-    ? '<span class="badge">はい</span>'
-    : '<span class="note">いいえ</span>';
-  const persistEl = el.querySelector('#st-persist');
-  (async () => {
-    const ok = (await isPersisted()) || (await requestPersistence());
-    persistEl.innerHTML = ok ? '<span class="badge">有効</span>' : '<span class="note">未許可</span>';
-  })();
+  // ---- 文字の大きさ ----
+  const markFont = () =>
+    el.querySelectorAll('[data-font]').forEach((b) =>
+      b.setAttribute('aria-checked', String(Number(b.dataset.font) === getFontScale()))
+    );
+  el.querySelector('.font-levels').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-font]');
+    if (!b) return;
+    setFontScale(Number(b.dataset.font));
+    markFont();
+  });
+  markFont();
 
   // ---- 操作 ----
   const fileInput = el.querySelector('#restore-file');
@@ -146,15 +142,11 @@ export function mount(el) {
   });
 
   const lastEl = el.querySelector('#last-backup');
-  const countsEl = el.querySelector('#counts');
   return watch(
     () => Promise.all([currentCounts(), getMeta(META.lastBackupAt), getMeta(META.profile)]),
     ([counts, last, profile]) => {
       el.querySelector('#profile-summary').textContent = profileSummary(profile);
       lastEl.innerHTML = last ? esc(formatDateTime(last)) : '<span class="stale">まだありません</span>';
-      countsEl.innerHTML = Object.entries(TABLE_LABELS)
-        .map(([k, label]) => `<li><span class="grow">${label}</span><span class="num">${counts[k]} 件</span></li>`)
-        .join('');
     }
   );
 }
@@ -224,7 +216,6 @@ function openCategorySheet() {
       <section style="margin-top:20px">
         <h3 class="section-title">標準の並び順（お店を選ばない時の順番）</h3>
         <ol class="list shelf-list" id="cat-list"></ol>
-        <p class="note" style="margin-top:6px">名前をタップすると変更・削除できます。お店ごとの順番は「価格」タブの「店舗」で設定します。</p>
       </section>`,
     onClose: () => stop?.(),
   });

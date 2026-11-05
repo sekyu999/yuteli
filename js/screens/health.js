@@ -19,7 +19,7 @@ export function mount(el) {
   el.innerHTML = `
     <div class="stack">
       <section>
-        <h2 class="section-title">気になることを選んでください</h2>
+        <h2 class="section-title">気になること</h2>
         <div class="concern-grid" role="radiogroup">
           ${HEALTH_RECOMMENDATIONS.map(
             (r) => `<button type="button" class="concern" role="radio" data-concern="${r.id}">${esc(r.concern)}</button>`
@@ -45,10 +45,8 @@ export function mount(el) {
     }
     recEl.innerHTML = `
       <section class="card">
-        <h2 class="rec-title">${esc(rec.concern)}</h2>
-        <h3 class="section-title" style="margin-top:12px">関連する栄養素</h3>
         <div class="chips" style="margin-top:0">${rec.nutrients.map((n) => `<span class="badge badge-muted">${esc(n)}</span>`).join('')}</div>
-        <p style="margin-top:12px">${esc(rec.explanation)}</p>
+        <details class="more-nutri"><summary>考え方</summary><p style="margin-top:6px">${esc(rec.explanation)}</p></details>
       </section>
 
       <section>
@@ -59,10 +57,9 @@ export function mount(el) {
               const added = inList.has(nameKey(f.name));
               return `<li class="food-row">
                 <span class="grow">
-                  <span class="item-name" style="font-size:17px">${esc(f.name)}</span>
+                  <span class="item-name item-name-sm">${esc(f.name)}</span>
                   <span class="badge ${f.cost === 'low' ? '' : 'badge-muted'}" style="margin-left:6px">${COST_LABEL[f.cost]}</span>
-                  <span class="note" style="display:block;margin-top:2px">${esc(f.point)}</span>
-                  <span class="food-howto">食べ方：${esc(f.howTo)}</span>
+                  <span class="note" style="display:block;margin-top:2px">${esc(f.point)}／${esc(f.howTo)}</span>
                 </span>
                 <button type="button" class="icon-btn add-food" data-food="${i}" ${added ? 'disabled' : ''}>
                   ${added ? 'リストにあり' : '＋ リスト'}
@@ -73,10 +70,10 @@ export function mount(el) {
         </ul>
       </section>
 
-      <section class="card">
-        <h2 class="section-title">手軽な取り入れ方</h2>
-        <ul class="tips">${rec.suggestions.map((s) => `<li>${esc(s)}</li>`).join('')}</ul>
-      </section>
+      <details class="card more-nutri">
+        <summary>手軽な取り入れ方</summary>
+        <ul class="tips" style="margin-top:6px">${rec.suggestions.map((s) => `<li>${esc(s)}</li>`).join('')}</ul>
+      </details>
     `;
   }
 
@@ -92,7 +89,10 @@ export function mount(el) {
     if (add) {
       const rec = HEALTH_RECOMMENDATIONS.find((r) => r.id === selectedId);
       const food = rec.foods[Number(add.dataset.food)];
-      const cat = categories.find((x) => x.name === food.category);
+      // カテゴリ名が一致しなければ「野菜・果物」のような名前の一部で探す（自分でカテゴリを変えた場合）
+      const cat =
+        categories.find((x) => x.name === food.category) ??
+        categories.find((x) => x.name.split('・').includes(food.category));
       const r = await addManualItem({
         name: food.name,
         quantity: 1,

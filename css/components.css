@@ -10,7 +10,7 @@
   background: var(--bg);
   border-bottom: 1px solid var(--border);
 }
-.app-header h1 { font-size: 20px; font-weight: 700; }
+.app-header h1 { font-size: calc(20px * var(--fs, 1)); font-weight: 700; }
 
 .screen {
   padding: var(--gap);
@@ -43,7 +43,7 @@
   gap: 2px;
   color: var(--text-sub);
   text-decoration: none;
-  font-size: 11px;
+  font-size: calc(11px * var(--fs, 1));
   font-weight: 600;
 }
 .tabbar svg {
@@ -67,7 +67,7 @@
 .stack > * + * { margin-top: var(--gap); }
 
 .section-title {
-  font-size: 13px;
+  font-size: calc(13px * var(--fs, 1));
   font-weight: 700;
   color: var(--text-sub);
   margin-bottom: 8px;
@@ -91,7 +91,7 @@
 }
 .list > li + li { border-top: 1px solid var(--border); }
 .list .grow { flex: 1; min-width: 0; }
-.list .sub { color: var(--text-sub); font-size: 14px; }
+.list .sub { color: var(--text-sub); font-size: calc(14px * var(--fs, 1)); }
 
 /* ===== ボタン ===== */
 .btn {
@@ -116,14 +116,14 @@
 
 /* ===== 表示用の小物 ===== */
 .note {
-  font-size: 14px;
+  font-size: calc(14px * var(--fs, 1));
   color: var(--text-sub);
 }
 .notice {
   padding: 12px var(--gap);
   border-radius: var(--radius);
   background: var(--warn-soft);
-  font-size: 15px;
+  font-size: calc(15px * var(--fs, 1));
 }
 .placeholder {
   padding: 32px var(--gap);
@@ -136,7 +136,7 @@
   display: inline-block;
   padding: 2px 8px;
   border-radius: 999px;
-  font-size: 13px;
+  font-size: calc(13px * var(--fs, 1));
   font-weight: 600;
   background: var(--accent-soft);
   color: var(--accent);
@@ -170,15 +170,21 @@ html.sheet-open { overflow: hidden; }
   padding: 12px var(--gap);
   border-bottom: 1px solid var(--border);
 }
-.sheet-header h2 { font-size: 18px; }
+.sheet-header h2 { font-size: calc(18px * var(--fs, 1)); }
 .sheet-close {
-  min-height: 44px;
-  padding: 0 4px;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  margin-right: -6px;
   border: none;
-  background: none;
-  color: var(--accent);
-  font-weight: 600;
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--text-sub);
+  display: grid;
+  place-items: center;
 }
+.sheet-close svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+.sheet-close:active { background: var(--border); }
 .sheet-body {
   overflow-y: auto;
   padding: var(--gap);
@@ -190,10 +196,10 @@ html.sheet-open { overflow: hidden; }
 .field label, .field .label {
   display: block;
   margin-bottom: 6px;
-  font-size: 15px;
+  font-size: calc(15px * var(--fs, 1));
   font-weight: 600;
 }
-.field .optional { font-weight: 400; color: var(--text-sub); font-size: 13px; }
+.field .optional { font-weight: 400; color: var(--text-sub); font-size: calc(13px * var(--fs, 1)); }
 .input, .select {
   width: 100%;
   min-height: var(--tap);
@@ -204,7 +210,7 @@ html.sheet-open { overflow: hidden; }
 }
 .select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--text-sub) 50%), linear-gradient(135deg, var(--text-sub) 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 12px) 50%; background-size: 6px 6px; background-repeat: no-repeat; padding-right: 32px; }
 [aria-invalid="true"] { border-color: var(--danger); }
-.field-error { color: var(--danger); font-size: 14px; margin-top: 4px; }
+.field-error { color: var(--danger); font-size: calc(14px * var(--fs, 1)); margin-top: 4px; }
 .field-error:empty { display: none; }
 .row { display: flex; gap: 8px; }
 .row > .grow { flex: 1; min-width: 0; }
@@ -215,7 +221,7 @@ html.sheet-open { overflow: hidden; }
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--surface);
-  font-size: 15px;
+  font-size: calc(15px * var(--fs, 1));
 }
 .form-actions { margin-top: 24px; display: grid; gap: 12px; }
 .btn-danger-text {
@@ -243,7 +249,7 @@ html.sheet-open { overflow: hidden; }
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface);
-  font-size: 22px;
+  font-size: calc(22px * var(--fs, 1));
   line-height: 1;
 }
 .stepper-btn:active { background: var(--accent-soft); }
@@ -265,7 +271,7 @@ html.sheet-open { overflow: hidden; }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.stock-meta { font-size: 14px; color: var(--text-sub); display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.stock-meta { font-size: calc(14px * var(--fs, 1)); color: var(--text-sub); display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
 .badge-short { background: var(--warn-soft); color: #8a5a00; }
 @media (prefers-color-scheme: dark) { .badge-short { color: #f0c46b; } }
 .badge-muted { background: var(--bg); color: var(--text-sub); border: 1px solid var(--border); }
@@ -278,12 +284,12 @@ html.sheet-open { overflow: hidden; }
 .qty-value {
   min-width: 40px;
   text-align: center;
-  font-size: 20px;
+  font-size: calc(20px * var(--fs, 1));
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
 }
-.qty-value small { display: block; font-size: 11px; font-weight: 400; color: var(--text-sub); }
+.qty-value small { display: block; font-size: calc(11px * var(--fs, 1)); font-weight: 400; color: var(--text-sub); }
 .stock-summary { display: flex; gap: 8px; flex-wrap: wrap; }
 
 /* ===== 右下の追加ボタン ===== */
@@ -314,7 +320,7 @@ html.sheet-open { overflow: hidden; }
   border-radius: 999px;
   background: var(--text);
   color: var(--bg);
-  font-size: 15px;
+  font-size: calc(15px * var(--fs, 1));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -332,8 +338,9 @@ html.sheet-open { overflow: hidden; }
   max-width: 560px;
   padding: 6px 6px 6px 16px;
   border-radius: 14px;
-  pointer-events: auto;
 }
+/* 表示中だけ押せるようにする（消えた後に透明なまま下のボタンをふさがないように） */
+.toast.has-actions.show { pointer-events: auto; }
 .toast-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .toast-action {
   flex: none;
@@ -344,7 +351,7 @@ html.sheet-open { overflow: hidden; }
   background: none;
   color: var(--accent-soft);
   font-weight: 700;
-  font-size: 15px;
+  font-size: calc(15px * var(--fs, 1));
 }
 @media (prefers-color-scheme: dark) { .toast-action { color: var(--accent); filter: brightness(0.7); } }
 .stepper-btn:disabled { opacity: 0.35; }
@@ -397,17 +404,17 @@ html.sheet-open { overflow: hidden; }
   flex-direction: column;
   gap: 2px;
 }
-.item-name { font-weight: 600; font-size: 18px; }
+.item-name { font-weight: 600; font-size: calc(18px * var(--fs, 1)); }
 .item-qty {
   flex: none;
   min-width: 48px;
   text-align: right;
-  font-size: 20px;
+  font-size: calc(20px * var(--fs, 1));
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
 }
-.item-qty small { display: block; font-size: 12px; font-weight: 400; color: var(--text-sub); }
+.item-qty small { display: block; font-size: calc(12px * var(--fs, 1)); font-weight: 400; color: var(--text-sub); }
 
 /* ===== 切り替えボタン ===== */
 .segmented {
@@ -446,19 +453,19 @@ html.sheet-open { overflow: hidden; }
 }
 .list > li:has(> .row-button) { padding-top: 6px; padding-bottom: 6px; }
 .row-button .grow { display: flex; flex-direction: column; gap: 2px; }
-.price-line { font-size: 15px; }
+.price-line { font-size: calc(15px * var(--fs, 1)); }
 .stale { color: var(--danger) !important; }
 .compare-row.is-cheapest { background: var(--accent-soft); }
 .compare-row .grow { display: flex; flex-direction: column; gap: 2px; }
 .compare-price {
   flex: none;
   text-align: right;
-  font-size: 20px;
+  font-size: calc(20px * var(--fs, 1));
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
 }
-.compare-price small { display: block; font-size: 11px; font-weight: 400; color: var(--text-sub); }
+.compare-price small { display: block; font-size: calc(11px * var(--fs, 1)); font-weight: 400; color: var(--text-sub); }
 .icon-btn {
   flex: none;
   min-width: 44px;
@@ -467,7 +474,7 @@ html.sheet-open { overflow: hidden; }
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface);
-  font-size: 15px;
+  font-size: calc(15px * var(--fs, 1));
 }
 .icon-btn:disabled { opacity: 0.3; }
 .shelf-list > li { gap: 8px; }
@@ -479,7 +486,7 @@ html.sheet-open { overflow: hidden; }
   border: 1px solid var(--border);
   display: grid;
   place-items: center;
-  font-size: 13px;
+  font-size: calc(13px * var(--fs, 1));
   font-variant-numeric: tabular-nums;
 }
 
@@ -498,11 +505,11 @@ html.sheet-open { overflow: hidden; }
   background: var(--accent-soft);
   color: var(--accent);
 }
-.rec-title { font-size: 20px; }
+.rec-title { font-size: calc(20px * var(--fs, 1)); }
 .food-row { align-items: flex-start !important; padding-top: 12px !important; padding-bottom: 12px !important; }
-.food-howto { display: block; margin-top: 4px; font-size: 14px; }
+.food-howto { display: block; margin-top: 4px; font-size: calc(14px * var(--fs, 1)); }
 .add-food { align-self: center; color: var(--accent); font-weight: 700; white-space: nowrap; }
-.add-food:disabled { color: var(--text-sub); opacity: 1; font-weight: 400; font-size: 13px; }
+.add-food:disabled { color: var(--text-sub); opacity: 1; font-weight: 400; font-size: calc(13px * var(--fs, 1)); }
 .tips { margin: 0; padding-left: 1.2em; }
 .tips li + li { margin-top: 6px; }
 .disclaimer { padding: 12px; border: 1px solid var(--border); border-radius: var(--radius); }
@@ -514,7 +521,7 @@ html.sheet-open { overflow: hidden; }
 .compare-table { width: 100%; margin-top: 12px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .compare-table th, .compare-table td { padding: 8px 4px; border-bottom: 1px solid var(--border); text-align: right; }
 .compare-table th:first-child { text-align: left; font-weight: 600; }
-.compare-table thead th { font-size: 13px; color: var(--text-sub); font-weight: 600; }
+.compare-table thead th { font-size: calc(13px * var(--fs, 1)); color: var(--text-sub); font-weight: 600; }
 
 /* ===== 商品フォームの区切り ===== */
 .form-section {
@@ -525,9 +532,9 @@ html.sheet-open { overflow: hidden; }
 }
 .form-section legend { padding: 0 6px; font-weight: 700; }
 .meal-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
-.meal-input label { display: block; font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+.meal-input label { display: block; font-weight: 600; font-size: calc(15px * var(--fs, 1)); margin-bottom: 4px; }
 .meal-input .input { min-width: 0; padding: 0 8px; text-align: right; }
-.unit-suffix { flex: none; color: var(--text-sub); font-size: 14px; }
+.unit-suffix { flex: none; color: var(--text-sub); font-size: calc(14px * var(--fs, 1)); }
 .more-nutrients { margin-top: 18px; }
 .more-nutrients summary { min-height: 44px; display: flex; align-items: center; color: var(--accent); font-weight: 600; }
 .nut-field + .nut-field { margin-top: 12px; }
@@ -549,7 +556,7 @@ html.sheet-open { overflow: hidden; }
   justify-content: center;
   gap: 1px;
   color: var(--text-sub);
-  font-size: 9.5px;
+  font-size: calc(9.5px * var(--fs, 1));
   font-weight: 700;
 }
 .cart-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
@@ -557,7 +564,7 @@ html.sheet-open { overflow: hidden; }
 .food-results .row-button .grow { gap: 2px; }
 
 /* ===== 食事（栄養・食費） ===== */
-.card-title { font-size: 17px; margin-bottom: 10px; }
+.card-title { font-size: calc(17px * var(--fs, 1)); margin-bottom: 10px; }
 .notice-card { background: var(--warn-soft); border-color: transparent; }
 .meal-tabs button { min-height: 36px; }
 .nutri-list { list-style: none; margin: 0; padding: 0; }
@@ -565,12 +572,12 @@ html.sheet-open { overflow: hidden; }
 .nutri-row:first-child { border-top: none; }
 .nutri-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 .nutri-name { font-weight: 600; }
-.nutri-value { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.nutri-value small { font-size: 12px; font-weight: 400; color: var(--text-sub); margin-left: 2px; }
+.nutri-value { font-size: calc(18px * var(--fs, 1)); font-weight: 700; font-variant-numeric: tabular-nums; }
+.nutri-value small { font-size: calc(12px * var(--fs, 1)); font-weight: 400; color: var(--text-sub); margin-left: 2px; }
 .nutri-bar { position: relative; height: 6px; margin: 6px 0 4px; border-radius: 3px; background: var(--bg); overflow: hidden; }
 .nutri-bar span { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 3px; }
 .nutri-bar i { position: absolute; top: 0; bottom: 0; left: 66.6%; width: 2px; background: var(--text-sub); }
-.nutri-foot { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+.nutri-foot { display: flex; justify-content: space-between; gap: 8px; font-size: calc(14px * var(--fs, 1)); }
 .nutri-status { font-weight: 700; color: var(--accent); }
 .nutri-row.is-low .nutri-bar span { background: #d99a1e; }
 .nutri-row.is-low .nutri-status { color: #a86d00; }
@@ -579,13 +586,81 @@ html.sheet-open { overflow: hidden; }
 @media (prefers-color-scheme: dark) { .nutri-row.is-low .nutri-status { color: #f0c46b; } }
 .cost-main { display: flex; gap: 24px; align-items: flex-end; }
 .cost-main > div { display: flex; flex-direction: column; }
-.cost-big { font-size: 28px; font-variant-numeric: tabular-nums; }
+.cost-big { font-size: calc(28px * var(--fs, 1)); font-variant-numeric: tabular-nums; }
 .cost-meals { display: flex; gap: 16px; margin-top: 8px; font-variant-numeric: tabular-nums; }
 .cost-meals > div { display: flex; gap: 6px; align-items: baseline; }
-.meal-heading { font-size: 15px; margin: 14px 0 6px; color: var(--text-sub); }
+.meal-heading { font-size: calc(15px * var(--fs, 1)); margin: 14px 0 6px; color: var(--text-sub); }
 .link-btn { padding: 0; min-height: 32px; border: none; background: none; color: var(--accent); font-weight: 600; text-decoration: underline; }
 .seg-radio { display: flex; align-items: center; justify-content: center; min-height: 40px; border-radius: 9px; font-weight: 600; color: var(--text-sub); cursor: pointer; }
 .seg-radio input { position: absolute; opacity: 0; pointer-events: none; }
 .seg-radio:has(input:checked) { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgb(0 0 0 / 0.12); }
 .radio-row { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; font-weight: 400 !important; }
 .radio-row input { width: 22px; height: 22px; margin-top: 2px; accent-color: var(--accent); flex: none; }
+
+
+/* ===== v1.2：選択肢・グループ・コンパクト表示 ===== */
+.choice-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.choice-col { display: grid; gap: 8px; }
+.choice { position: relative; display: block; cursor: pointer; }
+.choice input { position: absolute; opacity: 0; pointer-events: none; }
+.choice > span {
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  min-height: var(--tap); padding: 8px 12px;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--surface);
+  font-weight: 600; text-align: center;
+}
+.choice-col .choice > span { align-items: flex-start; text-align: left; }
+.choice small { font-weight: 400; color: var(--text-sub); font-size: calc(13px * var(--fs, 1)); }
+.choice input:checked + span { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.choice input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
+.row-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 18px; }
+.row-fields .field { margin-top: 0 !important; }
+.row-fields .input { width: 100% !important; min-width: 0; }
+.check-row { display: flex; align-items: center; gap: 10px; min-height: 40px; font-weight: 400 !important; }
+.check-row input { width: 22px; height: 22px; accent-color: var(--accent); flex: none; margin: 0; }
+.body-preview { margin-top: 14px; padding: 10px 12px; border-radius: 10px; background: var(--bg); line-height: 1.8; }
+.body-preview:empty { display: none; }
+.member-list > li { padding-top: 4px !important; padding-bottom: 4px !important; }
+.member-list .serving { display: flex; align-items: center; gap: 4px; }
+.member-list .serving .input { width: 72px; min-height: 40px; text-align: right; padding: 0 8px; }
+.btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.card-head .card-title { margin: 0; }
+.chip-btn {
+  min-height: 32px; padding: 0 10px; border: 1px solid var(--border); border-radius: 999px;
+  background: var(--bg); color: var(--text-sub); font-size: calc(13px * var(--fs, 1));
+}
+.compact-list > li { min-height: 44px; padding-top: 2px !important; padding-bottom: 2px !important; }
+.compact-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.compact-name .note { font-size: calc(13px * var(--fs, 1)); }
+.nowrap { white-space: nowrap; flex: none; }
+.warn-text { margin-top: 10px; color: #8a5a00; }
+@media (prefers-color-scheme: dark) { .warn-text { color: #f0c46b; } }
+.item-name-sm { font-size: calc(17px * var(--fs, 1)) !important; }
+.more-nutri summary {
+  min-height: 40px; display: flex; align-items: center; gap: 6px;
+  color: var(--accent); font-weight: 600; cursor: pointer; list-style: none;
+}
+.more-nutri summary::-webkit-details-marker { display: none; }
+.more-nutri summary::after { content: "▾"; font-size: calc(12px * var(--fs, 1)); transition: transform 0.15s; }
+.more-nutri[open] summary::after { transform: rotate(180deg); }
+.font-levels button { min-height: 44px; }
+.font-levels button[aria-checked="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgb(0 0 0 / 0.12); }
+
+/* 栄養の行：1行目に名前と量、2行目にバーと判定 */
+.nutri-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: 10px;
+  padding: 6px 0;
+}
+.nutri-row .nutri-bar { grid-column: 1 / -1; margin: 3px 0 1px; }
+.nutri-row .nutri-foot { grid-column: 1 / -1; font-size: calc(13px * var(--fs, 1)); }
+.nutri-value { font-size: calc(16px * var(--fs, 1)); }
+.cost-main { flex-wrap: wrap; gap: 6px 18px; }
+.cost-big { font-size: calc(24px * var(--fs, 1)); }
+.meal-heading { margin: 10px 0 4px; }
+.check-row input { margin-right: 4px; }
+.row-fields + .field { margin-top: 18px; }
+.meal-grid + .field { margin-top: 18px; }

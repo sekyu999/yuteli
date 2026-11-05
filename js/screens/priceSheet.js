@@ -66,7 +66,6 @@ export async function openPriceSheet(preset = {}) {
             ${INPUT_UNITS.map((u) => `<option value="${u}">${u}</option>`).join('')}
           </select>
         </div>
-        <p class="note" style="margin-top:4px">店舗によって容量が違う時は、ここを正しく入れると実質の安さで比べられます。</p>
         <p class="field-error" data-error-for="packageContent"></p>
       </div>
 

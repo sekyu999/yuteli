@@ -1,6 +1,6 @@
 // 栄養の計算と目標との比較。画面や DB には依存しない純粋な関数。
 import { MEALS, intakeUnit } from './consumption.js';
-import { DRI, AGE_BANDS, UPPER_LIMITS } from '../content/dri2025.js';
+import { DRI, AGE_BANDS, UPPER_LIMITS, BMR_STANDARD, PAL, BMI_TARGET } from '../content/dri2025.js';
 
 /** 扱う栄養素（並び順＝表示順） */
 export const NUTRIENTS = [
@@ -101,7 +101,9 @@ export function targetsFor(profile) {
   const band = ageBand(profile.age);
   if (!band) return null;
   const d = DRI[profile.sex][band];
-  const energy = d.energy[profile.activity] ?? d.energy.II;
+  // 体重が分かれば自分の体重で計算、なければ国の参照体格の値
+  const body = bodyStats(profile);
+  const energy = body?.energy ?? d.energy[profile.activity] ?? d.energy.II;
   const iron = profile.sex === 'female' && profile.menstruation && d.ironMenstruation ? d.ironMenstruation : d.iron;
   const gFromPct = (pct, kcalPerG) => (energy * pct) / 100 / kcalPerG;
   return {
@@ -119,6 +121,22 @@ export function targetsFor(profile) {
     vitB2: { kind: 'min', value: d.vitB2 },
     vitC: { kind: 'min', value: d.vitC },
   };
+}
+
+/**
+ * 身長・体重から BMI・基礎代謝・推定エネルギー必要量を出す
+ * 基礎代謝 = 基礎代謝基準値 × 体重、必要量 = 基礎代謝 × 身体活動レベル（日本人の食事摂取基準 2025年版の方法）
+ * @returns {{ bmi:number|null, bmiRange:[number,number], bmr:number, energy:number } | null} 体重がなければ null
+ */
+export function bodyStats(profile) {
+  const band = ageBand(profile?.age);
+  const w = Number(profile?.weight);
+  if (!band || !DRI[profile.sex] || !(w > 0)) return null;
+  const h = Number(profile.height);
+  const bmi = h > 0 ? w / (h / 100) ** 2 : null;
+  const bmr = BMR_STANDARD[profile.sex][band] * w;
+  const pal = PAL[band][profile.activity] ?? PAL[band].II;
+  return { bmi, bmiRange: BMI_TARGET[band], bmr: Math.round(bmr), energy: Math.round(bmr * pal) };
 }
 
 /**

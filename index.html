@@ -14,6 +14,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="YUTELI">
 
+  <script>
+    // 文字の大きさ（設定画面で変更）を、表示の前に反映する
+    try { var fs = localStorage.getItem('yuteli.fontScale'); if (fs) document.documentElement.style.setProperty('--fs', fs); } catch (e) {}
+  </script>
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/components.css">
   <script type="module" src="js/app.js"></script>

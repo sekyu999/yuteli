@@ -7,6 +7,7 @@ import * as meals from './screens/meals.js';
 import * as settings from './screens/settings.js';
 import { db } from './data/db.js';
 import { requestPersistence } from './data/storage.js';
+import { hideToast } from './ui/toast.js';
 
 /**
  * 各画面は次の2つを export する：
@@ -39,6 +40,7 @@ function show() {
   if (typeof cleanup === 'function') cleanup();
   // 開いたままのシート（戻るジェスチャーで画面が変わった時など）を閉じる
   document.querySelectorAll('dialog.sheet[open]').forEach((d) => d.close());
+  hideToast();
   const container = document.createElement('div');
   screenEl.replaceChildren(container);
   cleanup = screen.mount(container) ?? null;
@@ -65,16 +67,6 @@ async function start() {
   window.addEventListener('hashchange', show);
   show();
 
-  // 日付が変わってからアプリに戻った時は描き直す（毎日の在庫の自動減少を反映するため）
-  let shownDate = new Date().toDateString();
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState !== 'visible') return;
-    const d = new Date().toDateString();
-    if (d !== shownDate) {
-      shownDate = d;
-      show();
-    }
-  });
 
   requestPersistence();
 

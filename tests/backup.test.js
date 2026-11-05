@@ -57,13 +57,14 @@ test('ファイル名', () => {
   assert.equal(backupFileName(new Date(2026, 9, 30, 19, 5)), 'yuteli-backup-20261030-1905.json');
 });
 
-test('版1のバックアップは版2に変換して読み込める', () => {
+test('版1のバックアップは最新の版に変換して読み込める', () => {
   const b = sample();
   b.schemaVersion = 1;
   delete b.settings;
   const r = parseBackup(JSON.stringify(b));
   assert.equal(r.ok, true);
-  assert.equal(r.backup.schemaVersion, 2);
+  assert.equal(r.backup.schemaVersion, 3);
+  assert.deepEqual(r.backup.data.foodGroups, []);
   assert.deepEqual(r.backup.data.products[0].consumption, { breakfast: 0, lunch: 0, dinner: 0 });
   assert.equal(r.backup.data.products[0].stockUpdatedOn, '2026-10-30');
   assert.deepEqual(r.backup.settings, {});

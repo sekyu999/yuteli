@@ -23,8 +23,7 @@ import {
 import { groupByCategory } from '../domain/shelf.js';
 import { shortage } from '../domain/product.js';
 import { openPriceSheet } from './priceSheet.js';
-import { esc, todayLocal } from '../lib/util.js';
-import { effectiveStock } from '../domain/consumption.js';
+import { esc } from '../lib/util.js';
 
 export const title = '買い物リスト';
 
@@ -139,7 +138,7 @@ function itemRowHtml(it, product) {
   const badges = [];
   if (it.source === 'manual' && !it.productId) badges.push('<span class="badge badge-muted">手動</span>');
   if (it.source === 'health') badges.push('<span class="badge badge-muted">健康提案</span>');
-  if (product && shortage({ ...product, currentStock: effectiveStock(product, todayLocal()) }) === 0) badges.push('<span class="badge">在庫は足りています</span>');
+  if (product && shortage(product) === 0) badges.push('<span class="badge">在庫は足りています</span>');
   return `
     <li class="item-row">
       <button type="button" class="check" data-action="buy" data-id="${it.id}" aria-label="${esc(it.name)}を購入済みにする"></button>
@@ -185,7 +184,7 @@ function openItemSheet(item, state) {
           <input id="f-unit" name="unit" class="input" value="${esc(item.unit ?? '')}" autocomplete="off">
         </div>
         ${categorySelect(state.categories, item.categoryId)}`
-          : `<p class="note" style="margin-top:12px">「リストを更新」を押すと、数量は在庫から計算した数に戻ります。</p>`
+          : ''
       }
       <div class="form-actions">
         <button type="submit" class="btn btn-primary btn-block">保存</button>
@@ -223,7 +222,6 @@ async function openAddSheet(state) {
         <label for="f-name">商品名</label>
         <input id="f-name" name="name" class="input" list="product-names" autocomplete="off" enterkeyhint="done">
         <datalist id="product-names">${products.map((p) => `<option value="${esc(p.name)}">`).join('')}</datalist>
-        <p class="note" style="margin-top:4px">在庫に登録した商品名なら、その商品として追加されます。それ以外は今回だけの項目です。</p>
         <p class="field-error" data-error-for="name"></p>
       </div>
       ${stepperField({ name: 'quantity', label: '数量', value: 1 })}

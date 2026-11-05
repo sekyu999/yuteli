@@ -123,7 +123,7 @@ function renderCompare(body) {
           cmp.mode === 'unit' ? `${top.unit.label} ${yen(top.unit.value)}` : `1${esc(p.inventoryUnit)} ${yen(top.perItem)}`;
         return `<li><button type="button" class="row-button" data-action="detail" data-id="${p.id}">
           <span class="grow">
-            <span class="item-name" style="font-size:17px">${esc(p.name)}</span>
+            <span class="item-name item-name-sm">${esc(p.name)}</span>
             <span class="price-line">最安 <strong>${best.map((b) => esc(storeName.get(b.storeId) ?? '削除された店舗')).join('・')}</strong> ${value}</span>
             <span class="note ${days > STALE_DAYS ? 'stale' : ''}">${dateLabel(top.record.purchasedAt, today)}・${cmp.rows.length}店舗の比較</span>
           </span>
@@ -132,8 +132,7 @@ function renderCompare(body) {
 
       body.innerHTML = `
         ${withData.length ? `<section><h2 class="section-title">記録あり</h2><ul class="list">${withData.map(rowHtml).join('')}</ul></section>` : ''}
-        ${without.length ? `<section><h2 class="section-title">まだ記録がない商品</h2><ul class="list">${without.map(rowHtml).join('')}</ul></section>` : ''}
-        <p class="note">価格は実際に買った時の記録です。今の店頭価格とは違うことがあります。</p>`;
+        ${without.length ? `<section><h2 class="section-title">まだ記録がない商品</h2><ul class="list">${without.map(rowHtml).join('')}</ul></section>` : ''}`;
     }
   );
 }
@@ -196,7 +195,7 @@ async function openProductPriceSheet(productId) {
                   const mainLabel = cmp.mode === 'unit' ? r.unit.label : `1${unit}あたり`;
                   return `<li class="compare-row ${r.cheapest ? 'is-cheapest' : ''}">
                     <span class="grow">
-                      <span class="item-name" style="font-size:17px">${esc(storeName.get(r.storeId) ?? '削除された店舗')}
+                      <span class="item-name item-name-sm">${esc(storeName.get(r.storeId) ?? '削除された店舗')}
                         ${r.cheapest ? '<span class="badge">最安</span>' : ''}</span>
                       <span class="note">${yen(r.record.price)}（${r.record.quantity}${unit}${contentLabel(r.record)}）</span>
                       <span class="note ${days > STALE_DAYS ? 'stale' : ''}">${dateLabel(r.record.purchasedAt, today)}${
@@ -256,10 +255,9 @@ function renderStores(body) {
             .map(
               (s) => `<li><button type="button" class="row-button" data-action="store" data-id="${s.id}">
                 <span class="grow">${esc(s.name)}<span class="note" style="display:block">価格記録 ${s.records}件</span></span>
-                <span class="note">売り場順・編集 ›</span></button></li>`
+                <span class="note">›</span></button></li>`
             )
-            .join('')}</ul>
-           <p class="note">お店をタップすると、売り場の順番を設定できます。買い物リストでお店を選ぶと、その順に並びます。</p>`
+            .join('')}</ul>`
         : '<div class="placeholder">右下の「＋ 店舗」から、よく行くお店を登録してください。</div>';
     }
   );
@@ -315,7 +313,6 @@ async function openStoreSheet(storeId) {
       <section style="margin-top:24px">
         <h3 class="section-title">売り場の順番（入口から回る順）</h3>
         <ol class="list shelf-list" id="shelf"></ol>
-        <p class="note" style="margin-top:6px">↑↓で並べ替えると、すぐに保存されます。</p>
       </section>
       <div class="form-actions"><button type="button" class="btn-danger-text" data-delete-store>この店舗を削除</button></div>`,
     onClose: () => stop?.(),

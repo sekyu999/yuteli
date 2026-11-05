@@ -1,85 +1,114 @@
-// 栄養の目標に使うプロフィール（性別・年齢・身体活動レベル）
+// 栄養の目標に使うプロフィール（性別・年齢・身長・体重・活動量）
 import { openSheet } from '../ui/sheet.js';
 import { showErrors, bindErrorClear, formValues } from '../ui/form.js';
 import { toast } from '../ui/toast.js';
 import { getMeta, setMeta, META } from '../data/metaRepo.js';
+import { bodyStats } from '../domain/nutrition.js';
 import { esc } from '../lib/util.js';
 
 export const ACTIVITY = [
-  { key: 'I', label: '低い', note: '1日のほとんどを座って過ごす' },
-  { key: 'II', label: 'ふつう', note: '座り仕事が中心だが、通勤・買い物・家事や軽い運動をする' },
-  { key: 'III', label: '高い', note: '立ち仕事や移動が多い、または運動の習慣がある' },
+  { key: 'I', label: '低い', note: 'ほとんど座って過ごす' },
+  { key: 'II', label: 'ふつう', note: '座り仕事中心＋通勤・家事・軽い運動' },
+  { key: 'III', label: '高い', note: '立ち仕事・移動が多い／運動習慣あり' },
 ];
 
 export function profileSummary(p) {
   if (!p) return '未設定';
   const act = ACTIVITY.find((a) => a.key === p.activity)?.label ?? '';
-  return `${p.sex === 'male' ? '男性' : '女性'}・${p.age}歳・活動量${act}`;
+  const body = [p.height ? `${p.height}cm` : '', p.weight ? `${p.weight}kg` : ''].filter(Boolean).join('・');
+  return `${p.sex === 'male' ? '男性' : '女性'}・${p.age}歳${body ? `・${body}` : ''}・活動量${act}`;
 }
 
 export async function openProfileSheet() {
   const p = (await getMeta(META.profile)) ?? { sex: '', age: '', activity: 'II', menstruation: false };
+  const choice = (name, value, label, checked, sub = '') =>
+    `<label class="choice"><input type="radio" name="${name}" value="${value}" ${checked ? 'checked' : ''}>
+      <span>${label}${sub ? `<small>${sub}</small>` : ''}</span></label>`;
+  const num = (name, label, unit, value, mode = 'decimal') => `
+    <div class="field">
+      <label for="f-${name}">${label}</label>
+      <div class="row" style="align-items:center">
+        <input id="f-${name}" name="${name}" class="input" inputmode="${mode}" value="${esc(value ?? '')}" style="width:110px" autocomplete="off">
+        <span class="unit-suffix">${unit}</span>
+      </div>
+      <p class="field-error" data-error-for="${name}"></p>
+    </div>`;
+
   const sheet = openSheet({
-    title: '栄養の目標',
+    title: 'からだの情報',
     body: `
       <form novalidate>
         <div class="field">
           <span class="label">性別</span>
-          <div class="segmented" role="radiogroup">
-            <label class="seg-radio"><input type="radio" name="sex" value="female" ${p.sex === 'female' ? 'checked' : ''}>女性</label>
-            <label class="seg-radio"><input type="radio" name="sex" value="male" ${p.sex === 'male' ? 'checked' : ''}>男性</label>
+          <div class="choice-row">
+            ${choice('sex', 'female', '女性', p.sex === 'female')}
+            ${choice('sex', 'male', '男性', p.sex === 'male')}
           </div>
           <p class="field-error" data-error-for="sex"></p>
         </div>
-        <div class="field">
-          <label for="f-age">年齢</label>
-          <div class="row" style="align-items:center">
-            <input id="f-age" name="age" class="input" inputmode="numeric" value="${esc(p.age)}" style="width:120px" autocomplete="off">
-            <span class="unit-suffix">歳</span>
-          </div>
-          <p class="field-error" data-error-for="age"></p>
+        <div class="row-fields">
+          ${num('age', '年齢', '歳', p.age, 'numeric')}
+          ${num('height', '身長', 'cm', p.height)}
+          ${num('weight', '体重', 'kg', p.weight)}
         </div>
         <div class="field">
-          <span class="label">ふだんの活動量</span>
-          ${ACTIVITY.map(
-            (a) => `<label class="radio-row"><input type="radio" name="activity" value="${a.key}" ${p.activity === a.key ? 'checked' : ''}>
-              <span><strong>${a.label}</strong><span class="note" style="display:block">${a.note}</span></span></label>`
-          ).join('')}
+          <span class="label">活動量</span>
+          <div class="choice-col">
+            ${ACTIVITY.map((a) => choice('activity', a.key, a.label, p.activity === a.key, a.note)).join('')}
+          </div>
         </div>
         <div class="field" id="mens-field">
-          <label class="radio-row"><input type="checkbox" name="menstruation" value="1" ${p.menstruation ? 'checked' : ''}>
-            <span>月経がある<span class="note" style="display:block">鉄の目標が変わります</span></span></label>
+          <label class="check-row"><input type="checkbox" name="menstruation" value="1" ${p.menstruation ? 'checked' : ''}>月経がある（鉄の目標が変わります）</label>
         </div>
-        <p class="note" style="margin-top:12px">目標は「日本人の食事摂取基準（2025年版）」（厚生労働省）の18歳以上の値です。妊娠中・授乳中の方の付加量は含みません。</p>
+        <p class="body-preview" id="body-preview"></p>
         <div class="form-actions"><button type="submit" class="btn btn-primary btn-block">保存</button></div>
       </form>`,
   });
   const form = sheet.el.querySelector('form');
   bindErrorClear(form);
-  const syncMens = () => {
-    const sex = form.querySelector('[name=sex]:checked')?.value;
-    form.querySelector('#mens-field').hidden = sex !== 'female';
+
+  const read = () => {
+    const v = formValues(form);
+    return {
+      sex: v.sex,
+      age: Number(v.age),
+      height: v.height ? Number(v.height) : null,
+      weight: v.weight ? Number(v.weight) : null,
+      activity: v.activity || 'II',
+      menstruation: v.sex === 'female' && !!v.menstruation,
+    };
   };
-  form.addEventListener('change', syncMens);
-  syncMens();
+  const sync = () => {
+    const v = read();
+    form.querySelector('#mens-field').hidden = v.sex !== 'female';
+    const b = v.sex ? bodyStats(v) : null;
+    form.querySelector('#body-preview').innerHTML = b
+      ? [
+          b.bmi ? `BMI <strong>${b.bmi.toFixed(1)}</strong>（目標 ${b.bmiRange[0]}〜${b.bmiRange[1]}）` : '',
+          `基礎代謝 <strong>${b.bmr.toLocaleString()}</strong>kcal`,
+          `1日に必要なエネルギー <strong>${b.energy.toLocaleString()}</strong>kcal`,
+        ]
+          .filter(Boolean)
+          .join('<br>')
+      : '';
+  };
+  form.addEventListener('input', sync);
+  form.addEventListener('change', sync);
+  sync();
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const v = formValues(form);
+    const v = read();
     const errors = {};
     if (!v.sex) errors.sex = '選んでください';
-    const age = Number(v.age);
-    if (!Number.isInteger(age) || age < 18 || age > 120) errors.age = '18〜120の整数で入力してください（18歳未満は対象外です）';
+    if (!Number.isInteger(v.age) || v.age < 18 || v.age > 120) errors.age = '18〜120歳';
+    if (v.height !== null && !(v.height >= 100 && v.height <= 250)) errors.height = '100〜250cm';
+    if (v.weight !== null && !(v.weight >= 20 && v.weight <= 300)) errors.weight = '20〜300kg';
     if (Object.keys(errors).length) {
       showErrors(form, errors);
       return;
     }
-    await setMeta(META.profile, {
-      sex: v.sex,
-      age,
-      activity: v.activity || 'II',
-      menstruation: v.sex === 'female' && !!v.menstruation,
-    });
+    await setMeta(META.profile, v);
     sheet.close();
     toast('保存しました');
   });

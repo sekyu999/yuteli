@@ -4,6 +4,7 @@ import { openSheet } from '../ui/sheet.js';
 import { stepperField, bindSteppers, bindErrorClear, clearError, showErrors, formValues } from '../ui/form.js';
 import { toast } from '../ui/toast.js';
 import { listCategories } from '../data/categoryRepo.js';
+import { listGroups } from '../data/groupRepo.js';
 import {
   getProduct,
   createProduct,
@@ -14,16 +15,20 @@ import {
 } from '../data/productRepo.js';
 import { INVENTORY_UNITS } from '../domain/product.js';
 import { INPUT_UNITS, normalizeContent } from '../domain/units.js';
-import { MEALS, effectiveStock, round2, formatStock } from '../domain/consumption.js';
+import { MEALS, round2, formatStock } from '../domain/consumption.js';
 import { openNutritionSheet, describeNutrition } from './nutritionSheet.js';
-import { esc, todayLocal } from '../lib/util.js';
+import { esc } from '../lib/util.js';
 
 /**
  * @param {string} [id] 指定すると編集、省略すると新規登録
  */
 export async function openProductSheet(id) {
-  const [product, categories] = await Promise.all([id ? getProduct(id) : null, listCategories()]);
+  const [product, categories, groups] = await Promise.all([id ? getProduct(id) : null, listCategories(), listGroups()]);
   if (id && !product) return;
+  const myGroups = product ? groups.filter((g) => g.members.some((m) => m.productId === product.id)) : [];
+  const groupNote = myGroups.length
+    ? `<p class="note">グループ「${myGroups.map((g) => esc(g.name)).join('」「')}」の分も足して計算します。</p>`
+    : '';
 
   const v = product ?? {
     name: '',
@@ -37,8 +42,7 @@ export async function openProductSheet(id) {
     gramsPerUnit: null,
     nutrition: null,
   };
-  // 在庫は「今日の在庫（自動で減った後）」を表示する
-  const stockNow = product ? round2(effectiveStock(product, todayLocal())) : v.currentStock;
+  const stockNow = v.currentStock;
   let nutrition = v.nutrition ?? null;
   const c = v.consumption ?? {};
   const showNum = (n) => (n ? String(n) : '');
@@ -76,7 +80,7 @@ export async function openProductSheet(id) {
       ${stepperField({ name: 'targetStock', label: '常に置いておきたい数（目標）', value: v.targetStock, suffix: v.inventoryUnit })}
 
       <div class="field">
-        <label for="f-packageContent">1<span data-inv-unit>${esc(v.inventoryUnit || 'つ')}</span>に入っている量 <span class="optional">任意・価格比較と毎日の量に使います</span></label>
+        <label for="f-packageContent">1<span data-inv-unit>${esc(v.inventoryUnit || 'つ')}</span>に入っている量 <span class="optional">任意</span></label>
         <div class="row">
           <input id="f-packageContent" name="packageContent" class="input grow" inputmode="decimal"
                  value="${v.packageContent ?? ''}" placeholder="例：卵10個入り→10、牛乳→1000" autocomplete="off">
@@ -88,8 +92,8 @@ export async function openProductSheet(id) {
       </div>
 
       <fieldset class="form-section">
-        <legend>毎日食べる（使う）量 <span class="optional">任意</span></legend>
-        <p class="note">入れると、在庫が毎日自動で減り、栄養と食費が計算されます。毎日使わない物は空欄のままにします。</p>
+        <legend>毎日食べる量 <span class="optional">任意</span></legend>
+        ${groupNote}
         <div class="meal-grid">
           ${MEALS.map(
             (m) => `<div class="meal-input">
@@ -119,7 +123,6 @@ export async function openProductSheet(id) {
             <input id="f-gramsPerUnit" name="gramsPerUnit" class="input grow" inputmode="decimal" value="${v.gramsPerUnit ?? ''}" placeholder="例：卵Mサイズ→50" autocomplete="off">
             <span class="unit-suffix">g</span>
           </div>
-          <p class="note" style="margin-top:4px">栄養の計算に使います。食べる部分の重さを入れてください（パッケージに書かれた1個・1枚の重さなど）。</p>
           <p class="field-error" data-error-for="gramsPerUnit"></p>
         </div>
       </fieldset>
@@ -169,9 +172,8 @@ export async function openProductSheet(id) {
     const target = Number(el('targetStock').value) || 0;
     const days = perDayStock ? Math.floor(target / perDayStock + 1e-9) : 0;
     hint.textContent =
-      `1日 ${round2(daily)}${intake} → 在庫は1日 ${formatStock(round2(perDayStock))}${inv} ずつ減ります` +
-      (target ? `（目標 ${target}${inv} でおよそ${days}日分）` : '') +
-      (!content && inv && intake === inv ? '' : '');
+      `1日 ${round2(daily)}${intake}（${formatStock(round2(perDayStock))}${inv}）` +
+      (target ? `・目標 ${target}${inv} で約${days}日分` : '');
   }
 
   form.addEventListener('input', sync);

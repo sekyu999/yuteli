@@ -8,8 +8,11 @@
 //   "data": { "categories": [...], "products": [...], … }
 // }
 
+import { splitCategories } from './categories.js';
+import { newId } from '../lib/util.js';
+
 export const APP_ID = 'yuteli';
-export const CURRENT_SCHEMA_VERSION = 2;
+export const CURRENT_SCHEMA_VERSION = 3;
 
 const isStr = (v) => typeof v === 'string' && v.length > 0;
 const isStrOrNull = (v) => v === null || v === undefined || typeof v === 'string';
@@ -37,6 +40,14 @@ const RULES = {
     !isStr(r.storeId) ? 'storeId' : !isStr(r.categoryId) ? 'categoryId' : !isNum(r.sortOrder) ? 'sortOrder' : null,
   shoppingListItems: (r) =>
     !isStr(r.name) ? 'name' : !isNum(r.quantity) ? 'quantity' : !isStrOrNull(r.productId) ? 'productId' : null,
+  foodGroups: (r) =>
+    !isStr(r.name)
+      ? 'name'
+      : !Array.isArray(r.members) || r.members.some((m) => !m || !isStr(m.productId))
+        ? 'members'
+        : !r.consumption || typeof r.consumption !== 'object'
+          ? 'consumption'
+          : null,
   priceRecords: (r) =>
     !isStr(r.productId)
       ? 'productId'
@@ -67,6 +78,16 @@ const MIGRATIONS = {
       p.stockUpdatedOn ??= (b.exportedAt ?? '').slice(0, 10) || null;
     }
     b.settings ??= {};
+    return b;
+  },
+  // 版2 → 版3：食事グループを追加。「・」区切りの初期カテゴリを分け、缶詰を追加
+  3: (b) => {
+    b.data.foodGroups ??= [];
+    if (Array.isArray(b.data.categories) && Array.isArray(b.data.storeShelfOrders ?? [])) {
+      const r = splitCategories({ categories: b.data.categories, storeShelfOrders: b.data.storeShelfOrders ?? [] }, newId);
+      b.data.categories = r.categories;
+      b.data.storeShelfOrders = r.storeShelfOrders;
+    }
     return b;
   },
 };
