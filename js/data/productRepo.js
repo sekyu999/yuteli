@@ -33,8 +33,34 @@ export class ValidationError extends Error {
   }
 }
 
+/** 並び順（ドラッグで決めた順）どおりの全商品 */
 export function listProducts() {
-  return db.products.toArray().then((list) => list.sort((a, b) => a.name.localeCompare(b.name, 'ja')));
+  return db.products.toArray().then((list) => list.sort(byOrder));
+}
+
+/** 商品の並び順：sortOrder → 名前 */
+export function byOrder(a, b) {
+  return (a.sortOrder ?? 1e9) - (b.sortOrder ?? 1e9) || a.name.localeCompare(b.name, 'ja');
+}
+
+/**
+ * 並べ替えを保存する（同じカテゴリ内の商品IDを新しい順で渡す）。
+ * その商品たちが使っていた並び番号を、新しい順に配り直す（ほかのカテゴリの順は変わらない）
+ */
+export async function saveProductOrder(ids) {
+  await db.transaction('rw', db.products, async () => {
+    const list = (await db.products.bulkGet(ids)).filter(Boolean);
+    const slots = list.map((p) => p.sortOrder ?? 1e9).sort((a, b) => a - b);
+    // 番号が重複・未設定なら、末尾に続く番号を振り直す
+    const unique = new Set(slots).size === slots.length && slots.every((x) => x < 1e9);
+    const all = unique ? slots : await nextOrders(slots.length);
+    for (let i = 0; i < ids.length; i++) await db.products.update(ids[i], { sortOrder: all[i] });
+  });
+}
+
+async function nextOrders(n) {
+  const max = (await db.products.toArray()).reduce((m, p) => Math.max(m, p.sortOrder ?? 0), 0);
+  return Array.from({ length: n }, (_, i) => max + i + 1);
 }
 
 export function getProduct(id) {
@@ -60,11 +86,13 @@ export async function createProduct(raw) {
     id: newId(),
     ...r.value,
     autoAddSuppressed: false,
+    sortOrder: 0, // 下で末尾の番号にする
     createdAt: t,
     updatedAt: t,
   };
   await db.transaction('rw', db.products, async () => {
     await assertUniqueName(product.name);
+    product.sortOrder = (await nextOrders(1))[0];
     await db.products.add(product);
   });
   return product;

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { combineConsumption, groupOnly, validateGroupInput } from '../js/domain/groups.js';
-import { splitCategories } from '../js/domain/categories.js';
+import { splitCategories, mergeCategories } from '../js/domain/categories.js';
 import { sumNutrients } from '../js/domain/nutrition.js';
 import { dailyStockUse } from '../js/domain/consumption.js';
 
@@ -77,4 +77,28 @@ test('カテゴリの分割：商品は先頭の名前に残り、売り場順�
   assert.deepEqual(r.storeShelfOrders.map((s) => [s.categoryId, s.sortOrder]), [['b', 1], ['a', 2], ['new1', 3]]);
   // 2回目は何も変わらない
   assert.equal(splitCategories(r, id).changed, false);
+});
+
+test('分けたカテゴリを「・」でまとめ直す（商品・リスト・売り場順も）', () => {
+  const r = mergeCategories({
+    categories: [
+      { id: 'v', name: '野菜', defaultOrder: 1 },
+      { id: 'f', name: '果物', defaultOrder: 2 },
+      { id: 'e', name: '卵', defaultOrder: 3 },
+      { id: 'k', name: '缶詰', defaultOrder: 4 },
+      { id: 'm', name: '自分の', defaultOrder: 5 },
+    ],
+    storeShelfOrders: [
+      { id: 's1', storeId: 'S', categoryId: 'e', sortOrder: 1 },
+      { id: 's2', storeId: 'S', categoryId: 'v', sortOrder: 2 },
+      { id: 's3', storeId: 'S', categoryId: 'f', sortOrder: 3 },
+    ],
+    products: [{ id: 'banana', categoryId: 'f' }, { id: 'broc', categoryId: 'v' }],
+    shoppingListItems: [{ id: 'i1', categoryId: 'f' }],
+  });
+  assert.deepEqual(r.categories.map((c) => `${c.name}:${c.defaultOrder}`), ['野菜・果物:1', '卵:2', '缶詰:3', '自分の:4']);
+  assert.deepEqual(r.products.map((p) => p.categoryId), ['v', 'v']);
+  assert.equal(r.shoppingListItems[0].categoryId, 'v');
+  assert.deepEqual(r.storeShelfOrders.map((s) => [s.categoryId, s.sortOrder]), [['e', 1], ['v', 2]]);
+  assert.equal(mergeCategories({ ...r, storeShelfOrders: r.storeShelfOrders }).changed, false);
 });

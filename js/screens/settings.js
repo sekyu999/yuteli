@@ -7,7 +7,8 @@ import { watch } from '../ui/live.js';
 import { openSheet } from '../ui/sheet.js';
 import { showErrors, bindErrorClear, formValues } from '../ui/form.js';
 import { toast } from '../ui/toast.js';
-import { FONT_LEVELS, getFontScale, setFontScale } from '../ui/fontSize.js';
+import { FONT_LEVELS, getFontScale, setFontScale, getTheme, setTheme } from '../ui/fontSize.js';
+import { THEMES } from '../ui/themeList.js';
 import { getMeta, META } from '../data/metaRepo.js';
 import { saveBackup, currentCounts, restoreBackup, resetAll } from '../data/backup.js';
 import {
@@ -20,7 +21,7 @@ import {
 } from '../data/categoryRepo.js';
 import { ValidationError } from '../data/productRepo.js';
 import { parseBackup, BACKUP_TABLES } from '../domain/backupFormat.js';
-import { move } from '../domain/shelf.js';
+import { makeSortable, dragHandle } from '../ui/sortable.js';
 import { APP_VERSION } from '../lib/version.js';
 import { openProfileSheet, profileSummary } from './profileSheet.js';
 import { esc } from '../lib/util.js';
@@ -54,10 +55,21 @@ export function mount(el) {
       </section>
 
       <section>
+        <h2 class="section-title">テーマ</h2>
+        <div class="theme-grid" role="radiogroup">
+          <button type="button" role="radio" data-theme-key="" class="theme-swatch theme-auto"><span class="sw"><i style="background:#f6f5f1"></i><i style="background:#1b1c1a"></i></span>自動</button>
+          ${THEMES.map(
+            (t) => `<button type="button" role="radio" data-theme-key="${t.key}" class="theme-swatch">
+              <span class="sw" style="background:${t.bg}"><i style="background:${t.accent}"></i><i style="background:${t.surface}"></i></span>${t.label}</button>`
+          ).join('')}
+        </div>
+      </section>
+
+      <section>
         <h2 class="section-title">文字の大きさ</h2>
         <div class="segmented font-levels" role="radiogroup">
           ${FONT_LEVELS.map(
-            (f, i) => `<button type="button" role="radio" data-font="${f.scale}" aria-label="${f.label}" style="font-size:${14 + i * 2}px">あ</button>`
+            (f, i) => `<button type="button" role="radio" data-font="${f.scale}" aria-label="${f.label}" style="font-size:${13 + i * 2.5}px">あ</button>`
           ).join('')}
         </div>
       </section>
@@ -99,8 +111,30 @@ export function mount(el) {
     if (!b) return;
     setFontScale(Number(b.dataset.font));
     markFont();
+
+  // ---- テーマ ----
+  const markTheme = () =>
+    el.querySelectorAll('[data-theme-key]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.themeKey === getTheme())));
+  el.querySelector('.theme-grid').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-theme-key]');
+    if (!b) return;
+    setTheme(b.dataset.themeKey);
+    markTheme();
+  });
+  markTheme();
   });
   markFont();
+
+  // ---- テーマ ----
+  const markTheme = () =>
+    el.querySelectorAll('[data-theme-key]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.themeKey === getTheme())));
+  el.querySelector('.theme-grid').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-theme-key]');
+    if (!b) return;
+    setTheme(b.dataset.themeKey);
+    markTheme();
+  });
+  markTheme();
 
   // ---- 操作 ----
   const fileInput = el.querySelector('#restore-file');
@@ -214,7 +248,7 @@ function openCategorySheet() {
         </div>
       </form>
       <section style="margin-top:20px">
-        <h3 class="section-title">標準の並び順（お店を選ばない時の順番）</h3>
+        <h3 class="section-title">並び順（≡ を押さえて動かす）</h3>
         <ol class="list shelf-list" id="cat-list"></ol>
       </section>`,
     onClose: () => stop?.(),
@@ -236,13 +270,8 @@ function openCategorySheet() {
 
   const listEl = sheet.el.querySelector('#cat-list');
   let cats = [];
+  makeSortable(listEl, { onSort: (ids) => saveCategoryOrder(ids) });
   listEl.addEventListener('click', async (e) => {
-    const mv = e.target.closest('[data-move]');
-    if (mv) {
-      const ids = move(cats.map((c) => c.id), Number(mv.dataset.index), Number(mv.dataset.move));
-      await saveCategoryOrder(ids);
-      return;
-    }
     const ed = e.target.closest('[data-edit]');
     if (ed) openCategoryEdit(cats.find((c) => c.id === ed.dataset.edit));
   });
@@ -250,11 +279,9 @@ function openCategorySheet() {
     cats = list;
     listEl.innerHTML = list
       .map(
-        (c, i) => `<li>
-          <span class="shelf-no">${i + 1}</span>
+        (c) => `<li data-id="${c.id}">
+          ${dragHandle(esc(c.name))}
           <button type="button" class="row-button grow" data-edit="${c.id}" style="min-height:40px">${esc(c.name)}</button>
-          <button type="button" class="icon-btn" data-move="-1" data-index="${i}" aria-label="${esc(c.name)}を上へ" ${i === 0 ? 'disabled' : ''}>↑</button>
-          <button type="button" class="icon-btn" data-move="1" data-index="${i}" aria-label="${esc(c.name)}を下へ" ${i === list.length - 1 ? 'disabled' : ''}>↓</button>
         </li>`
       )
       .join('');

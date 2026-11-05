@@ -118,7 +118,9 @@ export function mount(el) {
       }
 
       const productById = new Map(products.map((p) => [p.id, p]));
-      const groups = groupByCategory(items, categories, (a, b) => a.name.localeCompare(b.name, 'ja'));
+      // 同じ売り場の中は、在庫で並べた順（手動追加の物は後ろに名前順）
+      const order = (it) => productById.get(it.productId)?.sortOrder ?? 1e9;
+      const groups = groupByCategory(items, categories, (a, b) => order(a) - order(b) || a.name.localeCompare(b.name, 'ja'));
       groupsEl.innerHTML =
         `<p class="note">${items.length}品目</p>` +
         groups

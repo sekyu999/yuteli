@@ -5,7 +5,8 @@
 import { watch } from '../ui/live.js';
 import { toast } from '../ui/toast.js';
 import { listCategories } from '../data/categoryRepo.js';
-import { listProducts, changeStock, clearAllSuppression } from '../data/productRepo.js';
+import { listProducts, changeStock, clearAllSuppression, saveProductOrder } from '../data/productRepo.js';
+import { makeSortable, dragHandle } from '../ui/sortable.js';
 import { refreshFromStock, listItems, addProductToList, removeProductFromList } from '../data/shoppingRepo.js';
 import { shortage } from '../domain/product.js';
 import { formatStock } from '../domain/consumption.js';
@@ -90,10 +91,12 @@ export function mount(el) {
           (g) => `
           <section>
             <h2 class="section-title">${esc(g.name)}</h2>
-            <ul class="list">${g.items.map((p) => rowHtml(p, inList.has(p.id))).join('')}</ul>
+            <ul class="list sortable">${g.items.map((p) => rowHtml(p, inList.has(p.id))).join('')}</ul>
           </section>`
         )
         .join('');
+      // カテゴリの中で ≡ を押さえて並べ替え
+      groupsEl.querySelectorAll('ul.sortable').forEach((ul) => makeSortable(ul, { onSort: saveProductOrder }));
     }
   );
 }
@@ -114,7 +117,8 @@ function rowHtml(p, listed) {
   if (short) meta.push(`<span class="badge badge-short">あと${short}${unit}</span>`);
   if (p.autoAddSuppressed) meta.push('<span class="badge badge-muted">購入済み・在庫未更新</span>');
   return `
-    <li class="stock-row">
+    <li class="stock-row" data-id="${p.id}">
+      ${dragHandle(esc(p.name))}
       <button type="button" class="stock-main" data-action="edit" data-id="${p.id}">
         <div class="stock-name">${esc(p.name)}</div>
         <div class="stock-meta">${meta.join('')}</div>

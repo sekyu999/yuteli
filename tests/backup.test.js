@@ -63,7 +63,8 @@ test('版1のバックアップは最新の版に変換して読み込める', (
   delete b.settings;
   const r = parseBackup(JSON.stringify(b));
   assert.equal(r.ok, true);
-  assert.equal(r.backup.schemaVersion, 3);
+  assert.equal(r.backup.schemaVersion, 4);
+  assert.deepEqual(r.backup.data.plans, []);
   assert.deepEqual(r.backup.data.foodGroups, []);
   assert.deepEqual(r.backup.data.products[0].consumption, { breakfast: 0, lunch: 0, dinner: 0 });
   assert.equal(r.backup.data.products[0].stockUpdatedOn, '2026-10-30');

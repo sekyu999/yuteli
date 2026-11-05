@@ -125,6 +125,9 @@ function mountDaily(el) {
       return;
     }
 
+    // 食べる物が登録されている食事だけタブを出す
+    const usedMeals = MEALS.filter((m) => daily.some((p) => Number(p.consumption[m.key]) > 0));
+    if (meal !== 'all' && !usedMeals.some((m) => m.key === meal)) meal = 'all';
     const mealKey = meal === 'all' ? null : meal;
     const sum = sumNutrients(daily, mealKey);
     const recordsBy = new Map();
@@ -138,7 +141,7 @@ function mountDaily(el) {
     el.innerHTML = `
       <div class="stack">
         <div class="segmented meal-tabs" role="tablist">
-          ${[{ key: 'all', label: '1日' }, ...MEALS]
+          ${[{ key: 'all', label: '1日' }, ...usedMeals]
             .map((m) => `<button type="button" role="tab" data-act="meal" data-meal="${m.key}" aria-selected="${meal === m.key}">${m.label}</button>`)
             .join('')}
         </div>
@@ -163,7 +166,7 @@ function mountDaily(el) {
           <div class="cost-main">
             <div><span class="note">1か月</span><strong class="cost-big">${yen(Math.round(cost.perMonth))}</strong></div>
             <div><span class="note">1日</span><strong>${yen(Math.round(cost.perDay))}</strong></div>
-            ${MEALS.map((m) => `<div><span class="note">${m.label}</span><span>${yen(Math.round(cost.perMeal[m.key]))}</span></div>`).join('')}
+            ${usedMeals.map((m) => `<div><span class="note">${m.label}</span><span>${yen(Math.round(cost.perMeal[m.key]))}</span></div>`).join('')}
           </div>
           ${cost.noPrice.length ? `<p class="note warn-text">価格なし：${cost.noPrice.map((p) => esc(p.name)).join('、')}</p>` : ''}
         </section>

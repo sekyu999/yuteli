@@ -9,6 +9,9 @@
   --accent-soft: #e4f1e8;
   --danger: #b4382c;
   --warn-soft: #fbf0d9;
+  --warn-text: #8a5a00;    /* 注意の文字 */
+  --warn-bar: #d99a1e;     /* 栄養が少ない時のバー */
+  --on-accent: #ffffff;    /* 主要ボタンの文字 */
 
   --radius: 12px;
   --gap: 16px;
@@ -34,6 +37,9 @@
     --accent-soft: #23382b;
     --danger: #ef7a6d;
     --warn-soft: #3d3420;
+    --warn-text: #f0c46b;
+    --warn-bar: #d9a33a;
+    --on-accent: #10170f;
   }
 }
 

@@ -8,11 +8,11 @@
 //   "data": { "categories": [...], "products": [...], … }
 // }
 
-import { splitCategories } from './categories.js';
+import { splitCategories, mergeCategories } from './categories.js';
 import { newId } from '../lib/util.js';
 
 export const APP_ID = 'yuteli';
-export const CURRENT_SCHEMA_VERSION = 3;
+export const CURRENT_SCHEMA_VERSION = 4;
 
 const isStr = (v) => typeof v === 'string' && v.length > 0;
 const isStrOrNull = (v) => v === null || v === undefined || typeof v === 'string';
@@ -48,6 +48,16 @@ const RULES = {
         : !r.consumption || typeof r.consumption !== 'object'
           ? 'consumption'
           : null,
+  plans: (r) =>
+    !isStr(r.title)
+      ? 'title'
+      : r.kind !== 'buy' && r.kind !== 'do'
+        ? 'kind'
+        : !isAmount(r.price)
+          ? 'price'
+          : !(r.month === null || r.month === undefined || /^\d{4}-\d{2}$/.test(r.month))
+            ? 'month'
+            : null,
   priceRecords: (r) =>
     !isStr(r.productId)
       ? 'productId'
@@ -88,6 +98,24 @@ const MIGRATIONS = {
       b.data.categories = r.categories;
       b.data.storeShelfOrders = r.storeShelfOrders;
     }
+    return b;
+  },
+  // 版3 → 版4：家計を追加。分けたカテゴリをまとめ直す。商品に並び順を付ける
+  4: (b) => {
+    b.data.plans ??= [];
+    const r = mergeCategories({
+      categories: b.data.categories ?? [],
+      storeShelfOrders: b.data.storeShelfOrders ?? [],
+      products: b.data.products ?? [],
+      shoppingListItems: b.data.shoppingListItems ?? [],
+    });
+    Object.assign(b.data, {
+      categories: r.categories,
+      storeShelfOrders: r.storeShelfOrders,
+      shoppingListItems: r.shoppingListItems,
+    });
+    const sorted = [...r.products].sort((x, y) => String(x.name).localeCompare(String(y.name), 'ja'));
+    b.data.products = sorted.map((p, i) => ({ ...p, sortOrder: p.sortOrder ?? i + 1 }));
     return b;
   },
 };

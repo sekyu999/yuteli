@@ -3,7 +3,7 @@
 // そのため、ファイルを更新したときにキャッシュが原因で古い画面が出る、ということが起きにくい。
 
 // アプリを更新したら版を上げる（js/lib/version.js と合わせる）
-const CACHE = 'yuteli-1.2.0';
+const CACHE = 'yuteli-1.3.0';
 
 // オフラインでも開けるように最初に保存しておくファイル
 const APP_FILES = [
@@ -12,6 +12,7 @@ const APP_FILES = [
   'manifest.webmanifest',
   'css/base.css',
   'css/components.css',
+  'css/themes.css',
   'data/foods.json',
   'icons/apple-touch-icon.png',
   'icons/icon-192.png',
@@ -24,6 +25,7 @@ const APP_FILES = [
   'js/data/foodDb.js',
   'js/data/groupRepo.js',
   'js/data/metaRepo.js',
+  'js/data/planRepo.js',
   'js/data/priceRepo.js',
   'js/data/productRepo.js',
   'js/data/shoppingRepo.js',
@@ -35,6 +37,7 @@ const APP_FILES = [
   'js/domain/cost.js',
   'js/domain/groups.js',
   'js/domain/nutrition.js',
+  'js/domain/plans.js',
   'js/domain/pricing.js',
   'js/domain/product.js',
   'js/domain/shelf.js',
@@ -42,6 +45,7 @@ const APP_FILES = [
   'js/domain/units.js',
   'js/lib/util.js',
   'js/lib/version.js',
+  'js/screens/budget.js',
   'js/screens/groupSheet.js',
   'js/screens/health.js',
   'js/screens/meals.js',
@@ -57,6 +61,8 @@ const APP_FILES = [
   'js/ui/form.js',
   'js/ui/live.js',
   'js/ui/sheet.js',
+  'js/ui/sortable.js',
+  'js/ui/themeList.js',
   'js/ui/toast.js',
   'vendor/dexie.mjs',
 ];

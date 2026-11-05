@@ -2,7 +2,7 @@
 import Dexie from '../../vendor/dexie.mjs';
 import { newId, todayLocal } from '../lib/util.js';
 import { CURRENT_SCHEMA_VERSION } from '../domain/backupFormat.js';
-import { DEFAULT_CATEGORIES, splitCategories } from '../domain/categories.js';
+import { DEFAULT_CATEGORIES, splitCategories, mergeCategories } from '../domain/categories.js';
 
 /** データ構造の版（バックアップにも記録する） */
 export const SCHEMA_VERSION = CURRENT_SCHEMA_VERSION;
@@ -49,6 +49,32 @@ db.version(3)
     await tx.table('storeShelfOrders').bulkAdd(r.storeShelfOrders);
   });
 
+// 版4：家計（買いたい物・やりたい事）を追加。商品に並び順を追加。分けたカテゴリを「・」でまとめ直す
+db.version(4)
+  .stores({ plans: 'id, month' })
+  .upgrade(async (tx) => {
+    const [categories, storeShelfOrders, products, shoppingListItems] = await Promise.all(
+      ['categories', 'storeShelfOrders', 'products', 'shoppingListItems'].map((t) => tx.table(t).toArray())
+    );
+    const r = mergeCategories({ categories, storeShelfOrders, products, shoppingListItems });
+    const prods = withSortOrder(r.products);
+    for (const [name, rows] of [
+      ['categories', r.categories],
+      ['storeShelfOrders', r.storeShelfOrders],
+      ['products', prods],
+      ['shoppingListItems', r.shoppingListItems],
+    ]) {
+      await tx.table(name).clear();
+      await tx.table(name).bulkAdd(rows);
+    }
+  });
+
+/** 並び順のない商品に、カテゴリごと名前順の sortOrder を付ける */
+export function withSortOrder(products) {
+  const sorted = [...products].sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+  return sorted.map((p, i) => ({ ...p, sortOrder: p.sortOrder ?? i + 1 }));
+}
+
 export { DEFAULT_CATEGORIES };
 
 /** 初期カテゴリのデータを作る（初回起動・初期化で使う） */
@@ -71,6 +97,7 @@ export const DATA_TABLES = [
   'shoppingListItems',
   'priceRecords',
   'foodGroups',
+  'plans',
 ];
 
 /** 全テーブル名 */
@@ -82,5 +109,6 @@ export const TABLES = [
   'shoppingListItems',
   'priceRecords',
   'foodGroups',
+  'plans',
   'meta',
 ];

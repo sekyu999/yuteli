@@ -1,0 +1,32 @@
+// 家計（買いたい物・やりたい事）の読み書き
+import { db } from './db.js';
+import { newId, nowIso } from '../lib/util.js';
+import { validatePlanInput } from '../domain/plans.js';
+import { ValidationError } from './productRepo.js';
+
+export function listPlans() {
+  return db.plans.toArray();
+}
+
+export function getPlan(id) {
+  return db.plans.get(id);
+}
+
+/** 保存（id がなければ新規）。入力が不正なら ValidationError */
+export async function savePlan(id, raw) {
+  const r = validatePlanInput(raw);
+  if (!r.ok) throw new ValidationError(r.errors);
+  const t = nowIso();
+  const old = id ? await db.plans.get(id) : null;
+  const plan = { id: id ?? newId(), ...r.value, createdAt: old?.createdAt ?? t, updatedAt: t };
+  await db.plans.put(plan);
+  return plan;
+}
+
+export async function setPlanDone(id, done) {
+  await db.plans.update(id, { done: !!done, updatedAt: nowIso() });
+}
+
+export async function deletePlan(id) {
+  await db.plans.delete(id);
+}

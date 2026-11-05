@@ -4,6 +4,7 @@ import * as shopping from './screens/shopping.js';
 import * as stock from './screens/stock.js';
 import * as prices from './screens/prices.js';
 import * as meals from './screens/meals.js';
+import * as budget from './screens/budget.js';
 import * as settings from './screens/settings.js';
 import { db } from './data/db.js';
 import { requestPersistence } from './data/storage.js';
@@ -14,7 +15,7 @@ import { hideToast } from './ui/toast.js';
  *   title           … ヘッダーに出す名前
  *   mount(el)       … el の中に画面を作る。片付け用の関数を返す（任意）
  */
-const ROUTES = { list: shopping, stock, prices, meals, settings };
+const ROUTES = { list: shopping, stock, prices, meals, budget, settings };
 /** 以前の URL（#/health）で開いても食事画面を出す */
 const ALIASES = { health: 'meals' };
 const DEFAULT_ROUTE = 'list';

@@ -19,7 +19,7 @@ import {
 } from '../data/storeRepo.js';
 import { listAllRecords, listByProduct, deletePriceRecord } from '../data/priceRepo.js';
 import { compareStores, daysSince, STALE_DAYS, yen } from '../domain/pricing.js';
-import { move } from '../domain/shelf.js';
+import { makeSortable, dragHandle } from '../ui/sortable.js';
 import { openPriceSheet } from './priceSheet.js';
 import { esc, todayLocal } from '../lib/util.js';
 
@@ -311,7 +311,7 @@ async function openStoreSheet(storeId) {
         </div>
       </form>
       <section style="margin-top:24px">
-        <h3 class="section-title">売り場の順番（入口から回る順）</h3>
+        <h3 class="section-title">売り場の順番（≡ を押さえて動かす）</h3>
         <ol class="list shelf-list" id="shelf"></ol>
       </section>
       <div class="form-actions"><button type="button" class="btn-danger-text" data-delete-store>この店舗を削除</button></div>`,
@@ -333,24 +333,16 @@ async function openStoreSheet(storeId) {
   });
 
   const shelfEl = sheet.el.querySelector('#shelf');
-  let ids = [];
-  shelfEl.addEventListener('click', async (e) => {
-    const b = e.target.closest('[data-move]');
-    if (!b) return;
-    const next = move(ids, Number(b.dataset.index), Number(b.dataset.move));
-    await saveShelfOrder(storeId, next);
-  });
+  makeSortable(shelfEl, { onSort: (ids) => saveShelfOrder(storeId, ids) });
   stop = watch(
     () => getOrderedCategories(storeId),
     (cats) => {
-      ids = cats.map((c) => c.id);
       shelfEl.innerHTML = cats
         .map(
-          (c, i) => `<li>
+          (c, i) => `<li data-id="${c.id}">
+            ${dragHandle(esc(c.name))}
             <span class="shelf-no">${i + 1}</span>
             <span class="grow">${esc(c.name)}</span>
-            <button type="button" class="icon-btn" data-move="-1" data-index="${i}" aria-label="${esc(c.name)}を上へ" ${i === 0 ? 'disabled' : ''}>↑</button>
-            <button type="button" class="icon-btn" data-move="1" data-index="${i}" aria-label="${esc(c.name)}を下へ" ${i === cats.length - 1 ? 'disabled' : ''}>↓</button>
           </li>`
         )
         .join('');

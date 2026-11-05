@@ -112,3 +112,11 @@ test('体重から基礎代謝と必要エネルギー：40歳女性 55kg・ふ�
 test('75歳以上で活動量「高い」は「ふつう」の係数', () => {
   assert.equal(bodyStats({ sex: 'male', age: 80, activity: 'III', weight: 60 }).energy, Math.round(21.5 * 60 * 1.7));
 });
+
+test('食材提案の成分表番号がすべて成分表にある', async () => {
+  const fs = await import('node:fs');
+  const { HEALTH_RECOMMENDATIONS } = await import('../js/content/healthRecommendations.js');
+  const codes = new Set(JSON.parse(fs.readFileSync(new URL('../data/foods.json', import.meta.url))).foods.map((f) => f[0]));
+  for (const r of HEALTH_RECOMMENDATIONS) for (const f of r.foods) assert.ok(codes.has(f.code), `${r.concern}：${f.name} ${f.code}`);
+  assert.equal(new Set(HEALTH_RECOMMENDATIONS.map((r) => r.id)).size, HEALTH_RECOMMENDATIONS.length);
+});
