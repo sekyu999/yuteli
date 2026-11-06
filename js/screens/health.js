@@ -3,13 +3,21 @@
 // 在庫に追加する時は、成分表の栄養データも一緒に入れる（毎日食べる量は在庫画面で設定）
 import { watch } from '../ui/live.js';
 import { toast } from '../ui/toast.js';
-import { HEALTH_RECOMMENDATIONS, HEALTH_DISCLAIMER } from '../content/healthRecommendations.js';
+import * as contentJa from '../content/healthRecommendations.js';
+import * as contentEn from '../content/healthRecommendations.en.js';
 import { listCategories } from '../data/categoryRepo.js';
 import { listItems, addManualItem } from '../data/shoppingRepo.js';
 import { listProducts, createProduct } from '../data/productRepo.js';
 import { loadFoods } from '../data/foodDb.js';
 import { nameKey } from '../domain/product.js';
 import { esc } from '../lib/util.js';
+import { t, lang } from '../lib/i18n.js';
+
+/** 表示する言語の提案データ（英語の時は英語版。食材の番号・売り場のカテゴリ名は同じ） */
+function content() {
+  return lang === 'en' ? contentEn : contentJa;
+}
+const { HEALTH_RECOMMENDATIONS, HEALTH_DISCLAIMER } = content();
 
 export const title = '食材の提案';
 
@@ -22,7 +30,7 @@ export function mount(el) {
   el.innerHTML = `
     <div class="stack">
       <section>
-        <h2 class="section-title">気になること</h2>
+        <h2 class="section-title">${t('気になること')}</h2>
         <div class="concern-grid" role="radiogroup">
           ${HEALTH_RECOMMENDATIONS.map(
             (r) => `<button type="button" class="concern" role="radio" data-concern="${r.id}">${esc(r.concern)}</button>`
@@ -50,11 +58,11 @@ export function mount(el) {
     recEl.innerHTML = `
       <section class="card">
         <div class="chips" style="margin-top:0">${rec.nutrients.map((n) => `<span class="badge badge-muted">${esc(n)}</span>`).join('')}</div>
-        <details class="more-nutri"><summary>考え方</summary><p style="margin-top:6px">${esc(rec.explanation)}</p></details>
+        <details class="more-nutri"><summary>${t('考え方')}</summary><p style="margin-top:6px">${esc(rec.explanation)}</p></details>
       </section>
 
       <section>
-        <h2 class="section-title">おすすめ食材</h2>
+        <h2 class="section-title">${t('おすすめ食材')}</h2>
         <ul class="list">
           ${rec.foods
             .map((f, i) => {
@@ -63,12 +71,12 @@ export function mount(el) {
               return `<li class="food-row">
                 <span class="grow">
                   <span class="item-name item-name-sm">${esc(f.name)}</span>
-                  <span class="badge ${f.cost === 'low' ? '' : 'badge-muted'}" style="margin-left:6px">${COST_LABEL[f.cost]}</span>
-                  <span class="note" style="display:block;margin-top:2px">${esc(f.point)}／${esc(f.howTo)}</span>
+                  <span class="badge ${f.cost === 'low' ? '' : 'badge-muted'}" style="margin-left:6px">${t(COST_LABEL[f.cost])}</span>
+                  <span class="note" style="display:block;margin-top:2px">${t('{point}／{howTo}', { point: esc(f.point), howTo: esc(f.howTo) })}</span>
                 </span>
                 <span class="food-actions">
-                  <button type="button" class="icon-btn add-food" data-food="${i}" ${added ? 'disabled' : ''}>${added ? 'リスト済' : '＋リスト'}</button>
-                  <button type="button" class="icon-btn add-food" data-stock="${i}" ${stocked ? 'disabled' : ''}>${stocked ? '在庫済' : '＋在庫'}</button>
+                  <button type="button" class="icon-btn add-food" data-food="${i}" ${added ? 'disabled' : ''}>${added ? t('リスト済') : t('＋リスト')}</button>
+                  <button type="button" class="icon-btn add-food" data-stock="${i}" ${stocked ? 'disabled' : ''}>${stocked ? t('在庫済') : t('＋在庫')}</button>
                 </span>
               </li>`;
             })
@@ -77,7 +85,7 @@ export function mount(el) {
       </section>
 
       <details class="card more-nutri">
-        <summary>手軽な取り入れ方</summary>
+        <summary>${t('手軽な取り入れ方')}</summary>
         <ul class="tips" style="margin-top:6px">${rec.suggestions.map((s) => `<li>${esc(s)}</li>`).join('')}</ul>
       </details>
     `;
@@ -109,7 +117,11 @@ export function mount(el) {
         categoryId: cat?.id ?? null,
         source: 'health',
       });
-      toast(r.status === 'exists' ? `「${r.item.name}」はすでにリストにあります` : `「${food.name}」をリストに追加しました`);
+      toast(
+        r.status === 'exists'
+          ? t('「{name}」はすでにリストにあります', { name: r.item.name })
+          : t('「{name}」をリストに追加しました', { name: food.name })
+      );
     }
   });
 
@@ -118,10 +130,10 @@ export function mount(el) {
    * （「野菜」⇔「野菜・果物」のように、カテゴリ名を変えた場合にも合うように）
    */
   function findCategory(name) {
-    const parts = name.split('・');
+    const parts = name.split('・'); // i18n-ignore（カテゴリ名の区切り。表示しない）
     return (
       categories.find((x) => x.name === name) ??
-      categories.find((x) => x.name.split('・').some((n) => parts.includes(n))) ??
+      categories.find((x) => x.name.split('・').some((n) => parts.includes(n))) ?? // i18n-ignore
       null
     );
   }
@@ -145,9 +157,9 @@ export function mount(el) {
         targetStock: 1,
         nutrition,
       });
-      toast(`「${food.name}」を在庫に追加しました`);
+      toast(t('「{name}」を在庫に追加しました', { name: food.name }));
     } catch (err) {
-      toast(err.errors?.name ?? '追加できませんでした');
+      toast(err.errors?.name ? t(err.errors.name) : t('追加できませんでした'));
     }
   }
 

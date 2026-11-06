@@ -9,6 +9,9 @@ import * as settings from './screens/settings.js';
 import { db } from './data/db.js';
 import { requestPersistence } from './data/storage.js';
 import { hideToast } from './ui/toast.js';
+import { updateBadge } from './ui/badge.js';
+import { watch } from './ui/live.js';
+import { t, translateStatic } from './lib/i18n.js';
 
 /**
  * 各画面は次の2つを export する：
@@ -46,8 +49,8 @@ function show() {
   screenEl.replaceChildren(container);
   cleanup = screen.mount(container) ?? null;
 
-  titleEl.textContent = screen.title;
-  document.title = `${screen.title} | YUTELI`;
+  titleEl.textContent = t(screen.title);
+  document.title = `${t(screen.title)} | KESELA`;
   tabs.forEach((a) => {
     if (a.dataset.route === key) a.setAttribute('aria-current', 'page');
     else a.removeAttribute('aria-current');
@@ -56,12 +59,17 @@ function show() {
 }
 
 async function start() {
+  // index.html に書いた文字（下のタブなど）を今の言語にする
+  translateStatic();
+  document.querySelector('.tabbar')?.setAttribute('aria-label', t('メイン'));
   try {
     await db.open();
   } catch (e) {
     console.error(e);
-    screenEl.innerHTML =
-      '<p class="notice">データベースを開けませんでした。プライベートブラウズでは使えない場合があります。</p>';
+    const p = document.createElement('p');
+    p.className = 'notice';
+    p.textContent = t('データベースを開けませんでした。プライベートブラウズでは使えない場合があります。');
+    screenEl.replaceChildren(p);
     return;
   }
 
@@ -71,9 +79,29 @@ async function start() {
 
   requestPersistence();
 
+  // アイコンのバッジに買い物リストの件数（設定でオンにした時だけ）
+  watch(() => db.shoppingListItems.count(), updateBadge);
+
   // オフライン対応（HTTPS か localhost のときだけ動く）
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch((e) => console.warn('SW登録失敗', e));
+    // updateViaCache: 'none' … sw.js 自体もブラウザのキャッシュを使わず、毎回新しい版があるか確認する
+    const hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker
+      .register('sw.js', { updateViaCache: 'none' })
+      .then((reg) => {
+        // アプリに戻ってきた時にも更新を確認する
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') reg.update().catch(() => {});
+        });
+      })
+      .catch((e) => console.warn('SW登録失敗', e)); // i18n-ignore
+    // 新しい版に切り替わったら1回だけ読み込み直す（古いファイルと新しいファイルが混ざらないように）
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!hadController || reloaded) return;
+      reloaded = true;
+      location.reload();
+    });
   }
 }
 

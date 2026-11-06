@@ -2,6 +2,8 @@
 // 出典：日本食品標準成分表（八訂）増補2023年（文部科学省）
 // 約2,500食品・300KB あるため、必要になった時に1回だけ読み込む。
 
+import { t } from '../lib/i18n.js';
+
 let cache = null;
 
 /** @returns {Promise<{meta:object, foods:Array<{code:string,name:string,group:number,per100g:object}>}>} */
@@ -9,7 +11,7 @@ export async function loadFoods() {
   if (!cache) {
     cache = fetch(new URL('../../data/foods.json', import.meta.url))
       .then((r) => {
-        if (!r.ok) throw new Error(`成分表を読み込めませんでした（${r.status}）`);
+        if (!r.ok) throw new Error(t('成分表を読み込めませんでした（{status}）', { status: r.status }));
         return r.json();
       })
       .then(({ meta, foods }) => {
@@ -38,51 +40,51 @@ export function normalize(s) {
   return String(s)
     .normalize('NFKC')
     .toLowerCase()
-    .replace(/[ァ-ヶ]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60))
-    .replace(/[\s<>＜＞\[\]［］()（）「」・、,]/g, '');
+    .replace(/[ァ-ヶ]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60)) // i18n-ignore
+    .replace(/[\s<>＜＞\[\]［］()（）「」・、,]/g, ''); // i18n-ignore
 }
 
 /** 普段の言い方 → 成分表での言い方 */
 const ALIASES = {
-  ごはん: ['めし'],
-  ご飯: ['めし'],
-  白米: ['めし', '精白米'],
-  玄米: ['玄米'],
-  卵: ['鶏卵', '卵'],
-  たまご: ['鶏卵'],
-  玉子: ['鶏卵'],
-  豚: ['ぶた'],
-  豚肉: ['ぶた'],
-  鶏: ['にわとり'],
-  鶏肉: ['にわとり'],
-  とり: ['にわとり'],
-  ささみ: ['ささみ'],
-  牛肉: ['うし'],
-  ひき肉: ['ひき肉'],
-  鮭: ['さけ'],
-  サーモン: ['さけ', 'サーモン'],
-  豆腐: ['とうふ', '豆腐'],
-  ツナ: ['まぐろ類缶詰', 'かつお類缶詰'],
-  玉ねぎ: ['たまねぎ'],
-  人参: ['にんじん'],
-  じゃがいも: ['じゃがいも'],
-  きのこ: ['しめじ', 'えのき', 'しいたけ', 'まいたけ'],
-  パン: ['パン'],
-  食パン: ['食パン'],
-  うどん: ['うどん'],
-  そば: ['そば'],
-  パスタ: ['スパゲッティ', 'マカロニ'],
-  スパゲティ: ['スパゲッティ'],
-  チーズ: ['チーズ'],
-  味噌: ['米みそ', '麦みそ', '豆みそ', '調合みそ'],
-  みそ: ['米みそ', '麦みそ', '豆みそ', '調合みそ'],
-  みそ汁: ['みそ汁'],
-  醤油: ['しょうゆ'],
-  砂糖: ['砂糖'],
-  ヨーグルト: ['ヨーグルト'],
-  コーヒー: ['コーヒー'],
-  お茶: ['茶'],
-  緑茶: ['せん茶'],
+  ごはん: ['めし'], // i18n-ignore
+  ご飯: ['めし'], // i18n-ignore
+  白米: ['めし', '精白米'], // i18n-ignore
+  玄米: ['玄米'], // i18n-ignore
+  卵: ['鶏卵', '卵'], // i18n-ignore
+  たまご: ['鶏卵'], // i18n-ignore
+  玉子: ['鶏卵'], // i18n-ignore
+  豚: ['ぶた'], // i18n-ignore
+  豚肉: ['ぶた'], // i18n-ignore
+  鶏: ['にわとり'], // i18n-ignore
+  鶏肉: ['にわとり'], // i18n-ignore
+  とり: ['にわとり'], // i18n-ignore
+  ささみ: ['ささみ'], // i18n-ignore
+  牛肉: ['うし'], // i18n-ignore
+  ひき肉: ['ひき肉'], // i18n-ignore
+  鮭: ['さけ'], // i18n-ignore
+  サーモン: ['さけ', 'サーモン'], // i18n-ignore
+  豆腐: ['とうふ', '豆腐'], // i18n-ignore
+  ツナ: ['まぐろ類缶詰', 'かつお類缶詰'], // i18n-ignore
+  玉ねぎ: ['たまねぎ'], // i18n-ignore
+  人参: ['にんじん'], // i18n-ignore
+  じゃがいも: ['じゃがいも'], // i18n-ignore
+  きのこ: ['しめじ', 'えのき', 'しいたけ', 'まいたけ'], // i18n-ignore
+  パン: ['パン'], // i18n-ignore
+  食パン: ['食パン'], // i18n-ignore
+  うどん: ['うどん'], // i18n-ignore
+  そば: ['そば'], // i18n-ignore
+  パスタ: ['スパゲッティ', 'マカロニ'], // i18n-ignore
+  スパゲティ: ['スパゲッティ'], // i18n-ignore
+  チーズ: ['チーズ'], // i18n-ignore
+  味噌: ['米みそ', '麦みそ', '豆みそ', '調合みそ'], // i18n-ignore
+  みそ: ['米みそ', '麦みそ', '豆みそ', '調合みそ'], // i18n-ignore
+  みそ汁: ['みそ汁'], // i18n-ignore
+  醤油: ['しょうゆ'], // i18n-ignore
+  砂糖: ['砂糖'], // i18n-ignore
+  ヨーグルト: ['ヨーグルト'], // i18n-ignore
+  コーヒー: ['コーヒー'], // i18n-ignore
+  お茶: ['茶'], // i18n-ignore
+  緑茶: ['せん茶'], // i18n-ignore
 };
 
 /**
@@ -111,5 +113,5 @@ const EVERYDAY = new Set([
 ]);
 
 function score(f) {
-  return f.name.length + (EVERYDAY.has(f.code) ? -40 : 0) + (/(^| )生( |$)/.test(f.name) ? -6 : 0) + (f.group === 18 ? 10 : 0);
+  return f.name.length + (EVERYDAY.has(f.code) ? -40 : 0) + (/(^| )生( |$)/.test(f.name) ? -6 : 0) + (f.group === 18 ? 10 : 0); // i18n-ignore
 }

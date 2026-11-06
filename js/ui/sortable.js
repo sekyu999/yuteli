@@ -6,6 +6,8 @@
 // ・画面やシートの端に近づくと自動でスクロールする
 // ・離すと、新しい並び順の data-id の配列で onSort が呼ばれる（順番が変わった時だけ）
 
+import { t } from '../lib/i18n.js';
+
 const EDGE = 56; // 端からこの距離に入ったら自動スクロール（px）
 const SPEED = 10; // 自動スクロールの速さ（px／フレーム）
 
@@ -103,7 +105,7 @@ export function makeSortable(list, { onSort, handle = '.drag-handle' }) {
   }
 }
 
-/** 行に置く「≡」の HTML */
+/** 行に置く「≡」の HTML（label はエスケープ済みの文字を渡す） */
 export function dragHandle(label) {
-  return `<span class="drag-handle" role="button" aria-label="${label}を並べ替え"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14M5 12h14M5 16h14"/></svg></span>`;
+  return `<span class="drag-handle" role="button" aria-label="${t('{label}を並べ替え', { label })}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14M5 12h14M5 16h14"/></svg></span>`;
 }

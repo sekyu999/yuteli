@@ -54,7 +54,7 @@ test('ID の重複・欠落は拒否', () => {
 });
 
 test('ファイル名', () => {
-  assert.equal(backupFileName(new Date(2026, 9, 30, 19, 5)), 'yuteli-backup-20261030-1905.json');
+  assert.equal(backupFileName(new Date(2026, 9, 30, 19, 5)), 'kesela-backup-20261030-1905.json');
 });
 
 test('版1のバックアップは最新の版に変換して読み込める', () => {
@@ -74,5 +74,11 @@ test('版1のバックアップは最新の版に変換して読み込める', (
 test('在庫数の小数は受け付ける', () => {
   const b = sample();
   b.data.products[0].currentStock = 1.4;
+  assert.equal(parseBackup(JSON.stringify(b)).ok, true);
+});
+
+test('旧名（yuteli）のバックアップも読める', () => {
+  const b = sample();
+  b.app = 'yuteli';
   assert.equal(parseBackup(JSON.stringify(b)).ok, true);
 });

@@ -3,7 +3,7 @@
 // そのため、ファイルを更新したときにキャッシュが原因で古い画面が出る、ということが起きにくい。
 
 // アプリを更新したら版を上げる（js/lib/version.js と合わせる）
-const CACHE = 'yuteli-1.3.0';
+const CACHE = 'kesela-1.4.0';
 
 // オフラインでも開けるように最初に保存しておくファイル
 const APP_FILES = [
@@ -18,6 +18,7 @@ const APP_FILES = [
   'icons/icon-192.png',
   'js/app.js',
   'js/content/dri2025.js',
+  'js/content/healthRecommendations.en.js',
   'js/content/healthRecommendations.js',
   'js/data/backup.js',
   'js/data/categoryRepo.js',
@@ -43,6 +44,13 @@ const APP_FILES = [
   'js/domain/shelf.js',
   'js/domain/shoppingList.js',
   'js/domain/units.js',
+  'js/i18n/en.js',
+  'js/i18n/en/budget.js',
+  'js/i18n/en/common.js',
+  'js/i18n/en/meals.js',
+  'js/i18n/en/settings.js',
+  'js/i18n/en/shopping.js',
+  'js/lib/i18n.js',
   'js/lib/util.js',
   'js/lib/version.js',
   'js/screens/budget.js',
@@ -57,6 +65,7 @@ const APP_FILES = [
   'js/screens/settings.js',
   'js/screens/shopping.js',
   'js/screens/stock.js',
+  'js/ui/badge.js',
   'js/ui/fontSize.js',
   'js/ui/form.js',
   'js/ui/live.js',
@@ -68,7 +77,10 @@ const APP_FILES = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(APP_FILES)));
+  // 新しい版のファイルをブラウザのキャッシュを通さずに取り直して保存する
+  event.waitUntil(
+    caches.open(CACHE).then((c) => c.addAll(APP_FILES.map((f) => new Request(f, { cache: 'reload' }))))
+  );
   self.skipWaiting();
 });
 
@@ -87,7 +99,9 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
 
   event.respondWith(
-    fetch(req)
+    // cache: 'no-cache' … ブラウザ自身のキャッシュ（GitHub Pages は10分）を使わず、毎回サーバーに新しいか確認する。
+    // 変わっていなければ中身は送られてこないので、通信量はほとんど増えない
+    fetch(req, { cache: 'no-cache' })
       .then((res) => {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(req, copy));

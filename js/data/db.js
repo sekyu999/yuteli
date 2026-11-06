@@ -7,6 +7,7 @@ import { DEFAULT_CATEGORIES, splitCategories, mergeCategories } from '../domain/
 /** データ構造の版（バックアップにも記録する） */
 export const SCHEMA_VERSION = CURRENT_SCHEMA_VERSION;
 
+// データベース名は旧名（yuteli）のまま。変えると端末に保存済みのデータが読めなくなるため
 export const db = new Dexie('yuteli');
 
 // 「主キー, 検索に使う項目…」の形で書く。ここに無い項目も保存はできる。

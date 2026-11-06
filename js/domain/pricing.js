@@ -2,7 +2,7 @@
 import { normalizeContent } from './units.js';
 
 /** 単位価格の基準：液体は100mlあたり、重量は100gあたり、個数は1個あたり */
-export const UNIT_BASE = { ml: 100, g: 100, 個: 1 };
+export const UNIT_BASE = { ml: 100, g: 100, 個: 1 }; // i18n-ignore
 
 /** 価格記録の1管理単位（1パック・1本…）あたりの価格 */
 export function pricePerItem(record) {
@@ -19,7 +19,7 @@ export function unitPrice(record) {
   const base = UNIT_BASE[record.packageContentUnit];
   if (!base) return null;
   const value = (pricePerItem(record) / record.packageContent) * base;
-  return { value, unit: record.packageContentUnit, label: `${base === 1 ? '1' : base}${record.packageContentUnit}あたり` };
+  return { value, unit: record.packageContentUnit, label: `${base === 1 ? '1' : base}${record.packageContentUnit}あたり` }; // i18n-ignore（画面では使わず、言語に合わせて作り直す）
 }
 
 /** 新しい順に並べるための比較（購入日 → 登録日時） */
@@ -84,7 +84,7 @@ export function validatePriceInput(raw, today) {
   if (!raw.productId) errors.productId = '商品を選んでください';
   if (!raw.storeId) errors.storeId = '店舗を選んでください';
 
-  const price = Number(String(raw.price ?? '').replace(/[,円\s]/g, ''));
+  const price = Number(String(raw.price ?? '').replace(/[,円\s]/g, '')); // i18n-ignore
   if (!String(raw.price ?? '').trim()) errors.price = '金額を入力してください';
   else if (!Number.isInteger(price) || price <= 0 || price > 1000000) errors.price = '1円以上の整数で入力してください';
 
@@ -126,5 +126,5 @@ export function validatePriceInput(raw, today) {
 /** 金額の表示（整数は「1,234円」、小数は1桁まで） */
 export function yen(n) {
   const rounded = Math.round(n * 10) / 10;
-  return `${rounded.toLocaleString('ja-JP', { maximumFractionDigits: 1 })}円`;
+  return `${rounded.toLocaleString('ja-JP', { maximumFractionDigits: 1 })}円`; // i18n-ignore（画面では lib/i18n.js の money() を使う）
 }

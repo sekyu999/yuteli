@@ -5,6 +5,7 @@
 //   sheet.close() … 閉じる
 // 背景のタップ、「閉じる」ボタンでも閉じる。
 import { esc } from '../lib/util.js';
+import { t } from '../lib/i18n.js';
 
 /**
  * @param {{ title: string, body: string, onClose?: () => void }} opts
@@ -16,7 +17,7 @@ export function openSheet({ title, body, onClose }) {
     <div class="sheet-inner">
       <header class="sheet-header">
         <h2>${esc(title)}</h2>
-        <button type="button" class="sheet-close" data-sheet-close aria-label="閉じる">
+        <button type="button" class="sheet-close" data-sheet-close aria-label="${esc(t('閉じる'))}">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
         </button>
       </header>

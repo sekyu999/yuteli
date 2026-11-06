@@ -6,6 +6,7 @@ import { showErrors, bindErrorClear, formValues } from '../ui/form.js';
 import { searchFoods, loadFoods } from '../data/foodDb.js';
 import { NUTRIENTS, LABEL_NUTRIENTS, labelToPer100g, formatValue } from '../domain/nutrition.js';
 import { esc } from '../lib/util.js';
+import { t } from '../lib/i18n.js';
 
 /**
  * @param {{ current: object|null, initialQuery?: string, onSelect: (nutrition: object|null) => void }} opts
@@ -13,14 +14,14 @@ import { esc } from '../lib/util.js';
 export function openNutritionSheet({ current, initialQuery = '', onSelect }) {
   let mode = current?.source === 'label' ? 'label' : 'mext';
   const sheet = openSheet({
-    title: '栄養データ',
+    title: t('栄養データ'),
     body: `
       <div class="segmented" role="tablist">
-        <button type="button" role="tab" data-mode="mext">成分表から探す</button>
-        <button type="button" role="tab" data-mode="label">パッケージ表示</button>
+        <button type="button" role="tab" data-mode="mext">${t('成分表から探す')}</button>
+        <button type="button" role="tab" data-mode="label">${t('パッケージ表示')}</button>
       </div>
       <div id="nut-body" style="margin-top:16px"></div>
-      ${current ? '<div class="form-actions"><button type="button" class="btn-danger-text" data-clear>栄養データを外す</button></div>' : ''}
+      ${current ? `<div class="form-actions"><button type="button" class="btn-danger-text" data-clear>${t('栄養データを外す')}</button></div>` : ''}
     `,
   });
   const body = sheet.el.querySelector('#nut-body');
@@ -47,11 +48,11 @@ export function openNutritionSheet({ current, initialQuery = '', onSelect }) {
   function renderSearch() {
     body.innerHTML = `
       <div class="field">
-        <label for="f-q">食品名</label>
-        <input id="f-q" class="input" type="search" value="${esc(initialQuery)}" placeholder="例：卵、納豆、鶏 むね" autocomplete="off" enterkeyhint="search">
+        <label for="f-q">${t('食品名')}</label>
+        <input id="f-q" class="input" type="search" value="${esc(initialQuery)}" placeholder="${t('例：卵、納豆、鶏 むね')}" autocomplete="off" enterkeyhint="search">
       </div>
       <ul class="list food-results" id="food-results" style="margin-top:12px"></ul>
-      <p class="note" style="margin-top:8px">出典：日本食品標準成分表（八訂）増補2023年</p>
+      <p class="note" style="margin-top:8px">${t('出典：日本食品標準成分表（八訂）増補2023年')}</p>
     `;
     const q = body.querySelector('#f-q');
     const results = body.querySelector('#food-results');
@@ -60,7 +61,7 @@ export function openNutritionSheet({ current, initialQuery = '', onSelect }) {
 
     const run = async () => {
       if (!q.value.trim()) {
-        results.innerHTML = '<li class="note">食品名を入力してください</li>';
+        results.innerHTML = `<li class="note">${t('食品名を入力してください')}</li>`;
         return;
       }
       try {
@@ -74,11 +75,14 @@ export function openNutritionSheet({ current, initialQuery = '', onSelect }) {
             .map(
               (f, i) => `<li><button type="button" class="row-button" data-pick="${i}">
                 <span class="grow"><span>${esc(f.name)}</span>
-                <span class="note">${formatValue(f.per100g.energy, NUTRIENTS[0])}kcal・たんぱく質${formatValue(f.per100g.protein, NUTRIENTS[1])}g</span></span>
-                <span class="note">選ぶ</span></button></li>`
+                <span class="note">${t('{kcal}kcal・たんぱく質{protein}g', {
+                  kcal: formatValue(f.per100g.energy, NUTRIENTS[0]),
+                  protein: formatValue(f.per100g.protein, NUTRIENTS[1]),
+                })}</span></span>
+                <span class="note">${t('選ぶ')}</span></button></li>`
             )
             .join('')
-        : '<li class="note">見つかりませんでした。言い方を変えてみてください（例：ご飯→めし）</li>';
+        : `<li class="note">${t('見つかりませんでした。言い方を変えてみてください（例：ご飯→めし）')}</li>`;
     };
     q.addEventListener('input', () => {
       clearTimeout(timer);
@@ -106,7 +110,7 @@ export function openNutritionSheet({ current, initialQuery = '', onSelect }) {
     };
     const field = (n) => `
       <div class="field nut-field">
-        <label for="f-${n.key}">${esc(n.label)}</label>
+        <label for="f-${n.key}">${esc(t(n.label))}</label>
         <div class="row" style="align-items:center">
           <input id="f-${n.key}" name="${n.key}" class="input grow" inputmode="decimal" value="${prevVal(n.key)}" autocomplete="off">
           <span class="unit-suffix">${esc(n.unit)}</span>
@@ -116,20 +120,20 @@ export function openNutritionSheet({ current, initialQuery = '', onSelect }) {
     body.innerHTML = `
       <form novalidate>
         <div class="field">
-          <label for="f-basis">表示の基準量</label>
+          <label for="f-basis">${t('表示の基準量')}</label>
           <div class="row" style="align-items:center">
-            <input id="f-basis" name="basis" class="input grow" inputmode="decimal" value="${basis}" placeholder="例：45" autocomplete="off">
-            <span class="unit-suffix">g あたり</span>
+            <input id="f-basis" name="basis" class="input grow" inputmode="decimal" value="${basis}" placeholder="${t('例：45')}" autocomplete="off">
+            <span class="unit-suffix">${t('g あたり')}</span>
           </div>
-          <p class="note" style="margin-top:4px">「1パック（45g）あたり」なら 45</p>
+          <p class="note" style="margin-top:4px">${t('「1パック（45g）あたり」なら 45')}</p>
           <p class="field-error" data-error-for="basis"></p>
         </div>
         ${NUTRIENTS.filter((n) => LABEL_NUTRIENTS.includes(n.key)).map(field).join('')}
         <details class="more-nutrients">
-          <summary>その他の栄養素（表示があれば）</summary>
+          <summary>${t('その他の栄養素（表示があれば）')}</summary>
           ${NUTRIENTS.filter((n) => !LABEL_NUTRIENTS.includes(n.key)).map(field).join('')}
         </details>
-        <div class="form-actions"><button type="submit" class="btn btn-primary btn-block">この内容で使う</button></div>
+        <div class="form-actions"><button type="submit" class="btn btn-primary btn-block">${t('この内容で使う')}</button></div>
       </form>`;
     const form = body.querySelector('form');
     bindErrorClear(form);
@@ -138,11 +142,11 @@ export function openNutritionSheet({ current, initialQuery = '', onSelect }) {
       const v = formValues(form);
       const errors = {};
       const basisN = Number(v.basis);
-      if (!(basisN > 0)) errors.basis = '基準量を入力してください';
-      if (String(v.energy ?? '').trim() === '') errors.energy = 'エネルギーを入力してください';
+      if (!(basisN > 0)) errors.basis = t('基準量を入力してください');
+      if (String(v.energy ?? '').trim() === '') errors.energy = t('エネルギーを入力してください');
       for (const n of NUTRIENTS) {
-        const t = String(v[n.key] ?? '').trim();
-        if (t !== '' && !(Number(t) >= 0)) errors[n.key] = '0以上の数で入力してください';
+        const str = String(v[n.key] ?? '').trim();
+        if (str !== '' && !(Number(str) >= 0)) errors[n.key] = t('0以上の数で入力してください');
       }
       if (Object.keys(errors).length) {
         showErrors(form, errors);
@@ -158,8 +162,10 @@ export function openNutritionSheet({ current, initialQuery = '', onSelect }) {
 
 /** 選択中の栄養データの説明（フォームに表示） */
 export function describeNutrition(n) {
-  if (!n) return '未設定';
+  if (!n) return t('未設定');
   const kcal = n.per100g?.energy;
-  const kcalText = kcal === null || kcal === undefined ? '' : `・100gあたり${Math.round(kcal)}kcal`;
-  return n.source === 'mext' ? `成分表：${n.name}${kcalText}` : `パッケージ表示（${n.basisGrams}gあたり）${kcalText}`;
+  const kcalText = kcal === null || kcal === undefined ? '' : t('・100gあたり{kcal}kcal', { kcal: Math.round(kcal) });
+  return n.source === 'mext'
+    ? t('成分表：{name}', { name: n.name }) + kcalText
+    : t('パッケージ表示（{g}gあたり）', { g: n.basisGrams }) + kcalText;
 }

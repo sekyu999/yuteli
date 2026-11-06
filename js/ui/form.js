@@ -1,5 +1,6 @@
 // フォームまわりの小さな部品
 import { esc } from '../lib/util.js';
+import { t } from '../lib/i18n.js';
 
 /**
  * ± ボタン付きの数値入力の HTML。
@@ -10,10 +11,10 @@ export function stepperField({ name, label, value = 0, suffix = '' }) {
     <div class="field">
       <label for="f-${name}">${esc(label)}</label>
       <div class="stepper">
-        <button type="button" class="stepper-btn" data-step="-1" data-target="${name}" aria-label="${esc(label)}を1減らす">−</button>
+        <button type="button" class="stepper-btn" data-step="-1" data-target="${name}" aria-label="${esc(t('{label}を1減らす', { label }))}">−</button>
         <input id="f-${name}" name="${name}" type="text" inputmode="decimal"
                value="${esc(value)}" autocomplete="off">
-        <button type="button" class="stepper-btn" data-step="1" data-target="${name}" aria-label="${esc(label)}を1増やす">＋</button>
+        <button type="button" class="stepper-btn" data-step="1" data-target="${name}" aria-label="${esc(t('{label}を1増やす', { label }))}">&#xFF0B;</button>
         ${suffix ? `<span class="stepper-suffix" data-suffix-for="${name}">${esc(suffix)}</span>` : ''}
       </div>
       <p class="field-error" data-error-for="${name}"></p>
@@ -52,7 +53,8 @@ export function clearError(form, name) {
 export function showErrors(form, errors = {}) {
   form.querySelectorAll('[data-error-for]').forEach((p) => {
     const msg = errors[p.dataset.errorFor] ?? '';
-    p.textContent = msg;
+    // 検証メッセージは日本語の定数なので、表示の時に今の言語にする
+    p.textContent = msg ? t(msg) : '';
     const input = form.elements.namedItem(p.dataset.errorFor);
     if (input && 'setAttribute' in input) {
       if (msg) input.setAttribute('aria-invalid', 'true');

@@ -1,0 +1,35 @@
+// 英訳：共通（下のタブ・シート・カテゴリの初期値・食事など、複数の画面で使う文字）
+export default {
+  // 下のタブ・画面名
+  リスト: 'List',
+  在庫: 'Stock',
+  価格: 'Prices',
+  食事: 'Meals',
+  家計: 'Budget',
+  設定: 'Settings',
+  閉じる: 'Close',
+  保存: 'Save',
+  保存しました: 'Saved',
+  削除: 'Delete',
+  削除しました: 'Deleted',
+  任意: 'optional',
+  未定: 'TBD',
+  円: 'yen',
+  // 初期カテゴリ（名前が同じ時だけ英語で表示）
+  '野菜・果物': 'Vegetables & fruit',
+  '肉・魚': 'Meat & fish',
+  乳製品: 'Dairy',
+  卵: 'Eggs',
+  '納豆・豆腐': 'Natto & tofu',
+  'パン・米・麺': 'Bread, rice & noodles',
+  缶詰: 'Canned food',
+  調味料: 'Seasonings',
+  飲料: 'Drinks',
+  日用品: 'Household',
+  その他: 'Other',
+  未分類: 'Uncategorized',
+  // 食事
+  朝: 'Breakfast',
+  昼: 'Lunch',
+  晩: 'Dinner',
+};

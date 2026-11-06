@@ -1,4 +1,4 @@
-# YUTELI 設計書（v1.3）
+# KESELA 設計書（v1.4）
 
 開発指示書 v1.0 の「最初のタスク」への回答。
 
@@ -549,3 +549,37 @@ meta：`profile` { sex, age, activity, menstruation }。バックアップの `s
 - 一覧は月ごと（過ぎた月は色を変える、未定は最後）。すべて／買いたい物／やりたい事で絞り込み
 - DB 版4：`plans` テーブル { id, kind:'buy'|'do', title, price, month:'YYYY-MM'|null, memo, done }。バックアップ版4に含む
 - 下部タブは6つ（リスト・在庫・価格・食事・家計・設定）
+
+### v1.3.1（キャッシュ対策）
+- Service Worker の取得を `fetch(req, { cache: 'no-cache' })` に（GitHub Pages の10分キャッシュを使わず、毎回サーバーに確認。変わっていなければ304で軽い）
+- インストール時も `cache: 'reload'` で取り直す。`register('sw.js', { updateViaCache: 'none' })`、アプリに戻った時に `reg.update()`
+- 新しい版に切り替わったら1回だけ自動で読み込み直す（古い CSS と新しい HTML が混ざって下のタブが2段になる、などを防ぐ）
+- 下のタブは `grid-auto-flow: column` で数を決め打ちしない
+- 版の確認：設定の一番下に「YUTELI 1.3.1」
+
+## 15. v1.4 変更（2026-11-06）：KESELA へ改名・日英対応・はみ出し対策
+
+### 名前
+- YUTELI → **KESELA**（健康 × 節約 × 楽）。画面タイトル・manifest・バックアップのファイル名（`kesela-backup-…`）を変更
+- バックアップの app 識別子は `kesela`。旧 `yuteli` のバックアップも復元できる（OLD_APP_IDS）
+- 端末内のデータベース名（IndexedDB `yuteli`）と localStorage のキー（`yuteli.*`）は**変えない**。変えると今のデータが見えなくなるため
+- URL を `sekyu999.github.io/kesela/` に移すのは保留（GitHub 連携が済んでから）。URL が変わると端末内データは引き継がれないので、バックアップ → 新URLでホーム画面に追加 → 復元 の手順が必要
+
+### 言語（日本語・英語）
+- `js/lib/i18n.js`：画面の文字は日本語のまま `t('…')` で囲み、英語の時だけ `js/i18n/en/*.js` の対応表から引く。`{name}` で値を差し込む
+- 初期値は**日本語**（端末が英語でも）。設定 → 言語 で「自動（端末の言語）／日本語／English」
+- 金額・年月・日付は `money()` `monthText()` `dateShort()` `dateLong()` で言語ごとに整形
+- 健康の悩みの説明は `js/content/healthRecommendations.en.js`（id とコードは日本語版と同じ）
+- 食品成分表の検索は日本語のみ
+- 英訳漏れの検出：`node tools/i18n-check.mjs`（日本語の文字列で英訳がないもの・t() で囲んでいないものを表示）。`npm test` でも検査する。わざと日本語のままにする行には `// i18n-ignore`
+
+### はみ出し対策
+- 家計の年月は `<input type="month">`（英語の iPhone で横に伸びる）をやめ、年・月の2つのプルダウン＋「未定」チェックに
+- 長い名前・英語・最大の文字サイズ・幅320px（iPhone SE）で全画面とシートを確認（tests ではなく Playwright で scrollWidth を検査）
+- 下のタブは文字サイズ設定に関係なく固定サイズ、列は `minmax(0,1fr)`
+- 幅374px以下では、在庫の行を「名前」→「数量ボタン」の2段に
+- 数量の下の単位は長いと「…」で省略
+- テーマ選択はスウォッチを小さくした格子（縦に間延びしない）
+
+### アイコンのバッジ
+- ウィジェットは Web アプリ（PWA）では作れないため、代わりにホーム画面のアイコンに買い物リストの件数を出す（設定でオン、iOS 16.4 以降・通知の許可が必要）。`js/ui/badge.js`

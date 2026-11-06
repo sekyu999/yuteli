@@ -3,12 +3,13 @@ import { db, DATA_TABLES, SCHEMA_VERSION, defaultCategoryRows } from './db.js';
 import { setMeta, getMeta, META } from './metaRepo.js';
 import { buildBackup, backupFileName } from '../domain/backupFormat.js';
 import { nowIso } from '../lib/util.js';
+import { t } from '../lib/i18n.js';
 
 /** 今のデータからバックアップ用の文字列とファイル名を作る */
 export async function createBackupFile() {
   const data = {};
-  await db.transaction('r', DATA_TABLES.map((t) => db.table(t)), async () => {
-    for (const t of DATA_TABLES) data[t] = await db.table(t).toArray();
+  await db.transaction('r', DATA_TABLES.map((name) => db.table(name)), async () => {
+    for (const name of DATA_TABLES) data[name] = await db.table(name).toArray();
   });
   const settings = { profile: await getMeta(META.profile) };
   const json = JSON.stringify(buildBackup(data, nowIso(), settings), null, 2);
@@ -26,7 +27,7 @@ export async function saveBackup() {
 
   if (navigator.canShare?.({ files: [file] })) {
     try {
-      await navigator.share({ files: [file], title: 'YUTELI バックアップ' });
+      await navigator.share({ files: [file], title: t('KESELA バックアップ') });
     } catch (e) {
       if (e.name === 'AbortError') return 'cancelled';
       throw e;
@@ -50,7 +51,7 @@ export async function saveBackup() {
 /** 今のデータ件数（復元確認の比較用） */
 export async function currentCounts() {
   const counts = {};
-  for (const t of DATA_TABLES) counts[t] = await db.table(t).count();
+  for (const name of DATA_TABLES) counts[name] = await db.table(name).count();
   return counts;
 }
 
@@ -58,10 +59,10 @@ export async function currentCounts() {
  * 検証済みのバックアップで全データを置き換える（parseBackup の結果の backup を渡す）
  */
 export async function restoreBackup(backup) {
-  await db.transaction('rw', [...DATA_TABLES.map((t) => db.table(t)), db.meta], async () => {
-    for (const t of DATA_TABLES) {
-      await db.table(t).clear();
-      await db.table(t).bulkAdd(backup.data[t] ?? []);
+  await db.transaction('rw', [...DATA_TABLES.map((name) => db.table(name)), db.meta], async () => {
+    for (const name of DATA_TABLES) {
+      await db.table(name).clear();
+      await db.table(name).bulkAdd(backup.data[name] ?? []);
     }
     await db.meta.delete(META.selectedStoreId);
     if (backup.settings?.profile) await db.meta.put({ key: META.profile, value: backup.settings.profile });
@@ -71,8 +72,8 @@ export async function restoreBackup(backup) {
 
 /** すべてのデータを消して、最初の状態（初期カテゴリだけ）に戻す */
 export async function resetAll() {
-  await db.transaction('rw', [...DATA_TABLES.map((t) => db.table(t)), db.meta], async () => {
-    for (const t of DATA_TABLES) await db.table(t).clear();
+  await db.transaction('rw', [...DATA_TABLES.map((name) => db.table(name)), db.meta], async () => {
+    for (const name of DATA_TABLES) await db.table(name).clear();
     // 最終バックアップ日は残す（バックアップファイル自体は手元に残っているため）
     const last = await db.meta.get(META.lastBackupAt);
     await db.meta.clear();

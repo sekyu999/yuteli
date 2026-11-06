@@ -2,7 +2,7 @@
 //
 // 形式：
 // {
-//   "app": "yuteli",
+//   "app": "kesela",            … 旧名 yuteli のバックアップも読める
 //   "schemaVersion": 1,            … データ構造の版。構造を変えたら上げて MIGRATIONS に変換を書く
 //   "exportedAt": "2026-10-30T…",
 //   "data": { "categories": [...], "products": [...], … }
@@ -11,8 +11,19 @@
 import { splitCategories, mergeCategories } from './categories.js';
 import { newId } from '../lib/util.js';
 
-export const APP_ID = 'yuteli';
+export const APP_ID = 'kesela';
+/** 以前のアプリ名（この名前のバックアップも読み込める） */
+export const OLD_APP_IDS = ['yuteli'];
 export const CURRENT_SCHEMA_VERSION = 4;
+
+/**
+ * 読み込み失敗の結果。error は日本語の文（テスト・ログ用）、
+ * key と params は画面で今の言語にする用（t(key, params)）
+ */
+function fail(key, params) {
+  const error = params ? key.replace(/\{(\w+)\}/g, (m, k) => (k in params ? String(params[k]) : m)) : key;
+  return { ok: false, error, key, params };
+}
 
 const isStr = (v) => typeof v === 'string' && v.length > 0;
 const isStrOrNull = (v) => v === null || v === undefined || typeof v === 'string';
@@ -130,26 +141,26 @@ export function buildBackup(data, exportedAt, settings = {}) {
 /**
  * 読み込んだ文字列を検証し、今の版に変換する。
  * @param {string} text
- * @returns {{ ok: true, backup: object, counts: Record<string, number> } | { ok: false, error: string }}
+ * @returns {{ ok: true, backup: object, counts: Record<string, number> } | { ok: false, error: string, key: string, params?: object }}
  */
 export function parseBackup(text) {
   let obj;
   try {
     obj = JSON.parse(text);
   } catch {
-    return { ok: false, error: 'JSON として読み込めませんでした。ファイルが壊れているか、別のファイルです。' };
+    return fail('JSON として読み込めませんでした。ファイルが壊れているか、別のファイルです。');
   }
-  if (!obj || typeof obj !== 'object' || obj.app !== APP_ID) {
-    return { ok: false, error: 'YUTELI のバックアップファイルではありません。' };
+  if (!obj || typeof obj !== 'object' || (obj.app !== APP_ID && !OLD_APP_IDS.includes(obj.app))) {
+    return fail('KESELA のバックアップファイルではありません。');
   }
   if (!Number.isInteger(obj.schemaVersion) || obj.schemaVersion < 1) {
-    return { ok: false, error: 'バックアップの版が読み取れません。' };
+    return fail('バックアップの版が読み取れません。');
   }
   if (obj.schemaVersion > CURRENT_SCHEMA_VERSION) {
-    return { ok: false, error: 'このバックアップは新しい版のアプリで作られています。アプリを最新にしてから読み込んでください。' };
+    return fail('このバックアップは新しい版のアプリで作られています。アプリを最新にしてから読み込んでください。');
   }
   if (!obj.data || typeof obj.data !== 'object') {
-    return { ok: false, error: 'データ部分がありません。' };
+    return fail('データ部分がありません。');
   }
 
   // 版を順に上げる
@@ -162,30 +173,30 @@ export function parseBackup(text) {
   const counts = {};
   for (const t of BACKUP_TABLES) {
     const rows = backup.data[t] ?? [];
-    if (!Array.isArray(rows)) return { ok: false, error: `「${t}」の形式が正しくありません。` };
+    if (!Array.isArray(rows)) return fail('「{table}」の形式が正しくありません。', { table: t });
     const ids = new Set();
     for (let i = 0; i < rows.length; i++) {
       const r = rows[i];
-      if (!r || typeof r !== 'object' || !isStr(r.id)) return { ok: false, error: `「${t}」の${i + 1}件目に ID がありません。` };
-      if (ids.has(r.id)) return { ok: false, error: `「${t}」に同じ ID が重複しています。` };
+      if (!r || typeof r !== 'object' || !isStr(r.id)) return fail('「{table}」の{n}件目に ID がありません。', { table: t, n: i + 1 });
+      if (ids.has(r.id)) return fail('「{table}」に同じ ID が重複しています。', { table: t });
       ids.add(r.id);
       const bad = RULES[t](r);
-      if (bad) return { ok: false, error: `「${t}」の${i + 1}件目の「${bad}」が正しくありません。` };
+      if (bad) return fail('「{table}」の{n}件目の「{field}」が正しくありません。', { table: t, n: i + 1, field: bad });
     }
     backup.data[t] = rows;
     counts[t] = rows.length;
   }
-  if (counts.categories === 0) return { ok: false, error: 'カテゴリが1件もありません。' };
+  if (counts.categories === 0) return fail('カテゴリが1件もありません。');
   if (backup.settings !== undefined && (typeof backup.settings !== 'object' || backup.settings === null)) {
-    return { ok: false, error: '設定の形式が正しくありません。' };
+    return fail('設定の形式が正しくありません。');
   }
   backup.settings ??= {};
 
   return { ok: true, backup, counts };
 }
 
-/** バックアップのファイル名（yuteli-backup-20261030-1953.json） */
+/** バックアップのファイル名（kesela-backup-20261030-1953.json） */
 export function backupFileName(date = new Date()) {
   const p = (n) => String(n).padStart(2, '0');
-  return `yuteli-backup-${date.getFullYear()}${p(date.getMonth() + 1)}${p(date.getDate())}-${p(date.getHours())}${p(date.getMinutes())}.json`;
+  return `kesela-backup-${date.getFullYear()}${p(date.getMonth() + 1)}${p(date.getDate())}-${p(date.getHours())}${p(date.getMinutes())}.json`;
 }

@@ -175,18 +175,26 @@ export function evaluate(value, target) {
   return { status: 'ok', ratio: null, label: '' };
 }
 
-/** 目標の表示文字列（例：「65g以上」「49〜73g」「7.5g未満」） */
-export function targetLabel(t, n) {
+/** {name} のような部分に値を入れる（画面の t() と同じ形。domain は i18n に依存しないので自前で持つ） */
+function fillText(text, params) {
+  return String(text).replace(/\{(\w+)\}/g, (m, k) => (k in params ? String(params[k]) : m));
+}
+
+/**
+ * 目標の表示文字列（例：「65g以上」「49〜73g」「7.5g未満」）
+ * @param {Function} tr 文字の変換（画面からは t を渡して英訳する。省略時は日本語のまま）
+ */
+export function targetLabel(target, n, tr = fillText) {
   const f = (v) => formatValue(v, n);
-  switch (t.kind) {
+  switch (target.kind) {
     case 'approx':
-      return `約${f(t.value)}${n.unit}`;
+      return tr('約{v}{u}', { v: f(target.value), u: n.unit });
     case 'range':
-      return `${f(t.low)}〜${f(t.high)}${n.unit}`;
+      return tr('{lo}〜{hi}{u}', { lo: f(target.low), hi: f(target.high), u: n.unit });
     case 'min':
-      return `${f(t.value)}${n.unit}以上`;
+      return tr('{v}{u}以上', { v: f(target.value), u: n.unit });
     case 'max':
-      return `${f(t.value)}${n.unit}未満`;
+      return tr('{v}{u}未満', { v: f(target.value), u: n.unit });
   }
   return '';
 }

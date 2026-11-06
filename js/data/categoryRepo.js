@@ -3,6 +3,7 @@ import { db } from './db.js';
 import { newId } from '../lib/util.js';
 import { nameKey } from '../domain/product.js';
 import { ValidationError } from './productRepo.js';
+import { t } from '../lib/i18n.js';
 
 /** 並び順どおりの全カテゴリ */
 export function listCategories() {
@@ -59,7 +60,7 @@ export function countProductsInCategory(id) {
 export async function deleteCategory(id) {
   await db.transaction('rw', db.categories, db.products, db.storeShelfOrders, db.shoppingListItems, async () => {
     const n = await db.products.where('categoryId').equals(id).count();
-    if (n) throw new ValidationError({ name: `このカテゴリの商品が${n}件あるため削除できません` });
+    if (n) throw new ValidationError({ name: t('このカテゴリの商品が{n}件あるため削除できません', { n }) });
     if ((await db.categories.count()) <= 1) throw new ValidationError({ name: 'カテゴリは最低1つ必要です' });
     await db.storeShelfOrders.filter((s) => s.categoryId === id).delete();
     await db.shoppingListItems.filter((i) => i.categoryId === id).modify({ categoryId: null });

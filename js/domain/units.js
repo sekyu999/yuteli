@@ -6,7 +6,7 @@ const UNIT_TABLE = {
   kg: { unit: 'g', factor: 1000 },
   ml: { unit: 'ml', factor: 1 },
   L: { unit: 'ml', factor: 1000 },
-  個: { unit: '個', factor: 1 },
+  個: { unit: '個', factor: 1 }, // i18n-ignore
 };
 
 export const INPUT_UNITS = Object.keys(UNIT_TABLE);

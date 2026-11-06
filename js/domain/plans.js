@@ -26,7 +26,7 @@ export function validatePlanInput(raw) {
   if (!title) errors.title = '名前を入力してください';
   else if (title.length > 40) errors.title = '40文字以内にしてください';
 
-  const priceText = String(raw.price ?? '').replace(/[,円\s]/g, '');
+  const priceText = String(raw.price ?? '').replace(/[,円\s]/g, ''); // i18n-ignore
   const price = priceText === '' ? 0 : Number(priceText);
   if (!Number.isInteger(price) || price < 0 || price > 100000000) errors.price = '0以上の整数（円）で入力してください';
 
@@ -58,7 +58,7 @@ export function monthLabel(ym, base) {
   if (!ym) return '未定';
   const [y, m] = ym.split('-').map(Number);
   const by = base ? Number(base.slice(0, 4)) : null;
-  return by === y ? `${m}月` : `${y}年${m}月`;
+  return by === y ? `${m}月` : `${y}年${m}月`; // i18n-ignore（画面では lib/i18n.js の monthText() を使う）
 }
 
 /**

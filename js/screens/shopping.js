@@ -24,6 +24,7 @@ import { groupByCategory } from '../domain/shelf.js';
 import { shortage } from '../domain/product.js';
 import { openPriceSheet } from './priceSheet.js';
 import { esc } from '../lib/util.js';
+import { t } from '../lib/i18n.js';
 
 export const title = '買い物リスト';
 
@@ -35,13 +36,13 @@ export function mount(el) {
     <div class="stack">
       <div id="backup-notice"></div>
       <div class="toolbar">
-        <label for="store-select" class="toolbar-label">お店</label>
+        <label for="store-select" class="toolbar-label">${t('お店')}</label>
         <select id="store-select" class="select"></select>
       </div>
-      <button type="button" class="btn btn-primary btn-block" data-action="refresh">リストを更新</button>
+      <button type="button" class="btn btn-primary btn-block" data-action="refresh">${t('リストを更新')}</button>
       <div id="list-groups" class="stack"></div>
     </div>
-    <button type="button" class="fab" data-action="add">＋ 追加</button>
+    <button type="button" class="fab" data-action="add">${t('＋ 追加')}</button>
   `;
   const groupsEl = el.querySelector('#list-groups');
   const storeSelect = el.querySelector('#store-select');
@@ -52,18 +53,18 @@ export function mount(el) {
   storeSelect.addEventListener('change', () => setMeta(META.selectedStoreId, storeSelect.value || null));
 
   el.addEventListener('click', async (e) => {
-    const t = e.target.closest('[data-action]');
-    if (!t) return;
-    const id = t.dataset.id;
-    switch (t.dataset.action) {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    switch (btn.dataset.action) {
       case 'refresh': {
         const r = await refreshFromStock();
         if (r.added || r.updated) {
-          const parts = [];
-          if (r.added) parts.push(`${r.added}品目を追加`);
-          if (r.updated) parts.push(`${r.updated}品目の数量を更新`);
-          toast(parts.join('、') + 'しました');
-        } else toast('追加する商品はありません');
+          if (r.added && r.updated)
+            toast(t('{added}品目を追加、{updated}品目の数量を更新しました', { added: r.added, updated: r.updated }));
+          else if (r.added) toast(t('{n}品目を追加しました', { n: r.added }));
+          else toast(t('{n}品目の数量を更新しました', { n: r.updated }));
+        } else toast(t('追加する商品はありません'));
         break;
       }
       case 'buy':
@@ -99,20 +100,22 @@ export function mount(el) {
       noticeEl.innerHTML =
         products.length && (days === null || days >= BACKUP_REMIND_DAYS)
           ? `<a class="notice notice-link" href="#/settings">${
-              days === null ? 'まだバックアップがありません' : `最後のバックアップから${days}日たっています`
-            }。設定からバックアップを保存してください ›</a>`
+              days === null
+                ? t('まだバックアップがありません。設定からバックアップを保存してください ›')
+                : t('最後のバックアップから{days}日たっています。設定からバックアップを保存してください ›', { days })
+            }</a>`
           : '';
 
       // お店の選択肢
       storeSelect.innerHTML =
-        '<option value="">指定なし（標準の並び）</option>' +
+        `<option value="">${t('指定なし（標準の並び）')}</option>` +
         stores.map((s) => `<option value="${s.id}" ${s.id === storeId ? 'selected' : ''}>${esc(s.name)}</option>`).join('');
 
       if (items.length === 0) {
         groupsEl.innerHTML = `
           <div class="placeholder">
-            <p>リストは空です。</p>
-            <p>在庫を見直してから「リストを更新」を押すと、足りない物が入ります。</p>
+            <p>${t('リストは空です。')}</p>
+            <p>${t('在庫を見直してから「リストを更新」を押すと、足りない物が入ります。')}</p>
           </div>`;
         return;
       }
@@ -122,12 +125,12 @@ export function mount(el) {
       const order = (it) => productById.get(it.productId)?.sortOrder ?? 1e9;
       const groups = groupByCategory(items, categories, (a, b) => order(a) - order(b) || a.name.localeCompare(b.name, 'ja'));
       groupsEl.innerHTML =
-        `<p class="note">${items.length}品目</p>` +
+        `<p class="note">${t('{n}品目', { n: items.length })}</p>` +
         groups
           .map(
             (g) => `
           <section>
-            <h2 class="section-title">${esc(g.name)}</h2>
+            <h2 class="section-title">${esc(t(g.name))}</h2>
             <ul class="list">${g.items.map((it) => itemRowHtml(it, productById.get(it.productId))).join('')}</ul>
           </section>`
           )
@@ -138,12 +141,12 @@ export function mount(el) {
 
 function itemRowHtml(it, product) {
   const badges = [];
-  if (it.source === 'manual' && !it.productId) badges.push('<span class="badge badge-muted">手動</span>');
-  if (it.source === 'health') badges.push('<span class="badge badge-muted">健康提案</span>');
-  if (product && shortage(product) === 0) badges.push('<span class="badge">在庫は足りています</span>');
+  if (it.source === 'manual' && !it.productId) badges.push(`<span class="badge badge-muted">${t('手動')}</span>`);
+  if (it.source === 'health') badges.push(`<span class="badge badge-muted">${t('健康提案')}</span>`);
+  if (product && shortage(product) === 0) badges.push(`<span class="badge">${t('在庫は足りています')}</span>`);
   return `
     <li class="item-row">
-      <button type="button" class="check" data-action="buy" data-id="${it.id}" aria-label="${esc(it.name)}を購入済みにする"></button>
+      <button type="button" class="check" data-action="buy" data-id="${it.id}" aria-label="${t('{name}を購入済みにする', { name: esc(it.name) })}"></button>
       <button type="button" class="item-main" data-action="edit" data-id="${it.id}">
         <span class="item-name">${esc(it.name)}</span>
         ${badges.length ? `<span class="stock-meta">${badges.join('')}</span>` : ''}
@@ -162,13 +165,13 @@ async function buy(id, state) {
   const actions = [];
   if (undo.item.productId) {
     actions.push({
-      label: '価格を記録',
+      label: t('価格を記録'),
       onClick: () =>
         openPriceSheet({ productId: undo.item.productId, storeId: state.storeId ?? undefined, quantity: undo.item.quantity }),
     });
   }
-  actions.push({ label: '元に戻す', onClick: () => undoPurchased(undo) });
-  toast(`「${undo.item.name}」購入済み`, { actions });
+  actions.push({ label: t('元に戻す'), onClick: () => undoPurchased(undo) });
+  toast(t('「{name}」購入済み', { name: undo.item.name }), { actions });
 }
 
 /** リストの項目を編集するシート */
@@ -177,21 +180,21 @@ function openItemSheet(item, state) {
   const isTemp = !item.productId;
   const body = `
     <form novalidate>
-      ${stepperField({ name: 'quantity', label: '数量', value: item.quantity, suffix: item.unit ?? '' })}
+      ${stepperField({ name: 'quantity', label: t('数量'), value: item.quantity, suffix: item.unit ?? '' })}
       ${
         isTemp
           ? `
         <div class="field">
-          <label for="f-unit">単位 <span class="optional">任意</span></label>
+          <label for="f-unit">${t('単位')} <span class="optional">${t('任意')}</span></label>
           <input id="f-unit" name="unit" class="input" value="${esc(item.unit ?? '')}" autocomplete="off">
         </div>
         ${categorySelect(state.categories, item.categoryId)}`
           : ''
       }
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary btn-block">保存</button>
-        ${item.productId ? '<button type="button" class="btn btn-block" data-price>価格を記録</button>' : ''}
-        <button type="button" class="btn-danger-text" data-remove>今回は買わない（リストから削除）</button>
+        <button type="submit" class="btn btn-primary btn-block">${t('保存')}</button>
+        ${item.productId ? `<button type="button" class="btn btn-block" data-price>${t('価格を記録')}</button>` : ''}
+        <button type="button" class="btn-danger-text" data-remove>${t('今回は買わない（リストから削除）')}</button>
       </div>
     </form>`;
   const sheet = openSheet({ title: item.name, body });
@@ -211,7 +214,7 @@ function openItemSheet(item, state) {
   form.querySelector('[data-remove]').addEventListener('click', async () => {
     const undo = await removeItem(item.id);
     sheet.close();
-    toast(`「${item.name}」を削除しました`, { actions: [{ label: '元に戻す', onClick: () => undoPurchased(undo) }] });
+    toast(t('「{name}」を削除しました', { name: item.name }), { actions: [{ label: t('元に戻す'), onClick: () => undoPurchased(undo) }] });
   });
 }
 
@@ -221,22 +224,22 @@ async function openAddSheet(state) {
   const body = `
     <form novalidate>
       <div class="field">
-        <label for="f-name">商品名</label>
+        <label for="f-name">${t('商品名')}</label>
         <input id="f-name" name="name" class="input" list="product-names" autocomplete="off" enterkeyhint="done">
         <datalist id="product-names">${products.map((p) => `<option value="${esc(p.name)}">`).join('')}</datalist>
         <p class="field-error" data-error-for="name"></p>
       </div>
-      ${stepperField({ name: 'quantity', label: '数量', value: 1 })}
+      ${stepperField({ name: 'quantity', label: t('数量'), value: 1 })}
       <div class="field">
-        <label for="f-unit">単位 <span class="optional">任意</span></label>
-        <input id="f-unit" name="unit" class="input" placeholder="個、袋 など" autocomplete="off">
+        <label for="f-unit">${t('単位')} <span class="optional">${t('任意')}</span></label>
+        <input id="f-unit" name="unit" class="input" placeholder="${t('個、袋 など')}" autocomplete="off">
       </div>
       ${categorySelect(state.categories, '')}
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary btn-block">リストに追加</button>
+        <button type="submit" class="btn btn-primary btn-block">${t('リストに追加')}</button>
       </div>
     </form>`;
-  const sheet = openSheet({ title: 'リストに追加', body });
+  const sheet = openSheet({ title: t('リストに追加'), body });
   const form = sheet.el.querySelector('form');
   bindSteppers(form);
   bindErrorClear(form);
@@ -246,26 +249,26 @@ async function openAddSheet(state) {
     e.preventDefault();
     const v = formValues(form);
     if (!v.name.trim()) {
-      showErrors(form, { name: '商品名を入力してください' });
+      showErrors(form, { name: t('商品名を入力してください') });
       return;
     }
     const r = await addManualItem({ ...v, source: 'manual' });
     if (r.status === 'exists') {
-      showErrors(form, { name: `「${r.item.name}」はすでにリストにあります` });
+      showErrors(form, { name: t('「{name}」はすでにリストにあります', { name: r.item.name }) });
       return;
     }
     sheet.close();
-    toast(`「${r.item.name}」を追加しました`);
+    toast(t('「{name}」を追加しました', { name: r.item.name }));
   });
 }
 
 function categorySelect(categories, selected) {
   return `
     <div class="field">
-      <label for="f-categoryId">売り場（カテゴリ） <span class="optional">任意・並び順に使います</span></label>
+      <label for="f-categoryId">${t('売り場（カテゴリ）')} <span class="optional">${t('任意・並び順に使います')}</span></label>
       <select id="f-categoryId" name="categoryId" class="select">
-        <option value="">指定なし</option>
-        ${categories.map((c) => `<option value="${c.id}" ${c.id === selected ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}
+        <option value="">${t('指定なし')}</option>
+        ${categories.map((c) => `<option value="${c.id}" ${c.id === selected ? 'selected' : ''}>${esc(t(c.name))}</option>`).join('')}
       </select>
     </div>`;
 }

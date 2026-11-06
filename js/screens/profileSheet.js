@@ -5,6 +5,7 @@ import { toast } from '../ui/toast.js';
 import { getMeta, setMeta, META } from '../data/metaRepo.js';
 import { bodyStats } from '../domain/nutrition.js';
 import { esc } from '../lib/util.js';
+import { t } from '../lib/i18n.js';
 
 export const ACTIVITY = [
   { key: 'I', label: '低い', note: 'ほとんど座って過ごす' },
@@ -13,33 +14,41 @@ export const ACTIVITY = [
 ];
 
 export function profileSummary(p) {
-  if (!p) return '未設定';
+  if (!p) return t('未設定');
   const act = ACTIVITY.find((a) => a.key === p.activity)?.label ?? '';
-  const body = [p.height ? `${p.height}cm` : '', p.weight ? `${p.weight}kg` : ''].filter(Boolean).join('・');
-  return `${p.sex === 'male' ? '男性' : '女性'}・${p.age}歳${body ? `・${body}` : ''}・活動量${act}`;
+  const sep = t('・');
+  return [
+    p.sex === 'male' ? t('男性') : t('女性'),
+    t('{n}歳', { n: p.age }),
+    p.height ? `${p.height}cm` : '',
+    p.weight ? `${p.weight}kg` : '',
+    t('活動量{level}', { level: act ? t(act) : '' }),
+  ]
+    .filter(Boolean)
+    .join(sep);
 }
 
 export async function openProfileSheet() {
   const p = (await getMeta(META.profile)) ?? { sex: '', age: '', activity: 'II', menstruation: false };
   const choice = (name, value, label, checked, sub = '') =>
     `<label class="choice"><input type="radio" name="${name}" value="${value}" ${checked ? 'checked' : ''}>
-      <span>${label}${sub ? `<small>${sub}</small>` : ''}</span></label>`;
+      <span>${esc(t(label))}${sub ? `<small>${esc(t(sub))}</small>` : ''}</span></label>`;
   const num = (name, label, unit, value, mode = 'decimal') => `
     <div class="field">
-      <label for="f-${name}">${label}</label>
+      <label for="f-${name}">${esc(t(label))}</label>
       <div class="row" style="align-items:center">
         <input id="f-${name}" name="${name}" class="input" inputmode="${mode}" value="${esc(value ?? '')}" style="width:110px" autocomplete="off">
-        <span class="unit-suffix">${unit}</span>
+        <span class="unit-suffix">${esc(t(unit))}</span>
       </div>
       <p class="field-error" data-error-for="${name}"></p>
     </div>`;
 
   const sheet = openSheet({
-    title: 'からだの情報',
+    title: t('からだの情報'),
     body: `
       <form novalidate>
         <div class="field">
-          <span class="label">性別</span>
+          <span class="label">${t('性別')}</span>
           <div class="choice-row">
             ${choice('sex', 'female', '女性', p.sex === 'female')}
             ${choice('sex', 'male', '男性', p.sex === 'male')}
@@ -52,16 +61,16 @@ export async function openProfileSheet() {
           ${num('weight', '体重', 'kg', p.weight)}
         </div>
         <div class="field">
-          <span class="label">活動量</span>
+          <span class="label">${t('活動量')}</span>
           <div class="choice-col">
             ${ACTIVITY.map((a) => choice('activity', a.key, a.label, p.activity === a.key, a.note)).join('')}
           </div>
         </div>
         <div class="field" id="mens-field">
-          <label class="check-row"><input type="checkbox" name="menstruation" value="1" ${p.menstruation ? 'checked' : ''}>月経がある（鉄の目標が変わります）</label>
+          <label class="check-row"><input type="checkbox" name="menstruation" value="1" ${p.menstruation ? 'checked' : ''}>${t('月経がある（鉄の目標が変わります）')}</label>
         </div>
         <p class="body-preview" id="body-preview"></p>
-        <div class="form-actions"><button type="submit" class="btn btn-primary btn-block">保存</button></div>
+        <div class="form-actions"><button type="submit" class="btn btn-primary btn-block">${t('保存')}</button></div>
       </form>`,
   });
   const form = sheet.el.querySelector('form');
@@ -84,9 +93,11 @@ export async function openProfileSheet() {
     const b = v.sex ? bodyStats(v) : null;
     form.querySelector('#body-preview').innerHTML = b
       ? [
-          b.bmi ? `BMI <strong>${b.bmi.toFixed(1)}</strong>（目標 ${b.bmiRange[0]}〜${b.bmiRange[1]}）` : '',
-          `基礎代謝 <strong>${b.bmr.toLocaleString()}</strong>kcal`,
-          `1日に必要なエネルギー <strong>${b.energy.toLocaleString()}</strong>kcal`,
+          b.bmi
+            ? t('BMI <strong>{bmi}</strong>（目標 {min}〜{max}）', { bmi: b.bmi.toFixed(1), min: b.bmiRange[0], max: b.bmiRange[1] })
+            : '',
+          t('基礎代謝 <strong>{kcal}</strong>kcal', { kcal: b.bmr.toLocaleString('en-US') }),
+          t('1日に必要なエネルギー <strong>{kcal}</strong>kcal', { kcal: b.energy.toLocaleString('en-US') }),
         ]
           .filter(Boolean)
           .join('<br>')
@@ -110,6 +121,6 @@ export async function openProfileSheet() {
     }
     await setMeta(META.profile, v);
     sheet.close();
-    toast('保存しました');
+    toast(t('保存しました'));
   });
 }

@@ -18,10 +18,11 @@ import {
   saveShelfOrder,
 } from '../data/storeRepo.js';
 import { listAllRecords, listByProduct, deletePriceRecord } from '../data/priceRepo.js';
-import { compareStores, daysSince, STALE_DAYS, yen } from '../domain/pricing.js';
+import { compareStores, daysSince, STALE_DAYS, UNIT_BASE } from '../domain/pricing.js';
 import { makeSortable, dragHandle } from '../ui/sortable.js';
 import { openPriceSheet } from './priceSheet.js';
 import { esc, todayLocal } from '../lib/util.js';
+import { t, money, dateShort, dateLong } from '../lib/i18n.js';
 
 export const title = '店舗・価格';
 
@@ -32,8 +33,8 @@ export function mount(el) {
   el.innerHTML = `
     <div class="stack">
       <div class="segmented" role="tablist">
-        <button type="button" role="tab" data-tab="compare">価格比較</button>
-        <button type="button" role="tab" data-tab="stores">店舗</button>
+        <button type="button" role="tab" data-tab="compare">${t('価格比較')}</button>
+        <button type="button" role="tab" data-tab="stores">${t('店舗')}</button>
       </div>
       <div id="tab-body" class="stack"></div>
     </div>
@@ -45,21 +46,21 @@ export function mount(el) {
 
   function showTab() {
     el.querySelectorAll('[data-tab]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
-    fab.textContent = tab === 'compare' ? '＋ 価格を記録' : '＋ 店舗';
+    fab.textContent = tab === 'compare' ? t('＋ 価格を記録') : t('＋ 店舗');
     stop?.();
     stop = tab === 'compare' ? renderCompare(body) : renderStores(body);
   }
 
   el.addEventListener('click', (e) => {
-    const t = e.target.closest('[data-tab], [data-action]');
-    if (!t) return;
-    if (t.dataset.tab) {
-      tab = t.dataset.tab;
+    const target = e.target.closest('[data-tab], [data-action]');
+    if (!target) return;
+    if (target.dataset.tab) {
+      tab = target.dataset.tab;
       showTab();
       return;
     }
-    const id = t.dataset.id;
-    switch (t.dataset.action) {
+    const id = target.dataset.id;
+    switch (target.dataset.action) {
       case 'fab':
         if (tab === 'compare') openPriceSheet();
         else openAddStoreSheet();
@@ -90,13 +91,13 @@ function renderCompare(body) {
       if (stores.length === 0) {
         body.innerHTML = `
           <div class="placeholder">
-            <p>まず、よく行くお店を登録してください。</p>
-            <p style="margin-top:12px"><button type="button" class="btn" data-action="go-stores">店舗を登録する</button></p>
+            <p>${t('まず、よく行くお店を登録してください。')}</p>
+            <p style="margin-top:12px"><button type="button" class="btn" data-action="go-stores">${t('店舗を登録する')}</button></p>
           </div>`;
         return;
       }
       if (products.length === 0) {
-        body.innerHTML = '<div class="placeholder">「在庫」タブで商品を登録すると、ここで価格を比べられます。</div>';
+        body.innerHTML = `<div class="placeholder">${t('「在庫」タブで商品を登録すると、ここで価格を比べられます。')}</div>`;
         return;
       }
 
@@ -114,25 +115,27 @@ function renderCompare(body) {
       const rowHtml = ({ p, cmp }) => {
         if (cmp.mode === 'none') {
           return `<li><button type="button" class="row-button" data-action="detail" data-id="${p.id}">
-            <span class="grow">${esc(p.name)}</span><span class="note">記録なし ›</span></button></li>`;
+            <span class="grow">${esc(p.name)}</span><span class="note">${t('記録なし')} ›</span></button></li>`;
         }
         const best = cmp.rows.filter((r) => r.cheapest);
         const top = best[0];
         const days = daysSince(top.record.purchasedAt, today);
         const value =
-          cmp.mode === 'unit' ? `${top.unit.label} ${yen(top.unit.value)}` : `1${esc(p.inventoryUnit)} ${yen(top.perItem)}`;
+          cmp.mode === 'unit'
+            ? `${esc(unitLabel(top.unit))} ${money(top.unit.value)}`
+            : `${esc(t('1{unit}', { unit: t(p.inventoryUnit) }))} ${money(top.perItem)}`;
         return `<li><button type="button" class="row-button" data-action="detail" data-id="${p.id}">
           <span class="grow">
             <span class="item-name item-name-sm">${esc(p.name)}</span>
-            <span class="price-line">最安 <strong>${best.map((b) => esc(storeName.get(b.storeId) ?? '削除された店舗')).join('・')}</strong> ${value}</span>
-            <span class="note ${days > STALE_DAYS ? 'stale' : ''}">${dateLabel(top.record.purchasedAt, today)}・${cmp.rows.length}店舗の比較</span>
+            <span class="price-line">${t('最安')} <strong>${best.map((b) => esc(storeName.get(b.storeId) ?? t('削除された店舗'))).join(t('・'))}</strong> ${value}</span>
+            <span class="note ${days > STALE_DAYS ? 'stale' : ''}">${esc(t('{date}・{n}店舗の比較', { date: dateLabel(top.record.purchasedAt, today), n: cmp.rows.length }))}</span>
           </span>
           <span class="note">›</span></button></li>`;
       };
 
       body.innerHTML = `
-        ${withData.length ? `<section><h2 class="section-title">記録あり</h2><ul class="list">${withData.map(rowHtml).join('')}</ul></section>` : ''}
-        ${without.length ? `<section><h2 class="section-title">まだ記録がない商品</h2><ul class="list">${without.map(rowHtml).join('')}</ul></section>` : ''}`;
+        ${withData.length ? `<section><h2 class="section-title">${t('記録あり')}</h2><ul class="list">${withData.map(rowHtml).join('')}</ul></section>` : ''}
+        ${without.length ? `<section><h2 class="section-title">${t('まだ記録がない商品')}</h2><ul class="list">${without.map(rowHtml).join('')}</ul></section>` : ''}`;
     }
   );
 }
@@ -143,7 +146,7 @@ async function openProductPriceSheet(productId) {
   if (!product) return;
   let stop = null;
   const sheet = openSheet({
-    title: `${product.name}の価格`,
+    title: t('{name}の価格', { name: product.name }),
     body: '<div class="stack" id="price-detail"></div>',
     onClose: () => stop?.(),
   });
@@ -155,9 +158,9 @@ async function openProductPriceSheet(productId) {
       return;
     }
     const del = e.target.closest('[data-record-del]');
-    if (del && window.confirm('この価格記録を削除しますか？\n（入力ミスの修正用です。履歴として残す場合は削除しないでください）')) {
+    if (del && window.confirm(t('この価格記録を削除しますか？') + '\n' + t('（入力ミスの修正用です。履歴として残す場合は削除しないでください）'))) {
       await deletePriceRecord(del.dataset.recordDel);
-      toast('削除しました');
+      toast(t('削除しました'));
     }
   });
 
@@ -165,44 +168,43 @@ async function openProductPriceSheet(productId) {
     () => Promise.all([listByProduct(productId), listStores(), getProduct(productId)]),
     ([records, stores, p]) => {
       if (!p) return sheet.close();
-      const unit = esc(p.inventoryUnit);
+      const unit = esc(t(p.inventoryUnit));
       const storeName = new Map(stores.map((s) => [s.id, s.name]));
       const cmp = compareStores(records);
       const today = todayLocal();
 
       const modeNote =
         cmp.mode === 'unit'
-          ? `内容量をもとに<strong>${esc(cmp.rows[0].unit.label)}</strong>の価格で比べています。`
+          ? t('内容量をもとに<strong>{unit}</strong>の価格で比べています。', { unit: esc(unitLabel(cmp.rows[0].unit)) })
           : cmp.mode === 'item'
-            ? `<strong>1${unit}あたり</strong>の価格で比べています。${
-                cmp.rows.length > 1 ? '店舗で容量が違う場合は、内容量も記録すると実質の安さで比べられます。' : ''
-              }`
+            ? t('<strong>1{unit}あたり</strong>の価格で比べています。', { unit }) +
+              (cmp.rows.length > 1 ? t('店舗で容量が違う場合は、内容量も記録すると実質の安さで比べられます。') : '')
             : '';
 
       box.innerHTML = `
-        <button type="button" class="btn btn-primary btn-block" data-record-add>＋ 価格を記録</button>
+        <button type="button" class="btn btn-primary btn-block" data-record-add>${t('＋ 価格を記録')}</button>
         ${
           cmp.mode === 'none'
-            ? '<p class="placeholder">まだ記録がありません。</p>'
+            ? `<p class="placeholder">${t('まだ記録がありません。')}</p>`
             : `
           <section>
-            <h3 class="section-title">店舗ごとの最新価格</h3>
+            <h3 class="section-title">${t('店舗ごとの最新価格')}</h3>
             <ul class="list">
               ${cmp.rows
                 .map((r) => {
                   const days = daysSince(r.record.purchasedAt, today);
-                  const main = cmp.mode === 'unit' ? yen(r.unit.value) : yen(r.perItem);
-                  const mainLabel = cmp.mode === 'unit' ? r.unit.label : `1${unit}あたり`;
+                  const main = cmp.mode === 'unit' ? money(r.unit.value) : money(r.perItem);
+                  const mainLabel = cmp.mode === 'unit' ? esc(unitLabel(r.unit)) : t('1{unit}あたり', { unit });
                   return `<li class="compare-row ${r.cheapest ? 'is-cheapest' : ''}">
                     <span class="grow">
-                      <span class="item-name item-name-sm">${esc(storeName.get(r.storeId) ?? '削除された店舗')}
-                        ${r.cheapest ? '<span class="badge">最安</span>' : ''}</span>
-                      <span class="note">${yen(r.record.price)}（${r.record.quantity}${unit}${contentLabel(r.record)}）</span>
-                      <span class="note ${days > STALE_DAYS ? 'stale' : ''}">${dateLabel(r.record.purchasedAt, today)}${
-                        days > STALE_DAYS ? '・古い価格です' : ''
+                      <span class="item-name item-name-sm">${esc(storeName.get(r.storeId) ?? t('削除された店舗'))}
+                        ${r.cheapest ? `<span class="badge">${t('最安')}</span>` : ''}</span>
+                      <span class="note">${recordLabel(r.record, unit)}</span>
+                      <span class="note ${days > STALE_DAYS ? 'stale' : ''}">${esc(dateLabel(r.record.purchasedAt, today))}${
+                        days > STALE_DAYS ? t('・古い価格です') : ''
                       }</span>
                     </span>
-                    <span class="compare-price"><small>${esc(mainLabel)}</small>${main}</span>
+                    <span class="compare-price"><small>${mainLabel}</small>${main}</span>
                   </li>`;
                 })
                 .join('')}
@@ -210,16 +212,16 @@ async function openProductPriceSheet(productId) {
             <p class="note" style="margin-top:6px">${modeNote}</p>
           </section>
           <section>
-            <h3 class="section-title">履歴（${records.length}件）</h3>
+            <h3 class="section-title">${t('履歴（{n}件）', { n: records.length })}</h3>
             <ul class="list">
               ${records
                 .map(
                   (r) => `<li>
                     <span class="grow">
-                      <span>${esc(r.purchasedAt.replaceAll('-', '/'))}　${esc(storeName.get(r.storeId) ?? '削除された店舗')}</span>
-                      <span class="note" style="display:block">${yen(r.price)}（${r.quantity}${unit}${contentLabel(r)}）</span>
+                      <span>${esc(t('{date}　{store}', { date: dateLong(r.purchasedAt), store: storeName.get(r.storeId) ?? t('削除された店舗') }))}</span>
+                      <span class="note" style="display:block">${recordLabel(r, unit)}</span>
                     </span>
-                    <button type="button" class="icon-btn" data-record-del="${r.id}" aria-label="この記録を削除">削除</button>
+                    <button type="button" class="icon-btn" data-record-del="${r.id}" aria-label="${t('この記録を削除')}">${t('削除')}</button>
                   </li>`
                 )
                 .join('')}
@@ -230,14 +232,26 @@ async function openProductPriceSheet(productId) {
   );
 }
 
-function contentLabel(r) {
-  return r.packageContent ? `・${r.packageContent.toLocaleString('ja-JP')}${r.packageContentUnit}` : '';
+/** 単位価格の見出し（100gあたり・1個あたり）。英語では per 100g・per pc */
+function unitLabel(u) {
+  const base = UNIT_BASE[u.unit];
+  return base === 1 ? t('1{unit}あたり', { unit: t(u.unit) }) : t('{amount}{unit}あたり', { amount: base, unit: t(u.unit) });
+}
+
+/** 「228円（2パック・500g）」。unit はエスケープ済みの管理単位 */
+function recordLabel(r, unit) {
+  const content = r.packageContent
+    ? t('・{amount}{unit}', { amount: r.packageContent.toLocaleString('ja-JP'), unit: esc(t(r.packageContentUnit)) })
+    : '';
+  return t('{price}（{qty}{unit}{content}）', { price: money(r.price), qty: r.quantity, unit, content });
 }
 
 function dateLabel(date, today) {
   const d = daysSince(date, today);
-  const md = `${Number(date.slice(5, 7))}/${Number(date.slice(8, 10))}`;
-  return `${md}（${d === 0 ? '今日' : d === 1 ? '昨日' : `${d}日前`}）`;
+  const date2 = dateShort(date);
+  if (d === 0) return t('{date}（今日）', { date: date2 });
+  if (d === 1) return t('{date}（昨日）', { date: date2 });
+  return t('{date}（{n}日前）', { date: date2, n: d });
 }
 
 // ===================== 店舗 =====================
@@ -254,26 +268,26 @@ function renderStores(body) {
         ? `<ul class="list">${stores
             .map(
               (s) => `<li><button type="button" class="row-button" data-action="store" data-id="${s.id}">
-                <span class="grow">${esc(s.name)}<span class="note" style="display:block">価格記録 ${s.records}件</span></span>
+                <span class="grow">${esc(s.name)}<span class="note" style="display:block">${t('価格記録 {n}件', { n: s.records })}</span></span>
                 <span class="note">›</span></button></li>`
             )
             .join('')}</ul>`
-        : '<div class="placeholder">右下の「＋ 店舗」から、よく行くお店を登録してください。</div>';
+        : `<div class="placeholder">${t('右下の「＋ 店舗」から、よく行くお店を登録してください。')}</div>`;
     }
   );
 }
 
 function openAddStoreSheet() {
   const sheet = openSheet({
-    title: '店舗を登録',
+    title: t('店舗を登録'),
     body: `
       <form novalidate>
         <div class="field">
-          <label for="f-name">店舗名</label>
-          <input id="f-name" name="name" class="input" placeholder="例：〇〇スーパー 駅前店" autocomplete="off" enterkeyhint="done">
+          <label for="f-name">${t('店舗名')}</label>
+          <input id="f-name" name="name" class="input" placeholder="${t('例：〇〇スーパー 駅前店')}" autocomplete="off" enterkeyhint="done">
           <p class="field-error" data-error-for="name"></p>
         </div>
-        <div class="form-actions"><button type="submit" class="btn btn-primary btn-block">登録</button></div>
+        <div class="form-actions"><button type="submit" class="btn btn-primary btn-block">${t('登録')}</button></div>
       </form>`,
   });
   const form = sheet.el.querySelector('form');
@@ -284,7 +298,7 @@ function openAddStoreSheet() {
     try {
       const store = await createStore(formValues(form).name);
       sheet.close();
-      toast(`「${store.name}」を登録しました`);
+      toast(t('「{name}」を登録しました', { name: store.name }));
     } catch (err) {
       if (err instanceof ValidationError) showErrors(form, err.errors);
       else throw err;
@@ -302,19 +316,19 @@ async function openStoreSheet(storeId) {
     body: `
       <form novalidate id="rename-form">
         <div class="field">
-          <label for="f-name">店舗名</label>
+          <label for="f-name">${t('店舗名')}</label>
           <div class="row">
             <input id="f-name" name="name" class="input grow" value="${esc(store.name)}" autocomplete="off">
-            <button type="submit" class="btn">変更</button>
+            <button type="submit" class="btn">${t('変更')}</button>
           </div>
           <p class="field-error" data-error-for="name"></p>
         </div>
       </form>
       <section style="margin-top:24px">
-        <h3 class="section-title">売り場の順番（≡ を押さえて動かす）</h3>
+        <h3 class="section-title">${t('売り場の順番（≡ を押さえて動かす）')}</h3>
         <ol class="list shelf-list" id="shelf"></ol>
       </section>
-      <div class="form-actions"><button type="button" class="btn-danger-text" data-delete-store>この店舗を削除</button></div>`,
+      <div class="form-actions"><button type="button" class="btn-danger-text" data-delete-store>${t('この店舗を削除')}</button></div>`,
     onClose: () => stop?.(),
   });
 
@@ -325,7 +339,7 @@ async function openStoreSheet(storeId) {
     try {
       await renameStore(storeId, formValues(form).name);
       sheet.el.querySelector('.sheet-header h2').textContent = formValues(form).name.trim();
-      toast('店舗名を変更しました');
+      toast(t('店舗名を変更しました'));
     } catch (err) {
       if (err instanceof ValidationError) showErrors(form, err.errors);
       else throw err;
@@ -340,9 +354,9 @@ async function openStoreSheet(storeId) {
       shelfEl.innerHTML = cats
         .map(
           (c, i) => `<li data-id="${c.id}">
-            ${dragHandle(esc(c.name))}
+            ${dragHandle(esc(t(c.name)))}
             <span class="shelf-no">${i + 1}</span>
-            <span class="grow">${esc(c.name)}</span>
+            <span class="grow">${esc(t(c.name))}</span>
           </li>`
         )
         .join('');
@@ -351,10 +365,14 @@ async function openStoreSheet(storeId) {
 
   sheet.el.querySelector('[data-delete-store]').addEventListener('click', async () => {
     const n = await countPriceRecordsOfStore(storeId);
-    const msg = `「${store.name}」を削除しますか？` + (n ? `\nこの店舗の価格記録 ${n}件も削除されます。` : '') + '\nこの操作は取り消せません。';
+    const msg =
+      t('「{name}」を削除しますか？', { name: store.name }) +
+      (n ? '\n' + t('この店舗の価格記録 {n}件も削除されます。', { n }) : '') +
+      '\n' +
+      t('この操作は取り消せません。');
     if (!window.confirm(msg)) return;
     await deleteStore(storeId);
     sheet.close();
-    toast('店舗を削除しました');
+    toast(t('店舗を削除しました'));
   });
 }

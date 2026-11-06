@@ -12,6 +12,7 @@ import { shortage } from '../domain/product.js';
 import { formatStock } from '../domain/consumption.js';
 import { openProductSheet } from './productSheet.js';
 import { esc } from '../lib/util.js';
+import { t } from '../lib/i18n.js';
 
 export const title = '在庫';
 
@@ -20,10 +21,10 @@ export function mount(el) {
     <div class="stack">
       <div id="stock-groups" class="stack"></div>
       <div id="review-done" hidden>
-        <button type="button" class="btn btn-primary btn-block" data-action="review-done">見直し完了 → 買い物リストを更新</button>
+        <button type="button" class="btn btn-primary btn-block" data-action="review-done">${t('見直し完了 → 買い物リストを更新')}</button>
       </div>
     </div>
-    <button type="button" class="fab" data-action="add">＋ 商品</button>
+    <button type="button" class="fab" data-action="add">${t('＋ 商品')}</button>
   `;
   const groupsEl = el.querySelector('#stock-groups');
   const reviewEl = el.querySelector('#review-done');
@@ -49,10 +50,10 @@ export function mount(el) {
       case 'to-list': {
         if (inList.has(id)) {
           await removeProductFromList(id);
-          toast('リストから外しました');
+          toast(t('リストから外しました'));
         } else {
           const r = await addProductToList(id);
-          toast(`「${r.item.name}」${r.item.quantity}${r.item.unit ?? ''}をリストに入れました`);
+          toast(t('「{name}」{qty}{unit}をリストに入れました', { name: r.item.name, qty: r.item.quantity, unit: r.item.unit ?? '' }));
         }
         break;
       }
@@ -72,8 +73,8 @@ export function mount(el) {
       if (products.length === 0) {
         groupsEl.innerHTML = `
           <div class="placeholder">
-            <p>まだ商品がありません。</p>
-            <p>右下の「＋ 商品」から、いつも買う物を登録してください。</p>
+            <p>${t('まだ商品がありません。')}</p>
+            <p>${t('右下の「＋ 商品」から、いつも買う物を登録してください。')}</p>
           </div>`;
         return;
       }
@@ -90,7 +91,7 @@ export function mount(el) {
         .map(
           (g) => `
           <section>
-            <h2 class="section-title">${esc(g.name)}</h2>
+            <h2 class="section-title">${esc(t(g.name))}</h2>
             <ul class="list sortable">${g.items.map((p) => rowHtml(p, inList.has(p.id))).join('')}</ul>
           </section>`
         )
@@ -106,16 +107,16 @@ async function reviewDone() {
   await clearAllSuppression();
   const r = await refreshFromStock();
   location.hash = '#/list';
-  toast(r.added || r.updated ? `リストを更新しました（追加 ${r.added}品目）` : '足りない物はありません');
+  toast(r.added || r.updated ? t('リストを更新しました（追加 {n}品目）', { n: r.added }) : t('足りない物はありません'));
 }
 
 /** 商品1行分の HTML */
 function rowHtml(p, listed) {
   const short = shortage(p);
   const unit = esc(p.inventoryUnit);
-  const meta = [`<span>目標 ${p.targetStock}${unit}</span>`];
-  if (short) meta.push(`<span class="badge badge-short">あと${short}${unit}</span>`);
-  if (p.autoAddSuppressed) meta.push('<span class="badge badge-muted">購入済み・在庫未更新</span>');
+  const meta = [`<span>${t('目標 {n}{unit}', { n: p.targetStock, unit })}</span>`];
+  if (short) meta.push(`<span class="badge badge-short">${t('あと{n}{unit}', { n: short, unit })}</span>`);
+  if (p.autoAddSuppressed) meta.push(`<span class="badge badge-muted">${t('購入済み・在庫未更新')}</span>`);
   return `
     <li class="stock-row" data-id="${p.id}">
       ${dragHandle(esc(p.name))}
@@ -125,17 +126,17 @@ function rowHtml(p, listed) {
       </button>
       <div class="qty">
         <button type="button" class="stepper-btn" data-action="dec" data-id="${p.id}"
-                aria-label="${esc(p.name)}を1減らす" ${p.currentStock <= 0 ? 'disabled' : ''}>−</button>
-        <div class="qty-value" aria-label="現在庫 ${formatStock(p.currentStock)}${unit}">${formatStock(p.currentStock)}<small>${unit}</small></div>
+                aria-label="${t('{name}を1減らす', { name: esc(p.name) })}" ${p.currentStock <= 0 ? 'disabled' : ''}>−</button>
+        <div class="qty-value" aria-label="${t('現在庫 {n}{unit}', { n: formatStock(p.currentStock), unit })}">${formatStock(p.currentStock)}<small>${unit}</small></div>
         <button type="button" class="stepper-btn" data-action="inc" data-id="${p.id}"
-                aria-label="${esc(p.name)}を1増やす">＋</button>
+                aria-label="${t('{name}を1増やす', { name: esc(p.name) })}">${t('＋')}</button>
       </div>
       <button type="button" class="cart-btn ${listed ? 'is-listed' : ''}" data-action="to-list" data-id="${p.id}"
-              aria-pressed="${listed}" aria-label="${esc(p.name)}を${listed ? '買い物リストから外す' : '買い物リストに入れる'}">
+              aria-pressed="${listed}" aria-label="${t(listed ? '{name}を買い物リストから外す' : '{name}を買い物リストに入れる', { name: esc(p.name) })}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.4 11h10.2L20 7H6.2"/><circle cx="9" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/>${
           listed ? '<path d="M10 10.5l2 2 3.5-3.5" class="cart-check"/>' : ''
         }</svg>
-        <span>${listed ? 'リスト済' : 'リストへ'}</span>
+        <span>${t(listed ? 'リスト済' : 'リストへ')}</span>
       </button>
     </li>`;
 }

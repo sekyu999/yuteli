@@ -9,6 +9,8 @@ import { showErrors, bindErrorClear, formValues } from '../ui/form.js';
 import { toast } from '../ui/toast.js';
 import { FONT_LEVELS, getFontScale, setFontScale, getTheme, setTheme } from '../ui/fontSize.js';
 import { THEMES } from '../ui/themeList.js';
+import { badgeSupported, badgeEnabled, setBadgeEnabled, updateBadge } from '../ui/badge.js';
+import { listItems } from '../data/shoppingRepo.js';
 import { getMeta, META } from '../data/metaRepo.js';
 import { saveBackup, currentCounts, restoreBackup, resetAll } from '../data/backup.js';
 import {
@@ -25,6 +27,7 @@ import { makeSortable, dragHandle } from '../ui/sortable.js';
 import { APP_VERSION } from '../lib/version.js';
 import { openProfileSheet, profileSummary } from './profileSheet.js';
 import { esc } from '../lib/util.js';
+import { t, dateLong, LANG_OPTIONS, getLangPref, setLangPref } from '../lib/i18n.js';
 
 export const title = '設定';
 
@@ -36,46 +39,64 @@ const TABLE_LABELS = {
   shoppingListItems: '買い物リスト',
   priceRecords: '価格記録',
   foodGroups: '食事グループ',
+  plans: '家計',
 };
 
 export function mount(el) {
   el.innerHTML = `
     <div class="stack">
       <section>
-        <h2 class="section-title">バックアップ</h2>
+        <h2 class="section-title">${t('バックアップ')}</h2>
         <ul class="list">
-          <li><span class="grow">最終バックアップ</span><span id="last-backup" class="num"></span></li>
+          <li><span class="grow">${t('最終バックアップ')}</span><span id="last-backup" class="num"></span></li>
         </ul>
         <div class="form-actions" style="margin-top:12px">
-          <button type="button" class="btn btn-primary btn-block" data-action="backup">バックアップを保存</button>
-          <button type="button" class="btn btn-block" data-action="restore">バックアップから復元</button>
+          <button type="button" class="btn btn-primary btn-block" data-action="backup">${t('バックアップを保存')}</button>
+          <button type="button" class="btn btn-block" data-action="restore">${t('バックアップから復元')}</button>
           <input type="file" id="restore-file" accept="application/json,.json" hidden>
         </div>
-        <p class="note" style="margin-top:8px">「"ファイル"に保存」で iCloud Drive などへ</p>
+        <p class="note" style="margin-top:8px">${t('「"ファイル"に保存」で iCloud Drive などへ')}</p>
       </section>
 
       <section>
-        <h2 class="section-title">テーマ</h2>
-        <div class="theme-grid" role="radiogroup">
-          <button type="button" role="radio" data-theme-key="" class="theme-swatch theme-auto"><span class="sw"><i style="background:#f6f5f1"></i><i style="background:#1b1c1a"></i></span>自動</button>
-          ${THEMES.map(
-            (t) => `<button type="button" role="radio" data-theme-key="${t.key}" class="theme-swatch">
-              <span class="sw" style="background:${t.bg}"><i style="background:${t.accent}"></i><i style="background:${t.surface}"></i></span>${t.label}</button>`
+        <h2 class="section-title">${t('言語')}</h2>
+        <div class="segmented font-levels lang-options" role="radiogroup" aria-label="${t('言語')}">
+          ${LANG_OPTIONS.map(
+            (o) => `<button type="button" role="radio" data-lang="${o.key}"${o.key === 'auto' ? '' : ` lang="${o.key}"`}>${esc(
+              o.key === 'auto' ? t(o.label) : o.label
+            )}</button>`
           ).join('')}
         </div>
       </section>
 
       <section>
-        <h2 class="section-title">文字の大きさ</h2>
+        <h2 class="section-title">${t('テーマ')}</h2>
+        <div class="theme-grid" role="radiogroup">
+          <button type="button" role="radio" data-theme-key="" class="theme-swatch theme-auto"><span class="sw"><i style="background:#f6f5f1"></i><i style="background:#1b1c1a"></i></span>${t('自動')}</button>
+          ${THEMES.map(
+            (th) => `<button type="button" role="radio" data-theme-key="${th.key}" class="theme-swatch">
+              <span class="sw" style="background:${th.bg}"><i style="background:${th.accent}"></i><i style="background:${th.surface}"></i></span>${esc(t(th.label))}</button>`
+          ).join('')}
+        </div>
+      </section>
+
+      <section id="badge-section" hidden>
+        <ul class="list">
+          <li><label class="check-row grow"><input type="checkbox" id="badge-toggle">${t('アイコンに買い物リストの件数を出す')}</label></li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="section-title">${t('文字の大きさ')}</h2>
         <div class="segmented font-levels" role="radiogroup">
           ${FONT_LEVELS.map(
-            (f, i) => `<button type="button" role="radio" data-font="${f.scale}" aria-label="${f.label}" style="font-size:${13 + i * 2.5}px">あ</button>`
+            (f, i) => `<button type="button" role="radio" data-font="${f.scale}" aria-label="${esc(t(f.label))}" style="font-size:${13 + i * 2.5}px">${t('あ')}</button>`
           ).join('')}
         </div>
       </section>
 
       <section>
-        <h2 class="section-title">からだの情報</h2>
+        <h2 class="section-title">${t('からだの情報')}</h2>
         <ul class="list">
           <li><button type="button" class="row-button" data-action="profile">
             <span class="grow" id="profile-summary"></span><span class="note">›</span></button></li>
@@ -83,47 +104,56 @@ export function mount(el) {
       </section>
 
       <section>
-        <h2 class="section-title">カテゴリ</h2>
+        <h2 class="section-title">${t('カテゴリ')}</h2>
         <ul class="list">
           <li><button type="button" class="row-button" data-action="categories">
-            <span class="grow">追加・名前変更・並び順</span><span class="note">›</span></button></li>
+            <span class="grow">${t('追加・名前変更・並び順')}</span><span class="note">›</span></button></li>
         </ul>
       </section>
 
       <section>
-        <h2 class="section-title">初期化</h2>
-        <button type="button" class="btn btn-block btn-danger" data-action="reset">すべてのデータを消去</button>
+        <h2 class="section-title">${t('初期化')}</h2>
+        <button type="button" class="btn btn-block btn-danger" data-action="reset">${t('すべてのデータを消去')}</button>
       </section>
 
-      <p class="note" style="text-align:center">YUTELI ${esc(APP_VERSION)}<br>
-        栄養データ：日本食品標準成分表（八訂）増補2023年（文部科学省）<br>
-        栄養の目標：日本人の食事摂取基準（2025年版）（厚生労働省）</p>
+      <p class="note" style="text-align:center">KESELA ${esc(APP_VERSION)}<br>${t('健康 × 節約 × 楽')}<br>
+        ${t('栄養データ：日本食品標準成分表（八訂）増補2023年（文部科学省）')}<br>
+        ${t('栄養の目標：日本人の食事摂取基準（2025年版）（厚生労働省）')}</p>
     </div>
   `;
+
+  // ---- 言語（選ぶと読み込み直して反映） ----
+  const pref = getLangPref();
+  el.querySelectorAll('[data-lang]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.lang === pref)));
+  el.querySelector('.lang-options').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-lang]');
+    if (b && b.dataset.lang !== pref) setLangPref(b.dataset.lang);
+  });
 
   // ---- 文字の大きさ ----
   const markFont = () =>
     el.querySelectorAll('[data-font]').forEach((b) =>
       b.setAttribute('aria-checked', String(Number(b.dataset.font) === getFontScale()))
     );
-  el.querySelector('.font-levels').addEventListener('click', (e) => {
+  el.querySelector('.font-levels:not(.lang-options)').addEventListener('click', (e) => {
     const b = e.target.closest('[data-font]');
     if (!b) return;
     setFontScale(Number(b.dataset.font));
     markFont();
-
-  // ---- テーマ ----
-  const markTheme = () =>
-    el.querySelectorAll('[data-theme-key]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.themeKey === getTheme())));
-  el.querySelector('.theme-grid').addEventListener('click', (e) => {
-    const b = e.target.closest('[data-theme-key]');
-    if (!b) return;
-    setTheme(b.dataset.themeKey);
-    markTheme();
-  });
-  markTheme();
   });
   markFont();
+
+  // ---- アイコンのバッジ ----
+  if (badgeSupported()) {
+    el.querySelector('#badge-section').hidden = false;
+    const tg = el.querySelector('#badge-toggle');
+    tg.checked = badgeEnabled();
+    tg.addEventListener('change', async () => {
+      const ok = await setBadgeEnabled(tg.checked);
+      if (tg.checked && !ok) toast(t('通知が許可されていないため表示できません（iPhoneの設定 → 通知）'));
+      updateBadge((await listItems()).length);
+    });
+  }
 
   // ---- テーマ ----
   const markTheme = () =>
@@ -144,16 +174,16 @@ export function mount(el) {
     if (!file) return;
     const result = parseBackup(await file.text());
     if (!result.ok) {
-      openSheet({ title: '読み込めませんでした', body: `<p>${esc(result.error)}</p>` });
+      openSheet({ title: t('読み込めませんでした'), body: `<p>${esc(t(result.key ?? result.error, result.params))}</p>` });
       return;
     }
     openRestoreConfirm(result, file.name);
   });
 
   el.addEventListener('click', async (e) => {
-    const t = e.target.closest('[data-action]');
-    if (!t) return;
-    switch (t.dataset.action) {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    switch (btn.dataset.action) {
       case 'backup':
         await doBackup();
         break;
@@ -167,10 +197,10 @@ export function mount(el) {
         openProfileSheet();
         break;
       case 'reset':
-        if (!window.confirm('すべてのデータ（商品・在庫・買い物リスト・店舗・価格記録）を消去します。よろしいですか？')) return;
-        if (!window.confirm('本当に消去しますか？この操作は取り消せません。\n必要なら先にバックアップを保存してください。')) return;
+        if (!window.confirm(t('すべてのデータ（商品・在庫・買い物リスト・店舗・価格記録）を消去します。よろしいですか？'))) return;
+        if (!window.confirm(t('本当に消去しますか？この操作は取り消せません。') + '\n' + t('必要なら先にバックアップを保存してください。'))) return;
         await resetAll();
-        toast('すべてのデータを消去しました');
+        toast(t('すべてのデータを消去しました'));
         break;
     }
   });
@@ -180,7 +210,7 @@ export function mount(el) {
     () => Promise.all([currentCounts(), getMeta(META.lastBackupAt), getMeta(META.profile)]),
     ([counts, last, profile]) => {
       el.querySelector('#profile-summary').textContent = profileSummary(profile);
-      lastEl.innerHTML = last ? esc(formatDateTime(last)) : '<span class="stale">まだありません</span>';
+      lastEl.innerHTML = last ? esc(formatDateTime(last)) : `<span class="stale">${t('まだありません')}</span>`;
     }
   );
 }
@@ -188,11 +218,11 @@ export function mount(el) {
 async function doBackup() {
   try {
     const r = await saveBackup();
-    if (r === 'shared') toast('バックアップを保存しました');
-    else if (r === 'downloaded') toast('バックアップをダウンロードしました');
+    if (r === 'shared') toast(t('バックアップを保存しました'));
+    else if (r === 'downloaded') toast(t('バックアップをダウンロードしました'));
   } catch (err) {
     console.error(err);
-    toast('バックアップを保存できませんでした');
+    toast(t('バックアップを保存できませんでした'));
   }
 }
 
@@ -200,22 +230,22 @@ async function doBackup() {
 async function openRestoreConfirm(result, fileName) {
   const now = await currentCounts();
   const sheet = openSheet({
-    title: 'バックアップから復元',
+    title: t('バックアップから復元'),
     body: `
-      <p>ファイル：${esc(fileName)}</p>
-      <p class="note">作成日時：${esc(formatDateTime(result.backup.exportedAt))}</p>
+      <p>${esc(t('ファイル：{name}', { name: fileName }))}</p>
+      <p class="note">${esc(t('作成日時：{date}', { date: formatDateTime(result.backup.exportedAt) }))}</p>
       <table class="compare-table">
-        <thead><tr><th></th><th>今のデータ</th><th>バックアップ</th></tr></thead>
+        <thead><tr><th></th><th>${t('今のデータ')}</th><th>${t('バックアップ')}</th></tr></thead>
         <tbody>
           ${BACKUP_TABLES.map(
-            (t) => `<tr><th>${TABLE_LABELS[t]}</th><td>${now[t]}</td><td>${result.counts[t]}</td></tr>`
+            (name) => `<tr><th>${t(TABLE_LABELS[name] ?? name)}</th><td>${now[name] ?? 0}</td><td>${result.counts[name]}</td></tr>`
           ).join('')}
         </tbody>
       </table>
-      <p class="notice" style="margin-top:12px">復元すると、今のデータはすべて消えてバックアップの内容に置き換わります。この操作は取り消せません。</p>
+      <p class="notice" style="margin-top:12px">${t('復元すると、今のデータはすべて消えてバックアップの内容に置き換わります。この操作は取り消せません。')}</p>
       <div class="form-actions">
-        <button type="button" class="btn btn-block" data-backup-first>先に今のデータをバックアップ</button>
-        <button type="button" class="btn btn-block btn-danger" data-restore>上書きして復元する</button>
+        <button type="button" class="btn btn-block" data-backup-first>${t('先に今のデータをバックアップ')}</button>
+        <button type="button" class="btn btn-block btn-danger" data-restore>${t('上書きして復元する')}</button>
       </div>`,
   });
   sheet.el.querySelector('[data-backup-first]').addEventListener('click', doBackup);
@@ -223,10 +253,10 @@ async function openRestoreConfirm(result, fileName) {
     try {
       await restoreBackup(result.backup);
       sheet.close();
-      toast('復元しました');
+      toast(t('復元しました'));
     } catch (err) {
       console.error(err);
-      toast('復元できませんでした。データは変更されていません');
+      toast(t('復元できませんでした。データは変更されていません'));
     }
   });
 }
@@ -235,20 +265,20 @@ async function openRestoreConfirm(result, fileName) {
 function openCategorySheet() {
   let stop = null;
   const sheet = openSheet({
-    title: 'カテゴリ',
+    title: t('カテゴリ'),
     body: `
       <form novalidate id="cat-add">
         <div class="field">
-          <label for="f-name">カテゴリを追加</label>
+          <label for="f-name">${t('カテゴリを追加')}</label>
           <div class="row">
-            <input id="f-name" name="name" class="input grow" placeholder="例：冷凍食品" autocomplete="off">
-            <button type="submit" class="btn">追加</button>
+            <input id="f-name" name="name" class="input grow" placeholder="${t('例：冷凍食品')}" autocomplete="off">
+            <button type="submit" class="btn">${t('追加')}</button>
           </div>
           <p class="field-error" data-error-for="name"></p>
         </div>
       </form>
       <section style="margin-top:20px">
-        <h3 class="section-title">並び順（≡ を押さえて動かす）</h3>
+        <h3 class="section-title">${t('並び順（≡ を押さえて動かす）')}</h3>
         <ol class="list shelf-list" id="cat-list"></ol>
       </section>`,
     onClose: () => stop?.(),
@@ -261,7 +291,7 @@ function openCategorySheet() {
     try {
       const c = await addCategory(formValues(form).name);
       form.reset();
-      toast(`「${c.name}」を追加しました`);
+      toast(t('「{name}」を追加しました', { name: c.name }));
     } catch (err) {
       if (err instanceof ValidationError) showErrors(form, err.errors);
       else throw err;
@@ -280,8 +310,8 @@ function openCategorySheet() {
     listEl.innerHTML = list
       .map(
         (c) => `<li data-id="${c.id}">
-          ${dragHandle(esc(c.name))}
-          <button type="button" class="row-button grow" data-edit="${c.id}" style="min-height:40px">${esc(c.name)}</button>
+          ${dragHandle(esc(t(c.name)))}
+          <button type="button" class="row-button grow" data-edit="${c.id}" style="min-height:40px">${esc(t(c.name))}</button>
         </li>`
       )
       .join('');
@@ -292,18 +322,18 @@ async function openCategoryEdit(cat) {
   if (!cat) return;
   const used = await countProductsInCategory(cat.id);
   const sheet = openSheet({
-    title: 'カテゴリを編集',
+    title: t('カテゴリを編集'),
     body: `
       <form novalidate>
         <div class="field">
-          <label for="f-cname">カテゴリ名</label>
+          <label for="f-cname">${t('カテゴリ名')}</label>
           <input id="f-cname" name="name" class="input" value="${esc(cat.name)}" autocomplete="off">
           <p class="field-error" data-error-for="name"></p>
         </div>
-        <p class="note" style="margin-top:8px">このカテゴリの商品：${used}件</p>
+        <p class="note" style="margin-top:8px">${t('このカテゴリの商品：{n}件', { n: used })}</p>
         <div class="form-actions">
-          <button type="submit" class="btn btn-primary btn-block">保存</button>
-          <button type="button" class="btn-danger-text" data-del>このカテゴリを削除</button>
+          <button type="submit" class="btn btn-primary btn-block">${t('保存')}</button>
+          <button type="button" class="btn-danger-text" data-del>${t('このカテゴリを削除')}</button>
         </div>
       </form>`,
   });
@@ -314,18 +344,18 @@ async function openCategoryEdit(cat) {
     try {
       await renameCategory(cat.id, formValues(form).name);
       sheet.close();
-      toast('変更しました');
+      toast(t('変更しました'));
     } catch (err) {
       if (err instanceof ValidationError) showErrors(form, err.errors);
       else throw err;
     }
   });
   form.querySelector('[data-del]').addEventListener('click', async () => {
-    if (!window.confirm(`「${cat.name}」を削除しますか？`)) return;
+    if (!window.confirm(t('「{name}」を削除しますか？', { name: t(cat.name) }))) return;
     try {
       await deleteCategory(cat.id);
       sheet.close();
-      toast('削除しました');
+      toast(t('削除しました'));
     } catch (err) {
       if (err instanceof ValidationError) showErrors(form, err.errors);
       else throw err;
@@ -335,7 +365,7 @@ async function openCategoryEdit(cat) {
 
 function formatDateTime(iso) {
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '不明';
+  if (Number.isNaN(d.getTime())) return t('不明');
   const p = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}/${p(d.getMonth() + 1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  return `${dateLong(`${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`)} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }

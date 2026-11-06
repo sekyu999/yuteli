@@ -1,5 +1,6 @@
 // 文字の大きさ（5段階）とテーマ。この端末だけの見た目の好みなので、ブラウザの localStorage に保存する
 // index.html の先頭で読み込んで、表示の前に反映している。
+// 保存キーは旧名（yuteli）のまま（変えると設定が消えるため）
 const KEY = 'yuteli.fontScale';
 
 export const FONT_LEVELS = [
