@@ -128,6 +128,11 @@ export default {
   価格を記録: 'Log price',
   '前回 {price}（{qty}{unit}）': 'Last: {price} ({qty} {unit})',
   価格を記録しました: 'Price logged',
+  価格を直す: 'Edit price',
+  '{name}の価格を直す': 'Edit price: {name}',
+  価格を直しました: 'Price updated',
+  この記録を直す: 'Edit this record',
+  '{date}の記録を直す': 'Edit the record from {date}',
   記録できませんでした: 'Couldn’t log the price',
 
   // ---- 設定（settings.js）----

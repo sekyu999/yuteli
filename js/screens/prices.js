@@ -157,6 +157,11 @@ async function openProductPriceSheet(productId) {
       openPriceSheet({ productId });
       return;
     }
+    const edit = e.target.closest('[data-record-edit]');
+    if (edit) {
+      openPriceSheet({ recordId: edit.dataset.recordEdit });
+      return;
+    }
     const del = e.target.closest('[data-record-del]');
     if (del && window.confirm(t('この価格記録を削除しますか？') + '\n' + t('（入力ミスの修正用です。履歴として残す場合は削除しないでください）'))) {
       await deletePriceRecord(del.dataset.recordDel);
@@ -216,11 +221,15 @@ async function openProductPriceSheet(productId) {
             <ul class="list">
               ${records
                 .map(
-                  (r) => `<li>
-                    <span class="grow">
-                      <span>${esc(t('{date}　{store}', { date: dateLong(r.purchasedAt), store: storeName.get(r.storeId) ?? t('削除された店舗') }))}</span>
-                      <span class="note" style="display:block">${recordLabel(r, unit)}</span>
-                    </span>
+                  (r) => `<li class="record-row">
+                    <button type="button" class="row-button grow" data-record-edit="${r.id}"
+                            aria-label="${esc(t('{date}の記録を直す', { date: dateLong(r.purchasedAt) }))}">
+                      <span class="grow">
+                        <span>${esc(t('{date}　{store}', { date: dateLong(r.purchasedAt), store: storeName.get(r.storeId) ?? t('削除された店舗') }))}</span>
+                        <span class="note" style="display:block">${recordLabel(r, unit)}</span>
+                      </span>
+                      <span class="chev" aria-hidden="true">›</span>
+                    </button>
                     <button type="button" class="icon-btn" data-record-del="${r.id}" aria-label="${t('この記録を削除')}">${t('削除')}</button>
                   </li>`
                 )

@@ -28,6 +28,20 @@ export async function addPriceRecord(raw) {
   return record;
 }
 
+/** 1件取得 */
+export function getPriceRecord(id) {
+  return db.priceRecords.get(id);
+}
+
+/** 記録を直す（金額・数量・内容量・店舗・購入日）。入力が不正なら ValidationError */
+export async function updatePriceRecord(id, raw) {
+  const r = validatePriceInput(raw, todayLocal());
+  if (!r.ok) throw new ValidationError(r.errors);
+  const count = await db.priceRecords.update(id, { ...r.value, updatedAt: nowIso() });
+  if (!count) throw new Error('price record not found');
+  return { id, ...r.value };
+}
+
 /** その商品の全記録（新しい順） */
 export async function listByProduct(productId) {
   const list = await db.priceRecords.where('productId').equals(productId).toArray();

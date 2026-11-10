@@ -798,3 +798,7 @@ input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   .stock-row .stock-name { white-space: normal; overflow-wrap: anywhere; }
   .stock-row .qty { margin-left: auto; }
 }
+/* 価格の履歴：行をタップすると記録を直せる */
+.record-row { gap: 8px; }
+.record-row > .row-button { flex: 1; min-width: 0; width: auto; color: inherit; font: inherit; }
+.chev { flex: none; color: var(--text-sub); font-size: calc(20px * var(--fs, 1)); line-height: 1; }
