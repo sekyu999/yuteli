@@ -27,6 +27,16 @@ export async function setPlanDone(id, done) {
   await db.plans.update(id, { done: !!done, updatedAt: nowIso() });
 }
 
+/** 月だけ変える（ドラッグで移動した時）。month は YYYY-MM、未定は null */
+export async function setPlanMonth(id, month) {
+  await db.plans.update(id, { month: month || null, updatedAt: nowIso() });
+}
+
+/** 消した予定を元に戻す（済みにして消した直後の「元に戻す」用） */
+export async function restorePlan(plan) {
+  await db.plans.put(plan);
+}
+
 export async function deletePlan(id) {
   await db.plans.delete(id);
 }

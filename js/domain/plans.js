@@ -109,3 +109,17 @@ export function groupByMonth(plans) {
       total: items.reduce((s, p) => s + p.price, 0),
     }));
 }
+
+/**
+ * 一覧の月の並び。今月から count か月分は予定がなくても出す（ドラッグの移動先にするため）。
+ * それ以外の月（過ぎた月・先の月）は予定がある時だけ。最後に「未定」。
+ * @returns {Array<{month:string|null, items:Plan[], total:number}>}
+ */
+export function monthSections(plans, now, count = 12) {
+  const groups = new Map(groupByMonth(plans).map((g) => [g.month ?? '', g]));
+  const keys = new Set([...groups.keys()].filter((k) => k !== ''));
+  for (let i = 0; i < count; i++) keys.add(addMonths(now, i));
+  const sorted = [...keys].sort();
+  sorted.push('');
+  return sorted.map((k) => groups.get(k) ?? { month: k || null, items: [], total: 0 });
+}

@@ -802,3 +802,38 @@ input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .record-row { gap: 8px; }
 .record-row > .row-button { flex: 1; min-width: 0; width: auto; color: inherit; font: inherit; }
 .chev { flex: none; color: var(--text-sub); font-size: calc(20px * var(--fs, 1)); line-height: 1; }
+/* 家計：月をまたいだドラッグ */
+.month-sec { border-radius: var(--radius, 12px); transition: background 0.12s, outline-color 0.12s; outline: 2px dashed transparent; outline-offset: 2px; }
+.month-sec.is-empty .month-head { color: var(--text-sub); font-weight: 500; margin-bottom: 0; }
+#plan-list.is-moving .month-sec { outline-color: var(--border); }
+#plan-list.is-moving .month-sec.is-empty { padding: 6px 0; }
+.month-sec.drop-over { background: var(--accent-soft); outline-color: var(--accent) !important; }
+.plan-row .drag-handle { margin-left: -6px; margin-right: -8px; touch-action: none; }
+.plan-row.move-source { opacity: 0.35; }
+.move-ghost {
+  position: fixed;
+  z-index: 50;
+  pointer-events: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.22);
+  opacity: 0.95;
+}
+.plan-row .check-btn[aria-checked="true"] + .row-button .compact-name { text-decoration: line-through; color: var(--text-sub); }
+.move-ghost .row-button { flex: 1; min-width: 0; }
+.move-to {
+  position: absolute;
+  right: 10px;
+  top: -14px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: calc(13px * var(--fs, 1));
+  font-weight: 700;
+  white-space: nowrap;
+}
+.move-ghost .row-button { width: auto; } .move-ghost .plan-main { flex: 1; }

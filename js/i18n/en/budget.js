@@ -13,6 +13,11 @@ export default {
   '（過ぎた月）': ' (past)',
   '{name}を未完了に戻す': 'Mark {name} as not done',
   '{name}を済みにする': 'Mark {name} as done',
+  '「{name}」を済みにしました': 'Done: {name}',
+  '{name}の月を移動': 'Move {name} to another month',
+  '{month}に移動しました': 'Moved to {month}',
+  '≡ を押さえて別の月へドラッグすると、月を変えられます。チェックすると一覧から消えます。':
+    'Drag ≡ to another month to move an item. Check an item to remove it from the list.',
   やる: 'Do',
   買う: 'Buy',
   編集: 'Edit',

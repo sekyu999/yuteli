@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validatePlanInput, monthlyTotals, groupByMonth, addMonths, monthLabel } from '../js/domain/plans.js';
+import { validatePlanInput, monthlyTotals, groupByMonth, addMonths, monthLabel, monthSections } from '../js/domain/plans.js';
 
 const P = (kind, price, month, done = false) => ({ kind, title: 'x', price, month, done });
 
@@ -36,4 +36,13 @@ test('一覧は月順・未定は最後・済みは下', () => {
   assert.deepEqual(g.map((x) => x.month), ['2026-11', '2026-12', null]);
   assert.deepEqual(g[1].items.map((p) => p.price), [3, 2]);
   assert.equal(g[1].total, 5);
+});
+
+test('一覧の月の並び（今月から12か月は空でも出す・未定は最後）', () => {
+  const s = monthSections([P('buy', 100, '2026-09'), P('do', 50, '2028-01'), P('buy', 10, null), P('buy', 20, '2026-12')], '2026-11', 12);
+  const keys = s.map((g) => g.month);
+  assert.deepEqual(keys, ['2026-09', ...Array.from({ length: 12 }, (_, i) => addMonths('2026-11', i)), '2028-01', null]);
+  assert.equal(s.find((g) => g.month === '2026-12').total, 20);
+  assert.equal(s.find((g) => g.month === '2027-03').items.length, 0);
+  assert.equal(monthSections([], '2026-11', 3).length, 4);
 });

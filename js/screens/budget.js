@@ -3,11 +3,12 @@ import { watch } from '../ui/live.js';
 import { openSheet } from '../ui/sheet.js';
 import { showErrors, bindErrorClear, formValues } from '../ui/form.js';
 import { toast } from '../ui/toast.js';
-import { listPlans, getPlan, savePlan, setPlanDone, deletePlan } from '../data/planRepo.js';
+import { listPlans, getPlan, savePlan, deletePlan, restorePlan, setPlanMonth } from '../data/planRepo.js';
+import { makeMovable } from '../ui/moveDrag.js';
 import { listProducts, ValidationError } from '../data/productRepo.js';
 import { listGroups } from '../data/groupRepo.js';
 import { listAllRecords } from '../data/priceRepo.js';
-import { PLAN_KINDS, monthlyTotals, groupByMonth, thisMonth } from '../domain/plans.js';
+import { PLAN_KINDS, monthlyTotals, monthSections, thisMonth } from '../domain/plans.js';
 import { combineConsumption } from '../domain/groups.js';
 import { isDaily } from '../domain/consumption.js';
 import { dailyCost } from '../domain/cost.js';
@@ -61,9 +62,18 @@ export function mount(el) {
         openPlanSheet(btn.dataset.id);
         break;
       case 'done':
-        setPlanDone(btn.dataset.id, btn.getAttribute('aria-checked') !== 'true');
+        finishPlan(btn);
         break;
     }
+  });
+
+  // ≡ を押さえて別の月へドラッグすると、その月に移る
+  makeMovable(listEl, {
+    label: (key) => monthText(key || null, thisMonth()),
+    onDrop: async (id, key) => {
+      await setPlanMonth(id, key);
+      toast(t('{month}に移動しました', { month: monthText(key || null, thisMonth()) }));
+    },
   });
 
   function render() {
@@ -99,16 +109,19 @@ export function mount(el) {
       listEl.innerHTML = `<div class="placeholder">${t('右下の「＋ 追加」から、買いたい物・やりたい事を金額と月で登録できます。')}</div>`;
       return;
     }
-    listEl.innerHTML = groupByMonth(shown)
-      .map(
-        (g) => `<section>
+    // 今月から12か月は予定がなくても出す（ドラッグの移動先）
+    listEl.innerHTML =
+      `<p class="note">${t('≡ を押さえて別の月へドラッグすると、月を変えられます。チェックすると一覧から消えます。')}</p>` +
+      monthSections(shown, now, MONTHS)
+        .map(
+          (g) => `<section class="month-sec ${g.items.length ? '' : 'is-empty'}" data-drop="${g.month ?? ''}">
           <h2 class="section-title month-head ${g.month && g.month < now ? 'is-past' : ''}">
-            <span>${monthText(g.month, now)}${g.month && g.month < now ? t('（過ぎた月）') : ''}</span><span>${money(g.total)}</span>
+            <span>${monthText(g.month, now)}${g.month && g.month < now ? t('（過ぎた月）') : ''}</span><span>${g.items.length ? money(g.total) : '—'}</span>
           </h2>
-          <ul class="list compact-list">${g.items.map(planRow).join('')}</ul>
+          ${g.items.length ? `<ul class="list compact-list">${g.items.map(planRow).join('')}</ul>` : ''}
         </section>`
-      )
-      .join('');
+        )
+        .join('');
   }
 
   return watch(
@@ -131,11 +144,25 @@ export function mount(el) {
   );
 }
 
+/** チェック → 少し見せてから一覧から消す（「元に戻す」で戻せる） */
+async function finishPlan(btn) {
+  const plan = await getPlan(btn.dataset.id);
+  if (!plan) return;
+  btn.setAttribute('aria-checked', 'true');
+  btn.closest('.plan-row')?.classList.add('is-done');
+  setTimeout(async () => {
+    await deletePlan(plan.id);
+    toast(t('「{name}」を済みにしました', { name: plan.title }), {
+      actions: [{ label: t('元に戻す'), onClick: () => restorePlan(plan) }],
+    });
+  }, 250);
+}
+
 function planRow(p) {
-  const kind = PLAN_KINDS.find((k) => k.key === p.kind);
-  return `<li class="plan-row ${p.done ? 'is-done' : ''}">
-    <button type="button" class="check-btn" data-action="done" data-id="${p.id}" role="checkbox" aria-checked="${p.done}"
-            aria-label="${esc(t(p.done ? '{name}を未完了に戻す' : '{name}を済みにする', { name: p.title }))}"></button>
+  return `<li class="plan-row" data-id="${p.id}">
+    <span class="drag-handle" role="button" aria-label="${esc(t('{name}の月を移動', { name: p.title }))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14M5 12h14M5 16h14"/></svg></span>
+    <button type="button" class="check-btn" data-action="done" data-id="${p.id}" role="checkbox" aria-checked="false"
+            aria-label="${esc(t('{name}を済みにする', { name: p.title }))}"></button>
     <button type="button" class="row-button" data-action="edit" data-id="${p.id}">
       <span class="grow plan-main"><span class="badge ${p.kind === 'do' ? 'badge-do' : 'badge-muted'}">${t(p.kind === 'do' ? 'やる' : '買う')}</span><span class="compact-name">${esc(p.title)}${
         p.memo ? `<span class="note">　${esc(p.memo)}</span>` : ''
@@ -185,7 +212,6 @@ async function openPlanSheet(id, defaultKind = 'buy') {
           <input id="f-memo" name="memo" class="input" value="${esc(v.memo)}" autocomplete="off">
           <p class="field-error" data-error-for="memo"></p>
         </div>
-        <label class="check-row" style="margin-top:10px"><input type="checkbox" name="done" value="1" ${v.done ? 'checked' : ''}>${t('済み（買った・やった）')}</label>
         <div class="form-actions">
           <button type="submit" class="btn btn-primary btn-block">${t('保存')}</button>
           ${plan ? `<button type="button" class="btn-danger-text" data-delete>${t('削除')}</button>` : ''}
