@@ -159,6 +159,12 @@ export function mount(el) {
     markTheme();
   });
   markTheme();
+  // 選んでいるテーマが見えるように、横スクロールの位置を合わせる
+  requestAnimationFrame(() => {
+    const grid = el.querySelector('.theme-grid');
+    const cur = grid.querySelector('[aria-checked="true"]');
+    if (cur && cur.offsetLeft + cur.offsetWidth > grid.clientWidth) grid.scrollLeft = cur.offsetLeft - grid.clientWidth / 2 + cur.offsetWidth / 2;
+  });
 
   // ---- 操作 ----
   const fileInput = el.querySelector('#restore-file');

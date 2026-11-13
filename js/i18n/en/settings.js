@@ -23,9 +23,9 @@ export default {
   // ---- 文字の大きさ（ui/fontSize.js）----
   とても小さい: 'Extra small',
   小さい: 'Small',
-  やや小さい: 'Slightly small',
   標準: 'Standard',
   大きい: 'Large',
+  とても大きい: 'Extra large',
   あ: 'A',
 
   // ---- テーマ（ui/themeList.js）----

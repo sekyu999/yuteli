@@ -908,38 +908,32 @@ input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 /* 目標の画面は右下のボタンがないので、下の余白を詰める（スクロールせずに収まるように） */
 .screen[data-route="goals"] { padding-top: 12px; padding-bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 12px); }
 .choice-row-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-/* 家計の行：複数行でも、チェック・アイコン・名前・金額を1行目にそろえる */
-.plan-row { align-items: flex-start !important; }
-.plan-row .row-button { align-items: flex-start; padding: 8px 0 4px; }
-.plan-side { justify-content: flex-start; padding-top: 8px; }
-.plan-side .plan-price { font-size: calc(15px * var(--fs, 1)); line-height: calc(17px * var(--fs, 1) * 1.35); }
-.plan-row .drag-handle { height: 40px; margin-top: 2px; }
-.plan-row .check-btn { margin-top: 2px; }
-/* v1.8：メモは名前の横に続けて、2行まで（それ以上は …） */
-.plan-title {
-  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
-}
-.plan-title .plan-memo { display: inline; margin: 0 0 0 0.6em; white-space: normal; }
-/* リンクは金額の横に並べる（縦に間延びしないように） */
-.plan-side { flex-direction: row; align-items: flex-start; gap: 2px; }
-.plan-link { height: calc(17px * var(--fs, 1) * 1.35); width: 30px; margin: 0 -6px 0 0; }
+/* v1.9：名前とメモは1行。はみ出す分は … */
+.plan-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.plan-title .plan-memo { display: inline; margin-left: 0.6em; white-space: nowrap; }
+/* リンクは金額の右（リンクのない行も同じ幅を空けて金額をそろえる） */
+.plan-side { flex-direction: row; align-items: center; align-self: center; padding-top: 0; gap: 2px; }
+.plan-link { height: 32px; width: 30px; margin: 0 -6px 0 0; }
 .plan-link svg { width: 18px; height: 18px; }
-/* 「未定」は一番上に折りたたみ */
-.undecided-sec summary { min-height: 36px; align-items: center; margin-bottom: 0; cursor: pointer; list-style: none; }
-.undecided-sec summary::-webkit-details-marker { display: none; }
-.undecided-sec summary > span:first-child::after { content: "▾"; margin-left: 6px; font-size: 11px; display: inline-block; transition: transform 0.15s; }
-.undecided-sec details:not([open]) summary > span:first-child::after { transform: rotate(-90deg); }
-.undecided-sec.is-empty summary > span:first-child::after { content: none; }
-.undecided-sec details[open] summary { margin-bottom: 8px; }
-.count-badge {
-  display: inline-block; min-width: 1.6em; margin-left: 6px; padding: 0 6px; border-radius: 999px;
-  background: var(--accent-soft); color: var(--accent); font-size: calc(12px * var(--fs, 1)); text-align: center; line-height: 1.6;
-}
-/* 予定のない月は詰めて表示 */
-#plan-list > .month-sec.is-empty + .month-sec.is-empty { margin-top: 4px; }
-#plan-list.is-moving > .month-sec.is-empty + .month-sec.is-empty { margin-top: var(--gap); }
+/* 行の中は上下中央にそろえる */
+.plan-row { align-items: center !important; }
+.plan-row .row-button { align-items: center; padding: 2px 0; }
+.plan-row .drag-handle, .plan-row .check-btn { margin-top: 0; }
+.plan-main { align-items: center !important; }
+.plan-kind { height: auto; }
+/* 予定のない月は隠す。ドラッグ中だけ移動先として出す */
+#plan-list:not(.is-moving) > .month-sec.is-empty { display: none; }
 /* iPhone は 16px 未満の入力欄を触ると画面が拡大されるため、目標の入力欄は 16px 以上にする */
 .gb-input { font-size: max(16px, 1em); }
 .gb-h1 .gb-input { font-size: max(16px, calc(20px * var(--fs, 1))); }
 .gb-h2 .gb-input, .gb-h3 .gb-input { font-size: max(16px, calc(17px * var(--fs, 1))); }
 .goal-editor { font-size: max(16px, calc(16px * var(--fs, 1))); }
+/* テーマ：1行で横にスクロール */
+.theme-grid {
+  display: flex !important; gap: 4px !important; overflow-x: auto; overscroll-behavior-x: contain;
+  margin: 0 calc(var(--gap) * -1); padding: 2px var(--gap) 6px; scroll-padding-inline: var(--gap);
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.theme-grid::-webkit-scrollbar { display: none; }
+.theme-swatch { flex: 0 0 60px; }
+@media (max-width: 359px) { .theme-swatch { flex-basis: 54px; } }

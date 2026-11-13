@@ -18,7 +18,7 @@
     // 文字の大きさ（設定画面で変更）を、表示の前に反映する
     // テーマも同じく表示の前に反映する
     try {
-      var fs = Number(localStorage.getItem('yuteli.fontScale')); if (fs > 0) document.documentElement.style.setProperty('--fs', String(Math.min(fs, 1.1)));
+      var fs = Number(localStorage.getItem('yuteli.fontScale')); if (fs > 0) document.documentElement.style.setProperty('--fs', String(Math.min(fs, 0.94)));
       var th = localStorage.getItem('yuteli.theme'); if (th) document.documentElement.setAttribute('data-theme', th);
     } catch (e) {}
   </script>

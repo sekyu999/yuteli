@@ -3,19 +3,22 @@
 // 保存キーは旧名（yuteli）のまま（変えると設定が消えるため）
 const KEY = 'yuteli.fontScale';
 
+// v1.9：以前の最小（0.82）を「標準」にして、全体を2段階小さく
 export const FONT_LEVELS = [
-  { label: 'とても小さい', scale: 0.82 },
-  { label: '小さい', scale: 0.88 },
-  { label: 'やや小さい', scale: 0.94 },
-  { label: '標準', scale: 1 },
-  { label: '大きい', scale: 1.1 },
+  { label: 'とても小さい', scale: 0.7 },
+  { label: '小さい', scale: 0.76 },
+  { label: '標準', scale: 0.82 },
+  { label: '大きい', scale: 0.88 },
+  { label: 'とても大きい', scale: 0.94 },
 ];
+/** 未設定の時の大きさ（css/base.css の --fs と合わせる） */
+export const DEFAULT_SCALE = 0.82;
 const MAX = FONT_LEVELS[FONT_LEVELS.length - 1].scale;
 
 export function getFontScale() {
   try {
     const v = Number(localStorage.getItem(KEY));
-    return v > 0 ? Math.min(v, MAX) : 1; // 以前の「大（1.22）」は今の最大にする
+    return v > 0 ? Math.min(v, MAX) : DEFAULT_SCALE; // 以前の大きい値（1・1.1 など）は今の最大にする
   } catch {
     return 1;
   }

@@ -19,7 +19,7 @@
   --header-h: 52px;
   --tabbar-h: 60px;
 
-  --fs: 1;                  /* 文字の大きさの倍率（設定で変更） */
+  --fs: 0.82;               /* 文字の大きさの倍率（設定で変更。js/ui/fontSize.js の DEFAULT_SCALE と合わせる） */
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 

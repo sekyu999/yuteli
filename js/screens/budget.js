@@ -17,8 +17,6 @@ export const title = '家計';
 const MONTHS = 12;
 const SHOW_MONTHS = 3;
 let barsOpen = false;
-/** 「未定」を開いているか（画面を離れても覚えておく） */
-let undecidedOpen = false;
 
 /** 表示中の絞り込み（画面を離れても覚えておく） */
 let filter = 'all';
@@ -108,25 +106,17 @@ export function mount(el) {
       listEl.innerHTML = `<div class="placeholder">${t('右下の「＋ 追加」から、買いたい物・やりたい事を金額と月で登録できます。')}</div>`;
       return;
     }
-    // 今月から12か月は予定がなくても出す（ドラッグの移動先）。
-    // 「未定」は一番上に折りたたんで置く（下にあるとスクロールが長く、開いたまま上にあると月の一覧が見にくいため）
-    const sections = monthSections(shown, now, MONTHS);
-    const undecided = sections.pop();
-    const monthSec = (g) => `<section class="month-sec ${g.items.length ? '' : 'is-empty'}" data-drop="${g.month ?? ''}">
+    // 今月から12か月と「未定」（最後）は予定がなくても作っておき、ドラッグ中だけ表示する（移動先にするため）
+    listEl.innerHTML = monthSections(shown, now, MONTHS)
+      .map(
+        (g) => `<section class="month-sec ${g.items.length ? '' : 'is-empty'}" data-drop="${g.month ?? ''}">
           <h2 class="section-title month-head ${g.month && g.month < now ? 'is-past' : ''}">
             <span>${monthText(g.month, now)}${g.month && g.month < now ? t('（過ぎた月）') : ''}</span><span>${g.items.length ? money(g.total) : '—'}</span>
           </h2>
           ${g.items.length ? `<ul class="list compact-list">${g.items.map(planRow).join('')}</ul>` : ''}
-        </section>`;
-    const n = undecided.items.length;
-    const undecidedSec = `<section class="month-sec undecided-sec ${n ? '' : 'is-empty'}" data-drop="">
-        <details ${undecidedOpen && n ? 'open' : ''}>
-          <summary class="section-title month-head"><span>${t('未定')}${n ? `<span class="count-badge">${n}</span>` : ''}</span><span>${n ? money(undecided.total) : '—'}</span></summary>
-          ${n ? `<ul class="list compact-list">${undecided.items.map(planRow).join('')}</ul>` : ''}
-        </details>
-      </section>`;
-    listEl.innerHTML = undecidedSec + sections.map(monthSec).join('');
-    listEl.querySelector('.undecided-sec details').addEventListener('toggle', (e) => (undecidedOpen = e.target.open));
+        </section>`
+      )
+      .join('');
   }
 
   return watch(
