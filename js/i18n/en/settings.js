@@ -273,4 +273,9 @@ export default {
   '選んだ物の「1回の量」を入れてください': 'Enter a serving size for each chosen food',
   // 成分表（data/foodDb.js）
   '成分表を読み込めませんでした（{status}）': 'Couldn’t load the food table ({status})',
+  // ---- 体質（domain/nutrition.js CONSTITUTION）----
+  体質: 'Body type',
+  太りやすい: 'Gain easily',
+  太りにくい: 'Stay lean',
+  '必要なエネルギーを ±5% で調整します（目安）': 'Adjusts energy needs by ±5% (rough guide)',
 };

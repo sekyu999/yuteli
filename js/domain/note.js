@@ -4,7 +4,7 @@
 //   - [ ] ToDo　- [x] 済みの ToDo（- の代わりに * でも可）
 //   - [ ] ToDo @2027-03 … 行の最後の @年-月 は「やる月」
 //   - 箇条書き
-//   ~~打ち消し~~　**太字**
+//   ~~打ち消し~~（行全体）
 //   それ以外の行は本文
 
 /** 文字数の上限（バックアップや表示が重くならないように） */
@@ -49,82 +49,82 @@ export function parseNote(text) {
 }
 
 /**
- * 行の中の飾り（~~打ち消し~~・**太字**）を分ける
- * @returns {Array<{text:string, strike:boolean, bold:boolean}>}
+ * 画面で直接編集するためのブロック（1行 = 1ブロック）
+ * @typedef {{type:'heading'|'todo'|'bullet'|'text', level?:number, checked?:boolean, month?:string|null, strike:boolean, text:string}} EditBlock
+ * 行全体の ~~…~~ は strike にする（画面では線で表示し、記号は見せない）。行の一部の ~~ は文のまま残す。
+ * 空行は空の本文ブロック（続く空行は1つにまとめる）
  */
-export function parseInline(text) {
+
+/** 行全体が ~~…~~ か */
+function splitStrike(text) {
+  const m = text.match(/^~~(.+)~~$/);
+  return m && !m[1].includes('~~') ? { strike: true, text: m[1] } : { strike: false, text };
+}
+
+/** 文 → 編集ブロック。何も書いていなければ空の本文ブロック1つ */
+export function toEditBlocks(text) {
   const out = [];
-  const re = /(~~(.+?)~~|\*\*(.+?)\*\*)/g;
-  let last = 0;
-  let m;
-  while ((m = re.exec(text))) {
-    if (m.index > last) out.push({ text: text.slice(last, m.index), strike: false, bold: false });
-    if (m[2] !== undefined) {
-      // 打ち消しの中の太字も見る
-      for (const seg of parseInline(m[2])) out.push({ ...seg, strike: true });
-    } else {
-      for (const seg of parseInline(m[3])) out.push({ ...seg, bold: true });
+  for (const b of parseNote(text)) {
+    if (b.type === 'blank') {
+      if (out.length && out[out.length - 1].type === 'text' && out[out.length - 1].text === '') continue;
+      out.push({ type: 'text', strike: false, text: '' });
+      continue;
     }
-    last = re.lastIndex;
+    const base = { type: b.type, ...splitStrike(b.text) };
+    if (b.type === 'heading') base.level = b.level;
+    if (b.type === 'todo') Object.assign(base, { checked: b.checked, month: b.month });
+    out.push(base);
   }
-  if (last < text.length) out.push({ text: text.slice(last), strike: false, bold: false });
-  return out;
+  // 最初と最後の空行は除く
+  while (out.length && out[0].type === 'text' && !out[0].text) out.shift();
+  while (out.length > 1 && out[out.length - 1].type === 'text' && !out[out.length - 1].text) out.pop();
+  return out.length ? out : [{ type: 'text', strike: false, text: '' }];
 }
 
-/** line 行目の ToDo のチェックを切り替えた文を返す（ToDo でなければそのまま） */
-export function toggleTodo(text, line) {
-  const lines = String(text).replace(/\r\n?/g, '\n').split('\n');
-  const m = lines[line]?.match(/^(\s*[-*+]\s+\[)( |x|X)(\].*)$/);
-  if (!m) return text;
-  lines[line] = m[1] + (m[2] === ' ' ? 'x' : ' ') + m[3];
-  return lines.join('\n');
+/** 1行の文 → 編集ブロック（貼り付け用） */
+export function lineToBlock(line) {
+  return toEditBlocks(line)[0];
+}
+
+/** 編集ブロック → 保存する文 */
+export function fromEditBlocks(blocks) {
+  return blocks
+    .map((b) => {
+      const body = b.strike && b.text ? `~~${b.text}~~` : b.text;
+      switch (b.type) {
+        case 'heading':
+          return `${'#'.repeat(b.level || 2)} ${body}`;
+        case 'todo':
+          return `- [${b.checked ? 'x' : ' '}] ${body}${b.month ? ` @${b.month}` : ''}`;
+        case 'bullet':
+          return `- ${body}`;
+        default:
+          return body;
+      }
+    })
+    .join('\n')
+    .replace(/\n+$/, '');
 }
 
 /**
- * 行の先頭の記号を付け外しする（編集画面の「見出し」「ToDo」ボタン用）
- * 付いていれば外し、なければ他の記号を外してから付ける
- * @param {string} line
- * @param {'heading'|'todo'} kind
+ * 書きながらの記号の変換（Notion と同じ）。行の先頭に
+ *   「# 」「## 」「### 」→ 見出し、「[] 」「[ ] 」「- [ ] 」→ ToDo、「- 」「* 」→ 箇条書き
+ * @param {EditBlock} block
+ * @returns {Partial<EditBlock>|null} 変える内容（text は記号を除いた残り）。変えなければ null
  */
-export function toggleLinePrefix(line, kind) {
-  const body = (s) => s.replace(/^#{1,3}\s+/, '').replace(/^\s*[-*+]\s+(\[( |x|X)\]\s?)?/, '');
-  if (kind === 'heading') return RE_HEADING.test(line) ? body(line) : `# ${body(line)}`;
-  return RE_TODO.test(line) ? body(line) : `- [ ] ${body(line)}`;
-}
-
-/**
- * 打ち消し線の付け外し（編集画面の「打ち消し」ボタン用）
- * 選んだ文字があればそれを、なければカーソルのある行の中身（記号を除く）を ~~ ~~ で囲む／外す
- * @returns {{text:string, start:number, end:number}} 変更後の文と、選択しておく範囲
- */
-export function toggleStrike(text, start, end) {
-  if (start === end) {
-    const ls = text.lastIndexOf('\n', start - 1) + 1;
-    let le = text.indexOf('\n', start);
-    if (le < 0) le = text.length;
-    const line = text.slice(ls, le);
-    const prefix = line.match(/^(#{1,3}\s+|\s*[-*+]\s+(\[( |x|X)\]\s?)?)?/)[0];
-    const month = line.match(RE_MONTH); // 「@年-月」は打ち消しの外に残す
-    const bodyEnd = le - (month ? month[0].length : 0);
-    if (bodyEnd <= ls + prefix.length) return { text, start, end };
-    start = ls + prefix.length;
-    end = bodyEnd;
+export function shortcutFor(block) {
+  const v = block.text;
+  if (block.type === 'text') {
+    let m = v.match(/^(#{1,3}) (.*)$/s);
+    if (m) return { type: 'heading', level: m[1].length, text: m[2] };
+    m = v.match(/^(?:[-*] )?\[ ?\] (.*)$/s);
+    if (m) return { type: 'todo', checked: false, month: null, text: m[1] };
+    m = v.match(/^[-*] (.*)$/s);
+    if (m) return { type: 'bullet', text: m[1] };
   }
-  const sel = text.slice(start, end);
-  const m = sel.match(/^~~([\s\S]*)~~$/);
-  // 選んだ範囲のすぐ外側に ~~ があれば外す
-  if (!m && text.slice(start - 2, start) === '~~' && text.slice(end, end + 2) === '~~') {
-    return { text: text.slice(0, start - 2) + sel + text.slice(end + 2), start: start - 2, end: end - 2 };
+  if (block.type === 'bullet') {
+    const m = v.match(/^\[ ?\] (.*)$/s);
+    if (m) return { type: 'todo', checked: false, month: null, text: m[1] };
   }
-  const next = m ? m[1] : `~~${sel}~~`;
-  return { text: text.slice(0, start) + next + text.slice(end), start, end: start + next.length };
-}
-
-/** line 行目の ToDo の「やる月」を変える（month は YYYY-MM、null で外す） */
-export function setTodoMonth(text, line, month) {
-  const lines = String(text).replace(/\r\n?/g, '\n').split('\n');
-  if (!RE_TODO.test(lines[line] ?? '')) return text;
-  const body = lines[line].replace(RE_MONTH, '').replace(/\s+$/, '');
-  lines[line] = month ? `${body} @${month}` : body;
-  return lines.join('\n');
+  return null;
 }

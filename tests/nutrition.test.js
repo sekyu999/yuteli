@@ -120,3 +120,12 @@ test('食材提案の成分表番号がすべて成分表にある', async () =>
   for (const r of HEALTH_RECOMMENDATIONS) for (const f of r.foods) assert.ok(codes.has(f.code), `${r.concern}：${f.name} ${f.code}`);
   assert.equal(new Set(HEALTH_RECOMMENDATIONS.map((r) => r.id)).size, HEALTH_RECOMMENDATIONS.length);
 });
+
+test('体質でエネルギーを ±5%', () => {
+  const p = { sex: 'female', age: 40, activity: 'II' };
+  assert.equal(targetsFor({ ...p, constitution: 'gain' }).energy.value, Math.round(2050 * 0.95));
+  assert.equal(targetsFor({ ...p, constitution: 'lose' }).energy.value, Math.round(2050 * 1.05));
+  assert.equal(targetsFor({ ...p, constitution: 'normal' }).energy.value, 2050);
+  const w = { ...p, weight: 55 };
+  assert.ok(Math.abs(bodyStats({ ...w, constitution: 'gain' }).energy - bodyStats(w).energy * 0.95) <= 1);
+});

@@ -1,9 +1,9 @@
-// 栄養の目標に使うプロフィール（性別・年齢・身長・体重・活動量）
+// 栄養の目標に使うプロフィール（性別・年齢・身長・体重・活動量・体質）
 import { openSheet } from '../ui/sheet.js';
 import { showErrors, bindErrorClear, formValues } from '../ui/form.js';
 import { toast } from '../ui/toast.js';
 import { getMeta, setMeta, META } from '../data/metaRepo.js';
-import { bodyStats } from '../domain/nutrition.js';
+import { bodyStats, CONSTITUTION } from '../domain/nutrition.js';
 import { esc } from '../lib/util.js';
 import { t } from '../lib/i18n.js';
 
@@ -23,6 +23,7 @@ export function profileSummary(p) {
     p.height ? `${p.height}cm` : '',
     p.weight ? `${p.weight}kg` : '',
     t('活動量{level}', { level: act ? t(act) : '' }),
+    p.constitution && p.constitution !== 'normal' ? t(CONSTITUTION.find((c) => c.key === p.constitution)?.label ?? '') : '',
   ]
     .filter(Boolean)
     .join(sep);
@@ -66,6 +67,13 @@ export async function openProfileSheet() {
             ${ACTIVITY.map((a) => choice('activity', a.key, a.label, p.activity === a.key, a.note)).join('')}
           </div>
         </div>
+        <div class="field">
+          <span class="label">${t('体質')}</span>
+          <div class="choice-row choice-row-3">
+            ${CONSTITUTION.map((c) => choice('constitution', c.key, c.label, (p.constitution ?? 'normal') === c.key)).join('')}
+          </div>
+          <p class="note" style="margin-top:4px">${t('必要なエネルギーを ±5% で調整します（目安）')}</p>
+        </div>
         <div class="field" id="mens-field">
           <label class="check-row"><input type="checkbox" name="menstruation" value="1" ${p.menstruation ? 'checked' : ''}>${t('月経がある（鉄の目標が変わります）')}</label>
         </div>
@@ -85,6 +93,7 @@ export async function openProfileSheet() {
       weight: v.weight ? Number(v.weight) : null,
       activity: v.activity || 'II',
       menstruation: v.sex === 'female' && !!v.menstruation,
+      constitution: v.constitution || 'normal',
     };
   };
   const sync = () => {

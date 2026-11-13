@@ -733,9 +733,15 @@ html.sheet-open { overflow: hidden; }
 .tabbar a { font-size: calc(10.5px * var(--fs, 1)) !important; }
 .tabbar svg { width: 24px !important; height: 24px !important; }
 /* 家計の行：名前・メモは省略せず折り返す。行間を詰めて縦に間延びしないように */
-.plan-main { display: block !important; min-width: 0; }
 .plan-title { display: block; line-height: 1.35; overflow-wrap: anywhere; }
-.plan-title .badge { margin-right: 6px; vertical-align: baseline; position: relative; top: -1px; line-height: 1.3; }
+/* 買う・やるのアイコン（名前の1行目にそろえる） */
+.plan-main { display: grid !important; grid-template-columns: 22px minmax(0, 1fr); column-gap: 6px; align-items: start; }
+.plan-main > .plan-title, .plan-main > .plan-memo { grid-column: 2; }
+.plan-kind { grid-row: 1; display: grid; place-items: center; height: calc(17px * var(--fs, 1) * 1.35); }
+.plan-kind svg, .seg-icon { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.plan-kind-buy { color: var(--accent); }
+.plan-kind-do { color: var(--warn-text); }
+.seg-icon { width: 15px; height: 15px; margin-right: 3px; vertical-align: -2px; }
 .plan-memo { display: block; margin-top: 1px; color: var(--text-sub); font-size: calc(13px * var(--fs, 1)); line-height: 1.35; white-space: pre-line; overflow-wrap: anywhere; }
 .plan-row .row-button { flex: 1; min-width: 0; min-height: 40px; padding: 2px 0; }
 /* 金額とリンクは右の列にまとめ、名前・メモの幅を広くとる */
@@ -863,43 +869,49 @@ input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .header-btn:active { background: var(--border); }
 .header-btn[aria-current="page"] { color: var(--accent); }
 
-/* 見る画面：Notion の1ページ分（20行ほど）がスクロールせずに収まるよう、行間を詰める */
-.goals { position: relative; }
-.goals-edit { position: absolute; top: -4px; right: 0; z-index: 1; color: var(--text); }
-.note-view { font-size: calc(15px * var(--fs, 1)); line-height: 1.4; overflow-wrap: anywhere; }
-.note-view s { color: var(--text-sub); }
-.nb-h { font-weight: 700; margin: 8px 0 1px; line-height: 1.3; }
-.nb-h:first-child { margin-top: 0; padding-right: 64px; }
-.nb-h1 { font-size: calc(19px * var(--fs, 1)); }
-.nb-h2 { font-size: calc(16px * var(--fs, 1)); }
-.nb-h3 { font-size: calc(15px * var(--fs, 1)); }
-.nb-gap { height: 4px; }
-.nb-text, .nb-bullet { margin: 1px 0; }
-.nb-bullet { position: relative; padding-left: 1.1em; }
-.nb-bullet::before { content: "・"; position: absolute; left: 0; color: var(--text-sub); }
-.nb-todo-row { display: flex; align-items: center; gap: 4px; min-height: 30px; }
-.nb-todo { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; min-height: 30px; cursor: pointer; font-weight: 400; }
-.nb-todo input { flex: none; width: 20px; height: 20px; margin: 0; accent-color: var(--accent); }
-.nb-todo-row.is-checked .nb-todo > span { color: var(--text-sub); text-decoration: line-through; }
+/* 目標：表示したまま書き換えられる。Notion の1ページ分（20行ほど）がスクロールせずに収まるよう行間を詰める */
+.goal-tools {
+  position: sticky; top: calc(var(--header-h) + var(--safe-top)); z-index: 5;
+  display: flex; gap: 6px; margin: -12px calc(var(--gap) * -1) 6px; padding: 6px var(--gap);
+  background: var(--bg); border-bottom: 1px solid var(--border);
+}
+.goal-tools[hidden] { display: none; }
+.goal-tools .chip-btn { min-height: 34px; padding: 0 12px; color: var(--text); max-width: none; }
+.goal-editor { font-size: calc(16px * var(--fs, 1)); line-height: 1.4; }
+.gb { display: flex; align-items: flex-start; gap: 8px; }
+.gb-input {
+  flex: 1; min-width: 0; display: block; width: 100%; margin: 0; padding: 1px 4px; border: none; border-radius: 6px;
+  background: none; color: inherit; font: inherit; line-height: inherit; resize: none; overflow: hidden; overflow-wrap: anywhere;
+}
+.gb-input:focus { outline: none; background: var(--surface); box-shadow: 0 0 0 1px var(--border); }
+.gb-input::placeholder { color: var(--text-sub); }
+.gb-heading { margin-top: 8px; }
+.gb-heading:first-child { margin-top: 0; }
+.gb-h1 .gb-input { font-size: calc(20px * var(--fs, 1)); font-weight: 700; line-height: 1.3; }
+.gb-h2 .gb-input, .gb-h3 .gb-input { font-size: calc(17px * var(--fs, 1)); font-weight: 700; line-height: 1.3; }
+/* 空の行は詰めて表示（書いている時は1行分） */
+.gb-text.is-blank:not(:focus-within) .gb-input { height: 6px !important; padding: 0; }
+.gb.is-strike .gb-input, .gb-todo.is-checked .gb-input { color: var(--text-sub); text-decoration: line-through; }
+.gb-check { flex: none; width: 20px; height: 20px; margin: 2px 0 0 2px; accent-color: var(--accent); }
+.gb-dot { flex: none; width: 1em; padding-top: 1px; color: var(--text-sub); }
+.gb-dot::before { content: "・"; }
+.gb-todo .nb-month { margin-top: -3px; height: 26px; }
+.goal-tail { min-height: 64px; cursor: text; }
 .nb-month {
   flex: none; min-width: 32px; height: 28px; padding: 0 6px; border: none; border-radius: 999px;
-  background: none; color: var(--border); font-size: calc(12px * var(--fs, 1)); white-space: nowrap;
+  background: none; color: var(--text-sub); font-size: calc(12px * var(--fs, 1)); white-space: nowrap;
 }
 .nb-month svg { width: 17px; height: 17px; fill: none; stroke: var(--text-sub); stroke-width: 1.8; stroke-linecap: round; opacity: 0.4; }
 .nb-month.is-set { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 .nb-month.is-past { background: var(--warn-soft); color: var(--warn-text); }
-.nb-todo-row.is-checked .nb-month.is-set { background: none; color: var(--text-sub); }
-/* 編集画面 */
-.note-tools { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
-.note-tools .chip-btn { min-height: 36px; padding: 0 12px; color: var(--text); max-width: none; }
-.note-tools .note-done { margin-left: auto; min-height: 36px; padding: 0 16px; }
-.note-textarea {
-  display: block; padding: 10px 12px; line-height: 1.6; resize: none; font-family: inherit;
-  /* 画面の高さに合わせる（ヘッダー・ボタン・下のタブを除く） */
-  height: calc(100dvh - var(--header-h) - var(--safe-top) - var(--tabbar-h) - var(--safe-bottom) - 120px);
-  min-height: 240px;
-}
-.note-textarea + .note { margin-top: 6px; }
 .sheet-lead { margin-bottom: 12px; font-weight: 600; }
 /* 目標の画面は右下のボタンがないので、下の余白を詰める（スクロールせずに収まるように） */
 .screen[data-route="goals"] { padding-top: 12px; padding-bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 12px); }
+.choice-row-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+/* 家計の行：複数行でも、チェック・アイコン・名前・金額を1行目にそろえる */
+.plan-row { align-items: flex-start !important; }
+.plan-row .row-button { align-items: flex-start; padding: 8px 0 4px; }
+.plan-side { justify-content: flex-start; padding-top: 8px; }
+.plan-side .plan-price { font-size: calc(15px * var(--fs, 1)); line-height: calc(17px * var(--fs, 1) * 1.35); }
+.plan-row .drag-handle { height: 40px; margin-top: 2px; }
+.plan-row .check-btn { margin-top: 2px; }

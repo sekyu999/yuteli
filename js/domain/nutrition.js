@@ -92,8 +92,21 @@ export function ageBand(age) {
 }
 
 /**
+ * 体質（太りやすい・ふつう・太りにくい）によるエネルギーの補正。
+ * 食事摂取基準にはない、このアプリの目安（基礎代謝の個人差を ±5% で見込む）
+ */
+export const CONSTITUTION = [
+  { key: 'gain', label: '太りやすい', factor: 0.95 },
+  { key: 'normal', label: 'ふつう', factor: 1 },
+  { key: 'lose', label: '太りにくい', factor: 1.05 },
+];
+export function constitutionFactor(profile) {
+  return CONSTITUTION.find((c) => c.key === profile?.constitution)?.factor ?? 1;
+}
+
+/**
  * プロフィールから1日の目標を作る
- * @param {{sex:'male'|'female', age:number, activity:'I'|'II'|'III', menstruation?:boolean}} profile
+ * @param {{sex:'male'|'female', age:number, activity:'I'|'II'|'III', menstruation?:boolean, constitution?:'gain'|'normal'|'lose'}} profile
  * @returns {Record<string, {kind:'range'|'min'|'max'|'approx', low?:number, high?:number, value?:number, upper?:number}> | null}
  */
 export function targetsFor(profile) {
@@ -103,7 +116,7 @@ export function targetsFor(profile) {
   const d = DRI[profile.sex][band];
   // 体重が分かれば自分の体重で計算、なければ国の参照体格の値
   const body = bodyStats(profile);
-  const energy = body?.energy ?? d.energy[profile.activity] ?? d.energy.II;
+  const energy = body?.energy ?? Math.round((d.energy[profile.activity] ?? d.energy.II) * constitutionFactor(profile));
   const iron = profile.sex === 'female' && profile.menstruation && d.ironMenstruation ? d.ironMenstruation : d.iron;
   const gFromPct = (pct, kcalPerG) => (energy * pct) / 100 / kcalPerG;
   return {
@@ -136,7 +149,7 @@ export function bodyStats(profile) {
   const bmi = h > 0 ? w / (h / 100) ** 2 : null;
   const bmr = BMR_STANDARD[profile.sex][band] * w;
   const pal = PAL[band][profile.activity] ?? PAL[band].II;
-  return { bmi, bmiRange: BMI_TARGET[band], bmr: Math.round(bmr), energy: Math.round(bmr * pal) };
+  return { bmi, bmiRange: BMI_TARGET[band], bmr: Math.round(bmr), energy: Math.round(bmr * pal * constitutionFactor(profile)) };
 }
 
 /**

@@ -30,7 +30,10 @@ export function mount(el) {
       </section>
       <div class="segmented" role="tablist">
         <button type="button" role="tab" data-filter="all">${t('すべて')}</button>
-        ${PLAN_KINDS.map((k) => `<button type="button" role="tab" data-filter="${k.key}">${t(k.label)}</button>`).join('')}
+        ${PLAN_KINDS.map(
+          (k) =>
+            `<button type="button" role="tab" data-filter="${k.key}"><svg class="seg-icon plan-kind-${k.key}" viewBox="0 0 24 24" aria-hidden="true">${KIND_ICONS[k.key]}</svg>${t(k.label)}</button>`
+        ).join('')}
       </div>
       <div id="plan-list" class="stack"></div>
     </div>
@@ -139,6 +142,18 @@ async function finishPlan(btn) {
   }, 250);
 }
 
+/** 買う・やるのアイコン（読み上げでは文字） */
+const KIND_ICONS = {
+  buy: '<path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+  do: '<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6-4.5-4.2 6.1-.7z"/>',
+};
+function kindIcon(kind) {
+  const k = kind === 'do' ? 'do' : 'buy';
+  return `<span class="plan-kind plan-kind-${k}"><svg viewBox="0 0 24 24" aria-hidden="true">${KIND_ICONS[k]}</svg><span class="visually-hidden">${t(
+    k === 'do' ? 'やる' : '買う'
+  )}</span></span>`;
+}
+
 /** URL は http/https の時だけリンクにする（バックアップから入った値も念のため確認） */
 const safeUrl = (u) => (typeof u === 'string' && /^https?:\/\//i.test(u) ? u : '');
 
@@ -149,9 +164,9 @@ function planRow(p) {
     <button type="button" class="check-btn" data-action="done" data-id="${p.id}" role="checkbox" aria-checked="false"
             aria-label="${esc(t('{name}を済みにする', { name: p.title }))}"></button>
     <button type="button" class="row-button" data-action="edit" data-id="${p.id}">
-      <span class="grow plan-main"><span class="plan-title"><span class="badge ${p.kind === 'do' ? 'badge-do' : 'badge-muted'}">${t(
-        p.kind === 'do' ? 'やる' : '買う'
-      )}</span>${esc(p.title)}<span class="visually-hidden">${money(p.price)}</span></span>${p.memo ? `<span class="plan-memo">${esc(p.memo)}</span>` : ''}</span>
+      <span class="grow plan-main">${kindIcon(p.kind)}<span class="plan-title">${esc(p.title)}<span class="visually-hidden">${money(p.price)}</span></span>${
+        p.memo ? `<span class="plan-memo">${esc(p.memo)}</span>` : ''
+      }</span>
     </button>
     <span class="plan-side">
       <span class="plan-price" data-action="edit" data-id="${p.id}" aria-hidden="true">${money(p.price)}</span>
