@@ -17,6 +17,8 @@ export const title = '家計';
 const MONTHS = 12;
 const SHOW_MONTHS = 3;
 let barsOpen = false;
+/** 「未定」を開いているか（画面を離れても覚えておく） */
+let undecidedOpen = false;
 
 /** 表示中の絞り込み（画面を離れても覚えておく） */
 let filter = 'all';
@@ -106,17 +108,25 @@ export function mount(el) {
       listEl.innerHTML = `<div class="placeholder">${t('右下の「＋ 追加」から、買いたい物・やりたい事を金額と月で登録できます。')}</div>`;
       return;
     }
-    // 今月から12か月は予定がなくても出す（ドラッグの移動先）
-    listEl.innerHTML = monthSections(shown, now, MONTHS)
-        .map(
-          (g) => `<section class="month-sec ${g.items.length ? '' : 'is-empty'}" data-drop="${g.month ?? ''}">
+    // 今月から12か月は予定がなくても出す（ドラッグの移動先）。
+    // 「未定」は一番上に折りたたんで置く（下にあるとスクロールが長く、開いたまま上にあると月の一覧が見にくいため）
+    const sections = monthSections(shown, now, MONTHS);
+    const undecided = sections.pop();
+    const monthSec = (g) => `<section class="month-sec ${g.items.length ? '' : 'is-empty'}" data-drop="${g.month ?? ''}">
           <h2 class="section-title month-head ${g.month && g.month < now ? 'is-past' : ''}">
             <span>${monthText(g.month, now)}${g.month && g.month < now ? t('（過ぎた月）') : ''}</span><span>${g.items.length ? money(g.total) : '—'}</span>
           </h2>
           ${g.items.length ? `<ul class="list compact-list">${g.items.map(planRow).join('')}</ul>` : ''}
-        </section>`
-        )
-        .join('');
+        </section>`;
+    const n = undecided.items.length;
+    const undecidedSec = `<section class="month-sec undecided-sec ${n ? '' : 'is-empty'}" data-drop="">
+        <details ${undecidedOpen && n ? 'open' : ''}>
+          <summary class="section-title month-head"><span>${t('未定')}${n ? `<span class="count-badge">${n}</span>` : ''}</span><span>${n ? money(undecided.total) : '—'}</span></summary>
+          ${n ? `<ul class="list compact-list">${undecided.items.map(planRow).join('')}</ul>` : ''}
+        </details>
+      </section>`;
+    listEl.innerHTML = undecidedSec + sections.map(monthSec).join('');
+    listEl.querySelector('.undecided-sec details').addEventListener('toggle', (e) => (undecidedOpen = e.target.open));
   }
 
   return watch(
@@ -164,16 +174,16 @@ function planRow(p) {
     <button type="button" class="check-btn" data-action="done" data-id="${p.id}" role="checkbox" aria-checked="false"
             aria-label="${esc(t('{name}を済みにする', { name: p.title }))}"></button>
     <button type="button" class="row-button" data-action="edit" data-id="${p.id}">
-      <span class="grow plan-main">${kindIcon(p.kind)}<span class="plan-title">${esc(p.title)}<span class="visually-hidden">${money(p.price)}</span></span>${
+      <span class="grow plan-main">${kindIcon(p.kind)}<span class="plan-title">${esc(p.title)}${
         p.memo ? `<span class="plan-memo">${esc(p.memo)}</span>` : ''
-      }</span>
+      }<span class="visually-hidden">${money(p.price)}</span></span></span>
     </button>
     <span class="plan-side">
       <span class="plan-price" data-action="edit" data-id="${p.id}" aria-hidden="true">${money(p.price)}</span>
       ${
         url
           ? `<a class="plan-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(t('{name}のリンクを開く', { name: p.title }))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></a>`
-          : ''
+          : '<span class="plan-link" aria-hidden="true"></span>'
       }
     </span>
   </li>`;
