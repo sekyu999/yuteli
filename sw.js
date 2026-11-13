@@ -3,7 +3,7 @@
 // そのため、ファイルを更新したときにキャッシュが原因で古い画面が出る、ということが起きにくい。
 
 // アプリを更新したら版を上げる（js/lib/version.js と合わせる）
-const CACHE = 'kesela-1.4.2';
+const CACHE = 'kesela-1.5.0';
 
 // オフラインでも開けるように最初に保存しておくファイル
 const APP_FILES = [
@@ -26,6 +26,7 @@ const APP_FILES = [
   'js/data/foodDb.js',
   'js/data/groupRepo.js',
   'js/data/metaRepo.js',
+  'js/data/noteRepo.js',
   'js/data/planRepo.js',
   'js/data/priceRepo.js',
   'js/data/productRepo.js',
@@ -37,6 +38,7 @@ const APP_FILES = [
   'js/domain/consumption.js',
   'js/domain/cost.js',
   'js/domain/groups.js',
+  'js/domain/note.js',
   'js/domain/nutrition.js',
   'js/domain/plans.js',
   'js/domain/pricing.js',
@@ -48,6 +50,7 @@ const APP_FILES = [
   'js/i18n/en/budget.js',
   'js/i18n/en/common.js',
   'js/i18n/en/meals.js',
+  'js/i18n/en/note.js',
   'js/i18n/en/settings.js',
   'js/i18n/en/shopping.js',
   'js/lib/i18n.js',
@@ -57,6 +60,7 @@ const APP_FILES = [
   'js/screens/groupSheet.js',
   'js/screens/health.js',
   'js/screens/meals.js',
+  'js/screens/noteSheet.js',
   'js/screens/nutritionSheet.js',
   'js/screens/priceSheet.js',
   'js/screens/prices.js',
@@ -65,7 +69,6 @@ const APP_FILES = [
   'js/screens/settings.js',
   'js/screens/shopping.js',
   'js/screens/stock.js',
-  'js/ui/badge.js',
   'js/ui/fontSize.js',
   'js/ui/form.js',
   'js/ui/live.js',

@@ -82,3 +82,12 @@ test('旧名（yuteli）のバックアップも読める', () => {
   b.app = 'yuteli';
   assert.equal(parseBackup(JSON.stringify(b)).ok, true);
 });
+
+test('バックアップ：目標メモ（settings.note）は文字列だけ受け付ける', () => {
+  const data = { categories: [{ id: 'c1', name: '野菜', defaultOrder: 1 }] };
+  const ok = parseBackup(JSON.stringify(buildBackup(data, '2026-11-13T00:00:00Z', { note: '# 目標' })));
+  assert.equal(ok.ok, true);
+  assert.equal(ok.backup.settings.note, '# 目標');
+  const ng = parseBackup(JSON.stringify(buildBackup(data, '2026-11-13T00:00:00Z', { note: 1 })));
+  assert.equal(ng.ok, false);
+});

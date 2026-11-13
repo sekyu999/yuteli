@@ -708,11 +708,11 @@ html.sheet-open { overflow: hidden; }
 
 /* ===== 家計 ===== */
 .month-bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
-.month-bars li { display: grid; grid-template-columns: 4.6em 1fr auto; align-items: center; gap: 8px; font-size: calc(14px * var(--fs, 1)); }
+.month-bars li { display: grid; grid-template-columns: var(--mb-month-w, 5.6em) minmax(0, 1fr) 6.5em; align-items: center; gap: 8px; font-size: calc(14px * var(--fs, 1)); }
 .mb-month { color: var(--text-sub); white-space: nowrap; }
 .mb-bar { display: flex; height: 12px; border-radius: 6px; background: var(--bg); overflow: hidden; }
-.mb-total { font-variant-numeric: tabular-nums; text-align: right; min-width: 6.5em; }
-.mb-food { background: var(--border); }
+.mb-total { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+:lang(en) .month-bars { --mb-month-w: 4.6em; } /* Jan 2027 など。日本語は 2027年10月 が入る幅 */
 .mb-buy { background: var(--accent); }
 .mb-do { background: var(--warn-bar); }
 .mb-legend { display: flex !important; gap: 12px; margin-top: 6px; color: var(--text-sub); font-size: calc(12px * var(--fs, 1)) !important; }
@@ -762,7 +762,6 @@ input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .choice > span, .theme-swatch { overflow-wrap: anywhere; min-width: 0; }
 .nutri-foot { flex-wrap: wrap; gap: 0 8px; }
 .cost-main > div { min-width: 0; }
-.month-bars li { grid-template-columns: minmax(3.5em, max-content) 1fr auto; }
 .toast-text { white-space: nowrap; }
 .sheet-header h2 { min-width: 0; overflow-wrap: anywhere; }
 .chip-btn { max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -788,9 +787,14 @@ input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 /* 数量の下の単位：長い単位名でも名前の幅を奪いすぎない */
 .item-qty { max-width: 34%; min-width: 0; }
 .item-qty small, .qty-value small { max-width: 5.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0 auto; }
-/* テーマ名（英語の Wisteria など）が切れない幅 */
-.theme-grid { grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)) !important; }
+/* テーマ：6列固定で2段に収める（11種類）。名前は1行、収まらない時は … */
+.theme-grid { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; gap: 2px !important; }
 .theme-swatch { font-size: 11px !important; }
+.theme-swatch .sw { flex: none; }
+.theme-swatch .th-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 359px) { .theme-swatch { font-size: 10px !important; padding-left: 0 !important; padding-right: 0 !important; } }
+/* 言語：ボタン内で折り返さない */
+.lang-options button { white-space: nowrap; }
 /* 狭い画面（iPhone SE など）では、在庫の名前を1行目、数量ボタンを2行目にする */
 @media (max-width: 374px) {
   .stock-row { flex-wrap: wrap; row-gap: 0; }
@@ -837,3 +841,29 @@ input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   white-space: nowrap;
 }
 .move-ghost .row-button { width: auto; } .move-ghost .plan-main { flex: 1; }
+
+/* ===== 目標メモ（v1.5） ===== */
+.header-btn {
+  flex: none; width: 44px; height: 44px; margin: 0 -10px 0 auto;
+  display: grid; place-items: center; border: none; border-radius: 50%; background: none; color: var(--text-sub);
+}
+.header-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.header-btn:active { background: var(--border); }
+.note-view { line-height: 1.7; overflow-wrap: anywhere; }
+.note-view s { color: var(--text-sub); }
+.nb-h { font-weight: 700; margin: 14px 0 4px; }
+.nb-h:first-child { margin-top: 0; }
+.nb-h1 { font-size: calc(20px * var(--fs, 1)); }
+.nb-h2 { font-size: calc(18px * var(--fs, 1)); }
+.nb-h3 { font-size: calc(16px * var(--fs, 1)); }
+.nb-gap { height: 8px; }
+.nb-text, .nb-bullet { margin: 2px 0; }
+.nb-bullet { position: relative; padding-left: 1.1em; }
+.nb-bullet::before { content: "・"; position: absolute; left: 0; color: var(--text-sub); }
+.nb-todo { display: flex; align-items: flex-start; gap: 10px; min-height: 40px; padding: 6px 0; cursor: pointer; font-weight: 400; }
+.nb-todo input { flex: none; width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--accent); }
+.nb-todo.is-checked > span { color: var(--text-sub); text-decoration: line-through; }
+.note-tools { display: flex; gap: 6px; margin-bottom: 8px; }
+.note-tools .chip-btn { min-height: 36px; padding: 0 14px; color: var(--text); max-width: none; }
+.note-textarea { display: block; min-height: 40dvh; padding: 10px 12px; line-height: 1.6; resize: vertical; font-family: inherit; }
+.note-textarea + .note { margin-top: 6px; }

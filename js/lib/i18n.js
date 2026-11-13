@@ -11,7 +11,7 @@ import { EN } from '../i18n/en.js';
 const KEY = 'yuteli.lang';
 
 export const LANG_OPTIONS = [
-  { key: 'auto', label: '自動（端末の言語）' },
+  { key: 'auto', label: '自動', title: '自動（端末の言語）' }, // ボタン内で折り返さないよう短く。説明は title・読み上げ用
   { key: 'ja', label: '日本語' }, // i18n-ignore
   { key: 'en', label: 'English' },
 ];

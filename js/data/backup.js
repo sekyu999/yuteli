@@ -11,7 +11,7 @@ export async function createBackupFile() {
   await db.transaction('r', DATA_TABLES.map((name) => db.table(name)), async () => {
     for (const name of DATA_TABLES) data[name] = await db.table(name).toArray();
   });
-  const settings = { profile: await getMeta(META.profile) };
+  const settings = { profile: await getMeta(META.profile), note: (await getMeta(META.note))?.text ?? '' };
   const json = JSON.stringify(buildBackup(data, nowIso(), settings), null, 2);
   return { json, filename: backupFileName() };
 }
@@ -66,6 +66,8 @@ export async function restoreBackup(backup) {
     }
     await db.meta.delete(META.selectedStoreId);
     if (backup.settings?.profile) await db.meta.put({ key: META.profile, value: backup.settings.profile });
+    // 目標メモ（v1.5 より前のバックアップには無いので、その時は今のメモを残す）
+    if (typeof backup.settings?.note === 'string') await db.meta.put({ key: META.note, value: { text: backup.settings.note, updatedAt: nowIso() } });
     await db.meta.put({ key: 'schemaVersion', value: SCHEMA_VERSION });
   });
 }

@@ -149,7 +149,6 @@ export default {
   言語: 'Language',
   '自動（端末の言語）': 'Auto',
   テーマ: 'Theme',
-  アイコンに買い物リストの件数を出す: 'Show shopping list count on app icon',
   文字の大きさ: 'Text size',
   からだの情報: 'Body info',
   '追加・名前変更・並び順': 'Add, rename, reorder',
@@ -160,8 +159,6 @@ export default {
     'Nutrition data: Standard Tables of Food Composition in Japan (8th ed.), 2023 supplement (MEXT)',
   '栄養の目標：日本人の食事摂取基準（2025年版）（厚生労働省）':
     'Nutrition targets: Dietary Reference Intakes for Japanese, 2025 (MHLW)',
-  '通知が許可されていないため表示できません（iPhoneの設定 → 通知）':
-    'Notifications are off, so the count can’t be shown (iPhone Settings → Notifications)',
   読み込めませんでした: 'Couldn’t read the file',
   'すべてのデータ（商品・在庫・買い物リスト・店舗・価格記録）を消去します。よろしいですか？':
     'This erases all data (items, stock, shopping list, stores, price records). Continue?',

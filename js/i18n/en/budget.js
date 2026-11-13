@@ -5,9 +5,7 @@ export default {
   買いたい物: 'To buy',
   やりたい事: 'To do',
   '＋ 追加': '+ Add',
-  '食費の目安 {amount}/月を含む': 'incl. food ~{amount}/mo',
   '{n}か月分を見る': 'Show {n} months',
-  食費: 'Food',
   '右下の「＋ 追加」から、買いたい物・やりたい事を金額と月で登録できます。':
     'Use “+ Add” at the bottom right to list things to buy or do, with a price and month.',
   '（過ぎた月）': ' (past)',

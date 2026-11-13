@@ -9,8 +9,6 @@ import { showErrors, bindErrorClear, formValues } from '../ui/form.js';
 import { toast } from '../ui/toast.js';
 import { FONT_LEVELS, getFontScale, setFontScale, getTheme, setTheme } from '../ui/fontSize.js';
 import { THEMES } from '../ui/themeList.js';
-import { badgeSupported, badgeEnabled, setBadgeEnabled, updateBadge } from '../ui/badge.js';
-import { listItems } from '../data/shoppingRepo.js';
 import { getMeta, META } from '../data/metaRepo.js';
 import { saveBackup, currentCounts, restoreBackup, resetAll } from '../data/backup.js';
 import {
@@ -26,6 +24,7 @@ import { parseBackup, BACKUP_TABLES } from '../domain/backupFormat.js';
 import { makeSortable, dragHandle } from '../ui/sortable.js';
 import { APP_VERSION } from '../lib/version.js';
 import { openProfileSheet, profileSummary } from './profileSheet.js';
+import { openNoteSheet, noteOnLaunch, setNoteOnLaunch } from './noteSheet.js';
 import { esc } from '../lib/util.js';
 import { t, dateLong, LANG_OPTIONS, getLangPref, setLangPref } from '../lib/i18n.js';
 
@@ -59,12 +58,21 @@ export function mount(el) {
       </section>
 
       <section>
+        <h2 class="section-title">${t('目標')}</h2>
+        <ul class="list">
+          <li><button type="button" class="row-button" data-action="note">
+            <span class="grow">${t('目標を見る・編集')}</span><span class="note">›</span></button></li>
+          <li><label class="check-row grow"><input type="checkbox" id="note-launch">${t('起動時に表示する')}</label></li>
+        </ul>
+      </section>
+
+      <section>
         <h2 class="section-title">${t('言語')}</h2>
         <div class="segmented font-levels lang-options" role="radiogroup" aria-label="${t('言語')}">
           ${LANG_OPTIONS.map(
-            (o) => `<button type="button" role="radio" data-lang="${o.key}"${o.key === 'auto' ? '' : ` lang="${o.key}"`}>${esc(
-              o.key === 'auto' ? t(o.label) : o.label
-            )}</button>`
+            (o) => `<button type="button" role="radio" data-lang="${o.key}"${
+              o.title ? ` title="${esc(t(o.title))}" aria-label="${esc(t(o.title))}"` : ` lang="${o.key}"`
+            }>${esc(o.key === 'auto' ? t(o.label) : o.label)}</button>`
           ).join('')}
         </div>
       </section>
@@ -72,18 +80,12 @@ export function mount(el) {
       <section>
         <h2 class="section-title">${t('テーマ')}</h2>
         <div class="theme-grid" role="radiogroup">
-          <button type="button" role="radio" data-theme-key="" class="theme-swatch theme-auto"><span class="sw"><i style="background:#f6f5f1"></i><i style="background:#1b1c1a"></i></span>${t('自動')}</button>
+          <button type="button" role="radio" data-theme-key="" class="theme-swatch theme-auto"><span class="sw"><i style="background:#f6f5f1"></i><i style="background:#1b1c1a"></i></span><span class="th-name">${t('自動')}</span></button>
           ${THEMES.map(
             (th) => `<button type="button" role="radio" data-theme-key="${th.key}" class="theme-swatch">
-              <span class="sw" style="background:${th.bg}"><i style="background:${th.accent}"></i><i style="background:${th.surface}"></i></span>${esc(t(th.label))}</button>`
+              <span class="sw" style="background:${th.bg}"><i style="background:${th.accent}"></i><i style="background:${th.surface}"></i></span><span class="th-name">${esc(t(th.label))}</span></button>`
           ).join('')}
         </div>
-      </section>
-
-      <section id="badge-section" hidden>
-        <ul class="list">
-          <li><label class="check-row grow"><input type="checkbox" id="badge-toggle">${t('アイコンに買い物リストの件数を出す')}</label></li>
-        </ul>
       </section>
 
       <section>
@@ -143,17 +145,10 @@ export function mount(el) {
   });
   markFont();
 
-  // ---- アイコンのバッジ ----
-  if (badgeSupported()) {
-    el.querySelector('#badge-section').hidden = false;
-    const tg = el.querySelector('#badge-toggle');
-    tg.checked = badgeEnabled();
-    tg.addEventListener('change', async () => {
-      const ok = await setBadgeEnabled(tg.checked);
-      if (tg.checked && !ok) toast(t('通知が許可されていないため表示できません（iPhoneの設定 → 通知）'));
-      updateBadge((await listItems()).length);
-    });
-  }
+  // ---- 目標メモ ----
+  const launchTg = el.querySelector('#note-launch');
+  launchTg.checked = noteOnLaunch();
+  launchTg.addEventListener('change', () => setNoteOnLaunch(launchTg.checked));
 
   // ---- テーマ ----
   const markTheme = () =>
@@ -195,6 +190,9 @@ export function mount(el) {
         break;
       case 'profile':
         openProfileSheet();
+        break;
+      case 'note':
+        openNoteSheet();
         break;
       case 'reset':
         if (!window.confirm(t('すべてのデータ（商品・在庫・買い物リスト・店舗・価格記録）を消去します。よろしいですか？'))) return;

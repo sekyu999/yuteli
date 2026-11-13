@@ -9,9 +9,8 @@ import * as settings from './screens/settings.js';
 import { db } from './data/db.js';
 import { requestPersistence } from './data/storage.js';
 import { hideToast } from './ui/toast.js';
-import { updateBadge } from './ui/badge.js';
-import { watch } from './ui/live.js';
 import { t, translateStatic } from './lib/i18n.js';
+import { openNoteSheet, showNoteOnLaunch } from './screens/noteSheet.js';
 
 /**
  * 各画面は次の2つを export する：
@@ -62,6 +61,9 @@ async function start() {
   // index.html に書いた文字（下のタブなど）を今の言語にする
   translateStatic();
   document.querySelector('.tabbar')?.setAttribute('aria-label', t('メイン'));
+  const noteBtn = document.getElementById('note-btn');
+  noteBtn.setAttribute('aria-label', t('目標'));
+  noteBtn.addEventListener('click', () => openNoteSheet());
   try {
     await db.open();
   } catch (e) {
@@ -76,11 +78,17 @@ async function start() {
   window.addEventListener('hashchange', show);
   show();
 
+  // 目標メモを起動時に表示。アプリに戻った時も、日付が変わっていれば表示する
+  showNoteOnLaunch();
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') showNoteOnLaunch();
+  });
+
 
   requestPersistence();
 
-  // アイコンのバッジに買い物リストの件数（設定でオンにした時だけ）
-  watch(() => db.shoppingListItems.count(), updateBadge);
+  // 以前の版で出していたアイコンのバッジ（買い物リストの件数）を消す
+  clearOldBadge();
 
   // オフライン対応（HTTPS か localhost のときだけ動く）
   if ('serviceWorker' in navigator) {
@@ -103,6 +111,17 @@ async function start() {
       location.reload();
     });
   }
+}
+
+/** v1.4 のバッジ機能をオンにしていた端末で、残っている数字を消す */
+function clearOldBadge() {
+  try {
+    if (localStorage.getItem('yuteli.badge') !== '1') return;
+    localStorage.removeItem('yuteli.badge');
+  } catch {
+    return;
+  }
+  navigator.clearAppBadge?.().catch(() => {});
 }
 
 start();

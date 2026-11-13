@@ -190,6 +190,9 @@ export function parseBackup(text) {
   if (backup.settings !== undefined && (typeof backup.settings !== 'object' || backup.settings === null)) {
     return fail('設定の形式が正しくありません。');
   }
+  if (backup.settings?.note !== undefined && typeof backup.settings.note !== 'string') {
+    return fail('設定の形式が正しくありません。');
+  }
   backup.settings ??= {};
 
   return { ok: true, backup, counts };
