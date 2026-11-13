@@ -116,7 +116,6 @@ function rowHtml(p, listed) {
   const unit = esc(p.inventoryUnit);
   const meta = [`<span>${t('目標 {n}{unit}', { n: p.targetStock, unit })}</span>`];
   if (short) meta.push(`<span class="badge badge-short">${t('あと{n}{unit}', { n: short, unit })}</span>`);
-  if (p.autoAddSuppressed) meta.push(`<span class="badge badge-muted">${t('購入済み・在庫未更新')}</span>`);
   return `
     <li class="stock-row" data-id="${p.id}">
       ${dragHandle(esc(p.name))}

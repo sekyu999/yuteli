@@ -182,14 +182,7 @@ function openItemSheet(item, state) {
     <form novalidate>
       ${stepperField({ name: 'quantity', label: t('数量'), value: item.quantity, suffix: item.unit ?? '' })}
       ${
-        isTemp
-          ? `
-        <div class="field">
-          <label for="f-unit">${t('単位')} <span class="optional">${t('任意')}</span></label>
-          <input id="f-unit" name="unit" class="input" value="${esc(item.unit ?? '')}" autocomplete="off">
-        </div>
-        ${categorySelect(state.categories, item.categoryId)}`
-          : ''
+        isTemp ? categorySelect(state.categories, item.categoryId) : ''
       }
       <div class="form-actions">
         <button type="submit" class="btn btn-primary btn-block">${t('保存')}</button>
@@ -220,20 +213,14 @@ function openItemSheet(item, state) {
 
 /** 手動で追加するシート */
 async function openAddSheet(state) {
-  const products = await listProducts();
   const body = `
     <form novalidate>
       <div class="field">
         <label for="f-name">${t('商品名')}</label>
-        <input id="f-name" name="name" class="input" list="product-names" autocomplete="off" enterkeyhint="done">
-        <datalist id="product-names">${products.map((p) => `<option value="${esc(p.name)}">`).join('')}</datalist>
+        <input id="f-name" name="name" class="input" autocomplete="off" enterkeyhint="done">
         <p class="field-error" data-error-for="name"></p>
       </div>
       ${stepperField({ name: 'quantity', label: t('数量'), value: 1 })}
-      <div class="field">
-        <label for="f-unit">${t('単位')} <span class="optional">${t('任意')}</span></label>
-        <input id="f-unit" name="unit" class="input" placeholder="${t('個、袋 など')}" autocomplete="off">
-      </div>
       ${categorySelect(state.categories, '')}
       <div class="form-actions">
         <button type="submit" class="btn btn-primary btn-block">${t('リストに追加')}</button>

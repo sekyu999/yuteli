@@ -150,7 +150,7 @@ export async function updateItem(id, changes) {
  * 購入済みにする。
  * - リストから削除する（一時項目もここで消える）
  * - 在庫数は変えない
- * - 商品マスタの品は、次の在庫変更（または見直し完了）まで自動追加の対象から外す
+ * - v1.10 から自動追加は止めない（不足があれば次の「リストを更新」でまた入る）
  * @returns {Promise<{item:ShoppingListItem, prevSuppressed:boolean}|null>} 取り消し用の情報
  */
 export async function markPurchased(id) {
@@ -162,7 +162,6 @@ export async function markPurchased(id) {
       const p = await db.products.get(item.productId);
       if (p) {
         prevSuppressed = !!p.autoAddSuppressed;
-        await setSuppressed(p.id, true);
       }
     }
     await db.shoppingListItems.delete(id);
@@ -183,7 +182,6 @@ export async function undoPurchased(undo) {
 
 /**
  * リストから削除する（今回は買わない時）。
- * 商品マスタの品は、すぐ次の更新で復活しないよう購入済みと同じく自動追加を止める。
  * @returns 取り消し用の情報（undoPurchased に渡せる）
  */
 export async function removeItem(id) {

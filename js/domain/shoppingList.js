@@ -8,7 +8,7 @@ import { shortage } from './product.js';
  * - 不足数 = 目標在庫 − 現在庫。不足がある商品だけ追加する
  * - すでにリストにある商品は追加しない（重複防止）。名前・単位・数量は最新にそろえる
  *   （不足がなくなった場合は数量を変えずに残す＝未購入は持ち越し）
- * - 購入済み抑制中（autoAddSuppressed）の商品は追加しない
+ * - 購入済み・削除した商品も、不足があれば追加する（v1.10 で購入済み抑制をやめた。autoAddSuppressed は見ない）
  * - 手動追加・健康提案から追加した一時項目には触れない
  *
  * @param {Array} products 全商品
@@ -37,7 +37,7 @@ export function planRefresh(products, items) {
       continue;
     }
 
-    if (need > 0 && !p.autoAddSuppressed) {
+    if (need > 0) {
       toAdd.push({
         productId: p.id,
         name: p.name,

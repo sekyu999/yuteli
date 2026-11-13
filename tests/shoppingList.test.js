@@ -46,9 +46,9 @@ test('在庫が足りても未購入の項目は消さない（持ち越し）',
   assert.equal(r.toUpdate.length, 0);
 });
 
-test('購入済み抑制中の商品は追加しない', () => {
+test('購入済みにした商品も、不足があれば次の更新で追加する（v1.10 で抑制をやめた）', () => {
   const r = planRefresh([P('卵', 0, 2, { autoAddSuppressed: true })], []);
-  assert.equal(r.toAdd.length, 0);
+  assert.equal(r.toAdd.length, 1);
 });
 
 test('手動追加の一時項目には触れない', () => {

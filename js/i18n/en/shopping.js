@@ -61,7 +61,6 @@ export default {
   '今回は買わない（リストから削除）': 'Skip this time (remove from list)',
   '「{name}」を削除しました': 'Removed “{name}”',
   商品名: 'Item name',
-  '個、袋 など': 'e.g. pc, bag',
   リストに追加: 'Add to list',
   商品名を入力してください: 'Enter an item name',
   '「{name}」はすでにリストにあります': '“{name}” is already on the list',

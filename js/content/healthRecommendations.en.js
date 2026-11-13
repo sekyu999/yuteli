@@ -277,6 +277,22 @@ export const HEALTH_RECOMMENDATIONS = [
     ],
   },
   {
+    id: 'stamina',
+    concern: 'Vitality & stamina',
+    nutrients: ['Zinc', 'Protein', 'Vitamin B1', 'Vitamin B2'],
+    explanation:
+      'Zinc is a mineral involved in male hormones and reproduction, and it’s one of the nutrients people tend to lack. Get protein and B vitamins (which help turn carbs into energy) too. Sleep, exercise and going easy on alcohol also matter. If something keeps bothering you, talk to a doctor (such as a urologist).',
+    foods: [
+      { name: 'Oysters', unit: 'pack', category: '肉・魚', cost: 'mid', code: '10292', point: 'Especially high in zinc', howTo: 'In hot pot, sautéed or fried (cook oysters for cooking all the way through)' },
+      { name: 'Pork tenderloin', unit: 'pack', category: '肉・魚', cost: 'mid', code: '11140', point: 'Rich in vitamin B1 and low in fat', howTo: 'Sautéed or as a cutlet' },
+      food(F.beef, 'Zinc and protein', 'Simply grilled or stir-fried'),
+      { name: 'Eel (kabayaki)', unit: 'piece', category: '肉・魚', cost: 'mid', code: '10070', point: 'Vitamins A, B1, B2 and zinc', howTo: 'Over rice, as an occasional treat' },
+      { name: 'Garlic', unit: 'bulb', category: '野菜・果物', cost: 'low', code: '06223', point: 'Helps your body absorb the vitamin B1 in pork', howTo: 'A little in pork stir-fries' },
+      food(F.egg, 'Protein and zinc', '1–2 a day'),
+    ],
+    suggestions: ['Oysters or lean red meat a few times a week', 'Pair pork with garlic or onion', 'Get enough sleep and go easy on alcohol'],
+  },
+  {
     id: 'weight',
     concern: 'Weight management',
     nutrients: ['Protein', 'Fiber', 'Foods high in water'],
