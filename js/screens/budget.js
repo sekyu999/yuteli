@@ -8,13 +8,14 @@ import { makeMovable } from '../ui/moveDrag.js';
 import { ValidationError } from '../data/productRepo.js';
 import { PLAN_KINDS, monthlyTotals, monthSections, thisMonth } from '../domain/plans.js';
 import { esc } from '../lib/util.js';
-import { t, money, monthText, yearText, monthOnlyText } from '../lib/i18n.js';
+import { t, money, monthText } from '../lib/i18n.js';
+import { yearOptions, monthOptions } from '../ui/monthPick.js';
 
 export const title = '家計';
 
 /** 何か月先まで見込みを出すか（最初は SHOW_MONTHS か月だけ表示し、残りは折りたたむ） */
 const MONTHS = 12;
-const SHOW_MONTHS = 6;
+const SHOW_MONTHS = 3;
 let barsOpen = false;
 
 /** 表示中の絞り込み（画面を離れても覚えておく） */
@@ -103,9 +104,7 @@ export function mount(el) {
       return;
     }
     // 今月から12か月は予定がなくても出す（ドラッグの移動先）
-    listEl.innerHTML =
-      `<p class="note">${t('≡ を押さえて別の月へドラッグすると、月を変えられます。チェックすると一覧から消えます。')}</p>` +
-      monthSections(shown, now, MONTHS)
+    listEl.innerHTML = monthSections(shown, now, MONTHS)
         .map(
           (g) => `<section class="month-sec ${g.items.length ? '' : 'is-empty'}" data-drop="${g.month ?? ''}">
           <h2 class="section-title month-head ${g.month && g.month < now ? 'is-past' : ''}">
@@ -140,24 +139,35 @@ async function finishPlan(btn) {
   }, 250);
 }
 
+/** URL は http/https の時だけリンクにする（バックアップから入った値も念のため確認） */
+const safeUrl = (u) => (typeof u === 'string' && /^https?:\/\//i.test(u) ? u : '');
+
 function planRow(p) {
+  const url = safeUrl(p.url);
   return `<li class="plan-row" data-id="${p.id}">
     <span class="drag-handle" role="button" aria-label="${esc(t('{name}の月を移動', { name: p.title }))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14M5 12h14M5 16h14"/></svg></span>
     <button type="button" class="check-btn" data-action="done" data-id="${p.id}" role="checkbox" aria-checked="false"
             aria-label="${esc(t('{name}を済みにする', { name: p.title }))}"></button>
     <button type="button" class="row-button" data-action="edit" data-id="${p.id}">
-      <span class="grow plan-main"><span class="badge ${p.kind === 'do' ? 'badge-do' : 'badge-muted'}">${t(p.kind === 'do' ? 'やる' : '買う')}</span><span class="compact-name">${esc(p.title)}${
-        p.memo ? `<span class="note">　${esc(p.memo)}</span>` : ''
-      }</span></span>
-      <span class="nowrap plan-price">${money(p.price)}</span>
+      <span class="grow plan-main"><span class="plan-title"><span class="badge ${p.kind === 'do' ? 'badge-do' : 'badge-muted'}">${t(
+        p.kind === 'do' ? 'やる' : '買う'
+      )}</span>${esc(p.title)}<span class="visually-hidden">${money(p.price)}</span></span>${p.memo ? `<span class="plan-memo">${esc(p.memo)}</span>` : ''}</span>
     </button>
+    <span class="plan-side">
+      <span class="plan-price" data-action="edit" data-id="${p.id}" aria-hidden="true">${money(p.price)}</span>
+      ${
+        url
+          ? `<a class="plan-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(t('{name}のリンクを開く', { name: p.title }))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></a>`
+          : ''
+      }
+    </span>
   </li>`;
 }
 
 /** 追加・編集シート */
 async function openPlanSheet(id, defaultKind = 'buy') {
   const plan = id ? await getPlan(id) : null;
-  const v = plan ?? { kind: defaultKind, title: '', price: '', month: thisMonth(), memo: '', done: false };
+  const v = plan ?? { kind: defaultKind, title: '', price: '', month: thisMonth(), memo: '', url: '', done: false };
   const sheet = openSheet({
     title: t(plan ? '編集' : '追加'),
     body: `
@@ -191,8 +201,13 @@ async function openPlanSheet(id, defaultKind = 'buy') {
         </div>
         <div class="field">
           <label for="f-memo">${t('メモ')} <span class="optional">${t('任意')}</span></label>
-          <input id="f-memo" name="memo" class="input" value="${esc(v.memo)}" autocomplete="off">
+          <textarea id="f-memo" name="memo" class="input memo-input" rows="2" maxlength="200">${esc(v.memo)}</textarea>
           <p class="field-error" data-error-for="memo"></p>
+        </div>
+        <div class="field">
+          <label for="f-url">URL <span class="optional">${t('任意')}</span></label>
+          <input id="f-url" name="url" class="input" type="url" inputmode="url" value="${esc(v.url ?? '')}" placeholder="https://" autocomplete="off" autocapitalize="off" spellcheck="false">
+          <p class="field-error" data-error-for="url"></p>
         </div>
         <div class="form-actions">
           <button type="submit" class="btn btn-primary btn-block">${t('保存')}</button>
@@ -228,20 +243,4 @@ async function openPlanSheet(id, defaultKind = 'buy') {
     sheet.close();
     toast(t('削除しました'));
   });
-}
-
-/** 年のプルダウン（去年〜5年後）。iPhone の月選択は言語によって横に広がるため、プルダウンにしている */
-function yearOptions(month) {
-  const now = new Date().getFullYear();
-  const sel = Number((month ?? thisMonth()).slice(0, 4));
-  const years = [];
-  for (let y = Math.min(now - 1, sel); y <= Math.max(now + 5, sel); y++) years.push(y);
-  return years.map((y) => `<option value="${y}" ${y === sel ? 'selected' : ''}>${yearText(y)}</option>`).join('');
-}
-
-function monthOptions(month) {
-  const sel = (month ?? thisMonth()).slice(5, 7);
-  return Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))
-    .map((m) => `<option value="${m}" ${m === sel ? 'selected' : ''}>${monthOnlyText(Number(m))}</option>`)
-    .join('');
 }

@@ -14,8 +14,6 @@ export default {
   '「{name}」を済みにしました': 'Done: {name}',
   '{name}の月を移動': 'Move {name} to another month',
   '{month}に移動しました': 'Moved to {month}',
-  '≡ を押さえて別の月へドラッグすると、月を変えられます。チェックすると一覧から消えます。':
-    'Drag ≡ to another month to move an item. Check an item to remove it from the list.',
   やる: 'Do',
   買う: 'Buy',
   編集: 'Edit',
@@ -30,4 +28,6 @@ export default {
   メモ: 'Memo',
   '済み（買った・やった）': 'Done (bought / did it)',
   '「{name}」を削除しますか？': 'Delete “{name}”?',
+  'http:// か https:// で始まる URL を入力してください': 'Enter a URL starting with http:// or https://',
+  '{name}のリンクを開く': 'Open link for {name}',
 };

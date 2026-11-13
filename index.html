@@ -30,10 +30,10 @@
 <body>
   <header class="app-header">
     <h1 id="screen-title">KESELA</h1>
-    <!-- 目標メモを開く -->
-    <button type="button" class="header-btn" id="note-btn" aria-label="目標">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg>
-    </button>
+    <!-- 設定（下のタブから移動） -->
+    <a href="#/settings" class="header-btn" id="settings-btn" data-route="settings" aria-label="設定">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
+    </a>
   </header>
 
   <main id="screen" class="screen" tabindex="-1"></main>
@@ -59,9 +59,9 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a1 1 0 0 1-1-1z"/><path d="M4 7l11-3v3"/><circle cx="16" cy="13.5" r="1.2"/></svg>
       <span data-i18n>家計</span>
     </a>
-    <a href="#/settings" data-route="settings">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
-      <span data-i18n>設定</span>
+    <a href="#/goals" data-route="goals">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4"/><path d="M5 4h12l-2.5 4.5L17 13H5"/></svg>
+      <span data-i18n>目標</span>
     </a>
   </nav>
 

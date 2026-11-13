@@ -732,8 +732,19 @@ html.sheet-open { overflow: hidden; }
 }
 .tabbar a { font-size: calc(10.5px * var(--fs, 1)) !important; }
 .tabbar svg { width: 24px !important; height: 24px !important; }
-.plan-main { display: flex !important; flex-direction: row !important; align-items: center; gap: 8px; min-width: 0; }
-.plan-main .badge { flex: none; }
+/* 家計の行：名前・メモは省略せず折り返す。行間を詰めて縦に間延びしないように */
+.plan-main { display: block !important; min-width: 0; }
+.plan-title { display: block; line-height: 1.35; overflow-wrap: anywhere; }
+.plan-title .badge { margin-right: 6px; vertical-align: baseline; position: relative; top: -1px; line-height: 1.3; }
+.plan-memo { display: block; margin-top: 1px; color: var(--text-sub); font-size: calc(13px * var(--fs, 1)); line-height: 1.35; white-space: pre-line; overflow-wrap: anywhere; }
+.plan-row .row-button { flex: 1; min-width: 0; min-height: 40px; padding: 2px 0; }
+/* 金額とリンクは右の列にまとめ、名前・メモの幅を広くとる */
+.plan-side { flex: none; align-self: stretch; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; }
+.plan-side .plan-price { cursor: pointer; white-space: nowrap; }
+.plan-link { width: 36px; height: 30px; margin-right: -8px; display: grid; place-items: center; color: var(--accent); }
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.plan-link svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.memo-input { min-height: 0; padding: 8px 12px; line-height: 1.5; resize: vertical; font-family: inherit; }
 .mb-more { display: block !important; }
 .mb-more .month-bars { margin-top: 4px; }
 
@@ -842,28 +853,53 @@ input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 }
 .move-ghost .row-button { width: auto; } .move-ghost .plan-main { flex: 1; }
 
-/* ===== 目標メモ（v1.5） ===== */
+/* ===== 目標（v1.6） ===== */
+/* ヘッダー右の設定ボタン */
 .header-btn {
   flex: none; width: 44px; height: 44px; margin: 0 -10px 0 auto;
-  display: grid; place-items: center; border: none; border-radius: 50%; background: none; color: var(--text-sub);
+  display: grid; place-items: center; border-radius: 50%; color: var(--text-sub);
 }
-.header-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.header-btn svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .header-btn:active { background: var(--border); }
-.note-view { line-height: 1.7; overflow-wrap: anywhere; }
+.header-btn[aria-current="page"] { color: var(--accent); }
+
+/* 見る画面：Notion の1ページ分（20行ほど）がスクロールせずに収まるよう、行間を詰める */
+.goals { position: relative; }
+.goals-edit { position: absolute; top: -4px; right: 0; z-index: 1; color: var(--text); }
+.note-view { font-size: calc(15px * var(--fs, 1)); line-height: 1.4; overflow-wrap: anywhere; }
 .note-view s { color: var(--text-sub); }
-.nb-h { font-weight: 700; margin: 14px 0 4px; }
-.nb-h:first-child { margin-top: 0; }
-.nb-h1 { font-size: calc(20px * var(--fs, 1)); }
-.nb-h2 { font-size: calc(18px * var(--fs, 1)); }
-.nb-h3 { font-size: calc(16px * var(--fs, 1)); }
-.nb-gap { height: 8px; }
-.nb-text, .nb-bullet { margin: 2px 0; }
+.nb-h { font-weight: 700; margin: 8px 0 1px; line-height: 1.3; }
+.nb-h:first-child { margin-top: 0; padding-right: 64px; }
+.nb-h1 { font-size: calc(19px * var(--fs, 1)); }
+.nb-h2 { font-size: calc(16px * var(--fs, 1)); }
+.nb-h3 { font-size: calc(15px * var(--fs, 1)); }
+.nb-gap { height: 4px; }
+.nb-text, .nb-bullet { margin: 1px 0; }
 .nb-bullet { position: relative; padding-left: 1.1em; }
 .nb-bullet::before { content: "・"; position: absolute; left: 0; color: var(--text-sub); }
-.nb-todo { display: flex; align-items: flex-start; gap: 10px; min-height: 40px; padding: 6px 0; cursor: pointer; font-weight: 400; }
-.nb-todo input { flex: none; width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--accent); }
-.nb-todo.is-checked > span { color: var(--text-sub); text-decoration: line-through; }
-.note-tools { display: flex; gap: 6px; margin-bottom: 8px; }
-.note-tools .chip-btn { min-height: 36px; padding: 0 14px; color: var(--text); max-width: none; }
-.note-textarea { display: block; min-height: 40dvh; padding: 10px 12px; line-height: 1.6; resize: vertical; font-family: inherit; }
+.nb-todo-row { display: flex; align-items: center; gap: 4px; min-height: 30px; }
+.nb-todo { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; min-height: 30px; cursor: pointer; font-weight: 400; }
+.nb-todo input { flex: none; width: 20px; height: 20px; margin: 0; accent-color: var(--accent); }
+.nb-todo-row.is-checked .nb-todo > span { color: var(--text-sub); text-decoration: line-through; }
+.nb-month {
+  flex: none; min-width: 32px; height: 28px; padding: 0 6px; border: none; border-radius: 999px;
+  background: none; color: var(--border); font-size: calc(12px * var(--fs, 1)); white-space: nowrap;
+}
+.nb-month svg { width: 17px; height: 17px; fill: none; stroke: var(--text-sub); stroke-width: 1.8; stroke-linecap: round; opacity: 0.4; }
+.nb-month.is-set { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.nb-month.is-past { background: var(--warn-soft); color: var(--warn-text); }
+.nb-todo-row.is-checked .nb-month.is-set { background: none; color: var(--text-sub); }
+/* 編集画面 */
+.note-tools { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.note-tools .chip-btn { min-height: 36px; padding: 0 12px; color: var(--text); max-width: none; }
+.note-tools .note-done { margin-left: auto; min-height: 36px; padding: 0 16px; }
+.note-textarea {
+  display: block; padding: 10px 12px; line-height: 1.6; resize: none; font-family: inherit;
+  /* 画面の高さに合わせる（ヘッダー・ボタン・下のタブを除く） */
+  height: calc(100dvh - var(--header-h) - var(--safe-top) - var(--tabbar-h) - var(--safe-bottom) - 120px);
+  min-height: 240px;
+}
 .note-textarea + .note { margin-top: 6px; }
+.sheet-lead { margin-bottom: 12px; font-weight: 600; }
+/* 目標の画面は右下のボタンがないので、下の余白を詰める（スクロールせずに収まるように） */
+.screen[data-route="goals"] { padding-top: 12px; padding-bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 12px); }

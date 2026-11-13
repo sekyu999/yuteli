@@ -6,9 +6,18 @@ const P = (kind, price, month, done = false) => ({ kind, title: 'x', price, mont
 
 test('入力の検証', () => {
   const ok = validatePlanInput({ kind: 'do', title: ' 旅行 ', price: '50,000', month: '2026-12' });
-  assert.deepEqual(ok.value, { kind: 'do', title: '旅行', price: 50000, month: '2026-12', memo: '', done: false });
+  assert.deepEqual(ok.value, { kind: 'do', title: '旅行', price: 50000, month: '2026-12', memo: '', url: '', done: false });
   assert.equal(validatePlanInput({ title: '', price: '-1', month: '2026-13' }).ok, false);
   assert.equal(validatePlanInput({ title: '本', price: '', month: '2026-12', undecided: '1' }).value.month, null);
+});
+
+test('URL の検証', () => {
+  const v = (url) => validatePlanInput({ title: '本', price: '1', month: '2026-12', url });
+  assert.equal(v('https://example.com/a?b=1').value.url, 'https://example.com/a?b=1');
+  assert.equal(v('example.com/item').value.url, 'https://example.com/item');
+  assert.equal(v('').value.url, '');
+  assert.equal(v('javascript:alert(1)').ok, false);
+  assert.equal(v('ただの文').ok, false);
 });
 
 test('月の計算', () => {

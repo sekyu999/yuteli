@@ -24,7 +24,7 @@ import { parseBackup, BACKUP_TABLES } from '../domain/backupFormat.js';
 import { makeSortable, dragHandle } from '../ui/sortable.js';
 import { APP_VERSION } from '../lib/version.js';
 import { openProfileSheet, profileSummary } from './profileSheet.js';
-import { openNoteSheet, noteOnLaunch, setNoteOnLaunch } from './noteSheet.js';
+import { noteOnLaunch, setNoteOnLaunch } from './goals.js';
 import { esc } from '../lib/util.js';
 import { t, dateLong, LANG_OPTIONS, getLangPref, setLangPref } from '../lib/i18n.js';
 
@@ -60,10 +60,9 @@ export function mount(el) {
       <section>
         <h2 class="section-title">${t('目標')}</h2>
         <ul class="list">
-          <li><button type="button" class="row-button" data-action="note">
-            <span class="grow">${t('目標を見る・編集')}</span><span class="note">›</span></button></li>
           <li><label class="check-row grow"><input type="checkbox" id="note-launch">${t('起動時に表示する')}</label></li>
         </ul>
+        <p class="note" style="margin-top:6px">${t('閉じずに30分以上ほかのアプリにいて戻った時も表示します')}</p>
       </section>
 
       <section>
@@ -190,9 +189,6 @@ export function mount(el) {
         break;
       case 'profile':
         openProfileSheet();
-        break;
-      case 'note':
-        openNoteSheet();
         break;
       case 'reset':
         if (!window.confirm(t('すべてのデータ（商品・在庫・買い物リスト・店舗・価格記録）を消去します。よろしいですか？'))) return;

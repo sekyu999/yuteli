@@ -5,26 +5,28 @@ import * as stock from './screens/stock.js';
 import * as prices from './screens/prices.js';
 import * as meals from './screens/meals.js';
 import * as budget from './screens/budget.js';
+import * as goals from './screens/goals.js';
 import * as settings from './screens/settings.js';
 import { db } from './data/db.js';
 import { requestPersistence } from './data/storage.js';
 import { hideToast } from './ui/toast.js';
 import { t, translateStatic } from './lib/i18n.js';
-import { openNoteSheet, showNoteOnLaunch } from './screens/noteSheet.js';
 
 /**
  * 各画面は次の2つを export する：
  *   title           … ヘッダーに出す名前
  *   mount(el)       … el の中に画面を作る。片付け用の関数を返す（任意）
  */
-const ROUTES = { list: shopping, stock, prices, meals, budget, settings };
+const ROUTES = { list: shopping, stock, prices, meals, budget, goals, settings };
 /** 以前の URL（#/health）で開いても食事画面を出す */
 const ALIASES = { health: 'meals' };
 const DEFAULT_ROUTE = 'list';
 
 const screenEl = document.getElementById('screen');
 const titleEl = document.getElementById('screen-title');
-const tabs = document.querySelectorAll('.tabbar a');
+const tabs = document.querySelectorAll('.tabbar a, .header-btn[data-route]');
+/** バックグラウンドからこの時間以上たって戻った時も、目標を表示する */
+const RESUME_SHOW_MS = 30 * 60 * 1000;
 
 let cleanup = null;
 
@@ -46,6 +48,7 @@ function show() {
   hideToast();
   const container = document.createElement('div');
   screenEl.replaceChildren(container);
+  screenEl.dataset.route = key; // 画面ごとの余白の調整用
   cleanup = screen.mount(container) ?? null;
 
   titleEl.textContent = t(screen.title);
@@ -61,9 +64,7 @@ async function start() {
   // index.html に書いた文字（下のタブなど）を今の言語にする
   translateStatic();
   document.querySelector('.tabbar')?.setAttribute('aria-label', t('メイン'));
-  const noteBtn = document.getElementById('note-btn');
-  noteBtn.setAttribute('aria-label', t('目標'));
-  noteBtn.addEventListener('click', () => openNoteSheet());
+  document.getElementById('settings-btn').setAttribute('aria-label', t('設定'));
   try {
     await db.open();
   } catch (e) {
@@ -75,13 +76,23 @@ async function start() {
     return;
   }
 
+  // 起動時は目標の画面から（設定でオン・何か書いてある時）
+  if (await goals.shouldShowGoals()) history.replaceState(null, '', '#/goals');
   window.addEventListener('hashchange', show);
   show();
 
-  // 目標メモを起動時に表示。アプリに戻った時も、日付が変わっていれば表示する
-  showNoteOnLaunch();
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') showNoteOnLaunch();
+  // アプリを閉じずにしばらく別のアプリにいて戻った時も、目標の画面を出す
+  let hiddenAt = 0;
+  document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState === 'hidden') {
+      hiddenAt = Date.now();
+      return;
+    }
+    if (!hiddenAt || Date.now() - hiddenAt < RESUME_SHOW_MS) return;
+    hiddenAt = 0;
+    // 入力中のシートがある時は邪魔しない
+    if (currentRoute() === 'goals' || document.querySelector('dialog.sheet[open]')) return;
+    if (await goals.shouldShowGoals()) location.hash = '#/goals';
   });
 
 

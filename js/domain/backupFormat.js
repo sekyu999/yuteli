@@ -68,7 +68,9 @@ const RULES = {
           ? 'price'
           : !(r.month === null || r.month === undefined || /^\d{4}-\d{2}$/.test(r.month))
             ? 'month'
-            : null,
+            : !isStrOrNull(r.url)
+              ? 'url'
+              : null,
   priceRecords: (r) =>
     !isStr(r.productId)
       ? 'productId'

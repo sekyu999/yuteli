@@ -2,6 +2,7 @@
 // 書き方は Notion からコピーした文と同じ（Markdown の一部）。画面や DB には依存しない純粋な関数。
 //   # 見出し（## ### も可）
 //   - [ ] ToDo　- [x] 済みの ToDo（- の代わりに * でも可）
+//   - [ ] ToDo @2027-03 … 行の最後の @年-月 は「やる月」
 //   - 箇条書き
 //   ~~打ち消し~~　**太字**
 //   それ以外の行は本文
@@ -12,10 +13,12 @@ export const NOTE_MAX = 5000;
 const RE_HEADING = /^(#{1,3})\s+(.*)$/;
 const RE_TODO = /^(\s*)[-*+]\s+\[( |x|X)\]\s?(.*)$/;
 const RE_BULLET = /^(\s*)[-*+]\s+(.*)$/;
+/** ToDo の行の最後の「@2027-03」（やる月） */
+const RE_MONTH = /\s*@(\d{4}-(?:0[1-9]|1[0-2]))\s*$/;
 
 /**
  * @typedef {{type:'heading', level:number, text:string, line:number}
- *   | {type:'todo', checked:boolean, text:string, line:number}
+ *   | {type:'todo', checked:boolean, text:string, month:string|null, line:number}
  *   | {type:'bullet', text:string, line:number}
  *   | {type:'text', text:string, line:number}
  *   | {type:'blank', line:number}} NoteBlock
@@ -34,7 +37,11 @@ export function parseNote(text) {
       let m = raw.match(RE_HEADING);
       if (m) return { type: 'heading', level: m[1].length, text: m[2].trim(), line };
       m = raw.match(RE_TODO);
-      if (m) return { type: 'todo', checked: m[2] !== ' ', text: m[3].trim(), line };
+      if (m) {
+        const mm = m[3].match(RE_MONTH);
+        const body = mm ? m[3].slice(0, mm.index) : m[3];
+        return { type: 'todo', checked: m[2] !== ' ', text: body.trim(), month: mm ? mm[1] : null, line };
+      }
       m = raw.match(RE_BULLET);
       if (m) return { type: 'bullet', text: m[2].trim(), line };
       return { type: 'text', text: raw.trim(), line };
@@ -97,9 +104,11 @@ export function toggleStrike(text, start, end) {
     if (le < 0) le = text.length;
     const line = text.slice(ls, le);
     const prefix = line.match(/^(#{1,3}\s+|\s*[-*+]\s+(\[( |x|X)\]\s?)?)?/)[0];
-    if (line.length === prefix.length) return { text, start, end };
+    const month = line.match(RE_MONTH); // 「@年-月」は打ち消しの外に残す
+    const bodyEnd = le - (month ? month[0].length : 0);
+    if (bodyEnd <= ls + prefix.length) return { text, start, end };
     start = ls + prefix.length;
-    end = le;
+    end = bodyEnd;
   }
   const sel = text.slice(start, end);
   const m = sel.match(/^~~([\s\S]*)~~$/);
@@ -109,4 +118,13 @@ export function toggleStrike(text, start, end) {
   }
   const next = m ? m[1] : `~~${sel}~~`;
   return { text: text.slice(0, start) + next + text.slice(end), start, end: start + next.length };
+}
+
+/** line 行目の ToDo の「やる月」を変える（month は YYYY-MM、null で外す） */
+export function setTodoMonth(text, line, month) {
+  const lines = String(text).replace(/\r\n?/g, '\n').split('\n');
+  if (!RE_TODO.test(lines[line] ?? '')) return text;
+  const body = lines[line].replace(RE_MONTH, '').replace(/\s+$/, '');
+  lines[line] = month ? `${body} @${month}` : body;
+  return lines.join('\n');
 }

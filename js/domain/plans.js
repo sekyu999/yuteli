@@ -13,6 +13,7 @@ export const PLAN_KINDS = [
  * @property {number} price      円（税込の目安）
  * @property {string|null} month YYYY-MM（未定は null）
  * @property {string} memo
+ * @property {string} [url]   参考の URL（任意。http/https のみ）
  * @property {boolean} done      買った・やった
  * @property {string} createdAt
  * @property {string} updatedAt
@@ -37,8 +38,13 @@ export function validatePlanInput(raw) {
   const memo = String(raw.memo ?? '').trim();
   if (memo.length > 200) errors.memo = '200文字以内にしてください';
 
+  // URL：「example.com/…」のように https:// を省いた形も受け付ける
+  let url = String(raw.url ?? '').trim();
+  if (url && !/^[a-z][a-z0-9+.-]*:/i.test(url) && /^[^\s/]+\.[^\s/]+/.test(url)) url = `https://${url}`;
+  if (url && (!/^https?:\/\/[^\s]+$/i.test(url) || url.length > 2000)) errors.url = 'http:// か https:// で始まる URL を入力してください';
+
   if (Object.keys(errors).length) return { ok: false, errors };
-  return { ok: true, value: { kind, title, price, month, memo, done: !!raw.done } };
+  return { ok: true, value: { kind, title, price, month, memo, url, done: !!raw.done } };
 }
 
 /** YYYY-MM に n か月足す */

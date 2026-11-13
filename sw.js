@@ -3,7 +3,7 @@
 // そのため、ファイルを更新したときにキャッシュが原因で古い画面が出る、ということが起きにくい。
 
 // アプリを更新したら版を上げる（js/lib/version.js と合わせる）
-const CACHE = 'kesela-1.5.0';
+const CACHE = 'kesela-1.6.0';
 
 // オフラインでも開けるように最初に保存しておくファイル
 const APP_FILES = [
@@ -57,10 +57,10 @@ const APP_FILES = [
   'js/lib/util.js',
   'js/lib/version.js',
   'js/screens/budget.js',
+  'js/screens/goals.js',
   'js/screens/groupSheet.js',
   'js/screens/health.js',
   'js/screens/meals.js',
-  'js/screens/noteSheet.js',
   'js/screens/nutritionSheet.js',
   'js/screens/priceSheet.js',
   'js/screens/prices.js',
@@ -72,6 +72,7 @@ const APP_FILES = [
   'js/ui/fontSize.js',
   'js/ui/form.js',
   'js/ui/live.js',
+  'js/ui/monthPick.js',
   'js/ui/moveDrag.js',
   'js/ui/sheet.js',
   'js/ui/sortable.js',
