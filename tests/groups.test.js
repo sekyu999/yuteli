@@ -102,3 +102,69 @@ test('分けたカテゴリを「・」でまとめ直す（商品・リスト�
   assert.deepEqual(r.storeShelfOrders.map((s) => [s.categoryId, s.sortOrder]), [['e', 1], ['v', 2]]);
   assert.equal(mergeCategories({ ...r, storeShelfOrders: r.storeShelfOrders }).changed, false);
 });
+
+test('v1.12 のカテゴリに組み直す（分ける・名前を変える・足す・並べる）', async () => {
+  const { reorganizeCategories, DEFAULT_CATEGORIES } = await import('../js/domain/categories.js');
+  let n = 0;
+  const r = reorganizeCategories(
+    {
+      categories: [
+        { id: 'v', name: '野菜・果物', defaultOrder: 1 },
+        { id: 'm', name: '肉・魚', defaultOrder: 2 },
+        { id: 'n', name: '納豆・豆腐', defaultOrder: 3 },
+        { id: 'b', name: 'パン・米・麺', defaultOrder: 4 },
+        { id: 'o', name: 'その他', defaultOrder: 5 },
+        { id: 'x', name: '自分の', defaultOrder: 6 },
+      ],
+      storeShelfOrders: [
+        { id: 's1', storeId: 'S', categoryId: 'm', sortOrder: 1 },
+        { id: 's2', storeId: 'S', categoryId: 'v', sortOrder: 2 },
+      ],
+      products: [{ id: 'p', categoryId: 'n' }],
+      shoppingListItems: [{ id: 'i', categoryId: 'b' }],
+    },
+    () => `new${++n}`
+  );
+  const names = r.categories.map((c) => c.name);
+  assert.deepEqual(names, [...DEFAULT_CATEGORIES.slice(0, -1), '自分の', 'その他']);
+  assert.deepEqual(r.categories.map((c) => c.defaultOrder), names.map((_, i) => i + 1));
+  assert.equal(r.categories.find((c) => c.id === 'n').name, '豆類');
+  assert.equal(r.products[0].categoryId, 'n');
+  assert.equal(r.categories.find((c) => c.id === 'b').name, 'パン');
+  // 売り場順：肉 → 魚（分けた）→ 野菜 → 果物 → 残りは最後
+  const byId = new Map(r.categories.map((c) => [c.id, c.name]));
+  const seq = r.storeShelfOrders.sort((a, b) => a.sortOrder - b.sortOrder).map((s) => byId.get(s.categoryId));
+  assert.deepEqual(seq.slice(0, 4), ['肉', '魚', '野菜', '果物']);
+  assert.equal(seq.length, r.categories.length);
+});
+
+test('組み直し：同じ名前のカテゴリがすでにあれば、そちらへまとめる', async () => {
+  const { reorganizeCategories } = await import('../js/domain/categories.js');
+  let n = 0;
+  const r = reorganizeCategories(
+    {
+      categories: [
+        { id: 'v', name: '野菜・果物', defaultOrder: 1 },
+        { id: 'v2', name: '野菜', defaultOrder: 2 },
+      ],
+      storeShelfOrders: [],
+      products: [{ id: 'p', categoryId: 'v' }],
+      shoppingListItems: [],
+    },
+    () => `new${++n}`
+  );
+  assert.ok(!r.categories.some((c) => c.id === 'v'));
+  assert.equal(r.products[0].categoryId, 'v2');
+  assert.equal(r.categories.filter((c) => c.name === '野菜').length, 1);
+});
+
+test('組み直し：分けたカテゴリの商品は番号・名前から振り分ける', async () => {
+  const { guessPart } = await import('../js/domain/categories.js');
+  assert.equal(guessPart({ name: 'バナナ' }, ['野菜', '果物']), '果物');
+  assert.equal(guessPart({ name: 'にんじん' }, ['野菜', '果物']), null);
+  assert.equal(guessPart({ name: 'うどん' }, ['パン', '米', '麺']), '麺');
+  assert.equal(guessPart({ name: '無洗米' }, ['パン', '米', '麺']), '米');
+  assert.equal(guessPart({ name: '食パン' }, ['パン', '米', '麺']), 'パン');
+  assert.equal(guessPart({ name: '切り身', nutrition: { source: 'mext', code: '10134', name: 'さけ' } }, ['肉', '魚']), '魚');
+  assert.equal(guessPart({ name: '鶏むね肉', nutrition: { source: 'mext', code: '11220' } }, ['肉', '魚']), '肉');
+});

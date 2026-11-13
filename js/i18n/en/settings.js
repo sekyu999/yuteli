@@ -62,6 +62,9 @@ export default {
   パン: 'Bread',
   米: 'Rice',
   麺: 'Noodles',
+  豆類: 'Beans & soy',
+  お菓子: 'Snacks & sweets',
+  冷凍: 'Frozen',
 
   // ---- 店舗・価格（prices.js）----
   '店舗・価格': 'Stores & prices',

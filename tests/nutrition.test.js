@@ -129,3 +129,17 @@ test('体質でエネルギーを ±5%', () => {
   const w = { ...p, weight: 55 };
   assert.ok(Math.abs(bodyStats({ ...w, constitution: 'gain' }).energy - bodyStats(w).energy * 0.95) <= 1);
 });
+
+test('栄養からのおすすめ：表示する栄養素の少ない・多いがそろい、番号が成分表にある・英語版と同じ', async () => {
+  const fs = await import('node:fs');
+  const ja = (await import('../js/content/healthRecommendations.js')).NUTRIENT_ADVICE;
+  const en = (await import('../js/content/healthRecommendations.en.js')).NUTRIENT_ADVICE;
+  const { SHOWN_NUTRIENTS } = await import('../js/domain/nutrition.js');
+  const codes = new Set(JSON.parse(fs.readFileSync(new URL('../data/foods.json', import.meta.url))).foods.map((f) => f[0]));
+  const ids = SHOWN_NUTRIENTS.flatMap((k) => [`${k}-low`, `${k}-high`]);
+  assert.deepEqual(Object.keys(ja).sort(), ids.sort());
+  for (const id of ids) {
+    for (const f of ja[id].foods) assert.ok(codes.has(f.code), `${id}：${f.name} ${f.code}`);
+    assert.deepEqual(en[id].foods.map((f) => f.code), ja[id].foods.map((f) => f.code));
+  }
+});

@@ -129,10 +129,6 @@ export function openNutritionSheet({ current, initialQuery = '', onSelect }) {
           <p class="field-error" data-error-for="basis"></p>
         </div>
         ${NUTRIENTS.filter((n) => LABEL_NUTRIENTS.includes(n.key)).map(field).join('')}
-        <details class="more-nutrients">
-          <summary>${t('その他の栄養素（表示があれば）')}</summary>
-          ${NUTRIENTS.filter((n) => !LABEL_NUTRIENTS.includes(n.key)).map(field).join('')}
-        </details>
         <div class="form-actions"><button type="submit" class="btn btn-primary btn-block">${t('この内容で使う')}</button></div>
       </form>`;
     const form = body.querySelector('form');

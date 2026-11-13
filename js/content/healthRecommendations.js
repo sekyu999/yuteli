@@ -30,26 +30,26 @@
 // よく使う食材（同じものを何度も書かないように）
 const F = {
   egg: { name: '卵', unit: 'パック', category: '卵', cost: 'low', code: '12004' },
-  natto: { name: '納豆', unit: 'パック', category: '納豆・豆腐', cost: 'low', code: '04046' },
-  tofu: { name: '豆腐', unit: '丁', category: '納豆・豆腐', cost: 'low', code: '04032' },
+  natto: { name: '納豆', unit: 'パック', category: '豆類', cost: 'low', code: '04046' },
+  tofu: { name: '豆腐', unit: '丁', category: '豆類', cost: 'low', code: '04032' },
   milk: { name: '牛乳', unit: '本', category: '乳製品', cost: 'low', code: '13003' },
   yogurt: { name: 'ヨーグルト', unit: '個', category: '乳製品', cost: 'low', code: '13025' },
-  banana: { name: 'バナナ', unit: '房', category: '野菜・果物', cost: 'low', code: '07107' },
-  kiwi: { name: 'キウイ', unit: '個', category: '野菜・果物', cost: 'low', code: '07054' },
-  broccoli: { name: 'ブロッコリー', unit: '株', category: '野菜・果物', cost: 'low', code: '06263' },
-  komatsuna: { name: '小松菜', unit: '袋', category: '野菜・果物', cost: 'low', code: '06086' },
-  spinach: { name: 'ほうれん草', unit: '袋', category: '野菜・果物', cost: 'low', code: '06267' },
-  carrot: { name: 'にんじん', unit: '本', category: '野菜・果物', cost: 'low', code: '06212' },
-  onion: { name: '玉ねぎ', unit: '個', category: '野菜・果物', cost: 'low', code: '06153' },
-  chicken: { name: '鶏むね肉', unit: 'パック', category: '肉・魚', cost: 'low', code: '11220' },
-  pork: { name: '豚もも肉', unit: 'パック', category: '肉・魚', cost: 'mid', code: '11131' },
-  beef: { name: '牛もも肉（赤身）', unit: 'パック', category: '肉・魚', cost: 'mid', code: '11076' },
-  salmon: { name: '鮭', unit: '切れ', category: '肉・魚', cost: 'mid', code: '10134' },
+  banana: { name: 'バナナ', unit: '房', category: '果物', cost: 'low', code: '07107' },
+  kiwi: { name: 'キウイ', unit: '個', category: '果物', cost: 'low', code: '07054' },
+  broccoli: { name: 'ブロッコリー', unit: '株', category: '野菜', cost: 'low', code: '06263' },
+  komatsuna: { name: '小松菜', unit: '袋', category: '野菜', cost: 'low', code: '06086' },
+  spinach: { name: 'ほうれん草', unit: '袋', category: '野菜', cost: 'low', code: '06267' },
+  carrot: { name: 'にんじん', unit: '本', category: '野菜', cost: 'low', code: '06212' },
+  onion: { name: '玉ねぎ', unit: '個', category: '野菜', cost: 'low', code: '06153' },
+  chicken: { name: '鶏むね肉', unit: 'パック', category: '肉', cost: 'low', code: '11220' },
+  pork: { name: '豚もも肉', unit: 'パック', category: '肉', cost: 'mid', code: '11131' },
+  beef: { name: '牛もも肉（赤身）', unit: 'パック', category: '肉', cost: 'mid', code: '11076' },
+  salmon: { name: '鮭', unit: '切れ', category: '魚', cost: 'mid', code: '10134' },
   saba: { name: 'サバ缶', unit: '缶', category: '缶詰', cost: 'low', code: '10164' },
   tuna: { name: 'ツナ缶', unit: '缶', category: '缶詰', cost: 'low', code: '10263' },
   asari: { name: 'あさり缶', unit: '缶', category: '缶詰', cost: 'mid', code: '10283' },
-  oatmeal: { name: 'オートミール', unit: '袋', category: 'パン・米・麺', cost: 'low', code: '01004' },
-  brownRice: { name: '玄米', unit: '袋', category: 'パン・米・麺', cost: 'mid', code: '01085' },
+  oatmeal: { name: 'オートミール', unit: '袋', category: '米', cost: 'low', code: '01004' },
+  brownRice: { name: '玄米', unit: '袋', category: '米', cost: 'mid', code: '01085' },
   almond: { name: 'アーモンド', unit: '袋', category: 'その他', cost: 'mid', code: '05001' },
   wakame: { name: 'わかめ（乾燥）', unit: '袋', category: 'その他', cost: 'low', code: '09044' },
 };
@@ -102,7 +102,7 @@ export const HEALTH_RECOMMENDATIONS = [
       food(F.saba, 'DHA・EPAを手軽にとれる', 'そのまま、味噌汁やパスタに'),
       food(F.egg, 'ルテイン・ビタミンAを含む', 'ゆで卵の作り置き'),
       food(F.broccoli, 'ルテイン・ビタミンCを含む', 'レンジ蒸し'),
-      { name: 'ブルーベリー（冷凍）', unit: '袋', category: '野菜・果物', cost: 'mid', code: '07124', point: 'アントシアニンを含む', howTo: 'ヨーグルトにのせる' },
+      { name: 'ブルーベリー（冷凍）', unit: '袋', category: '果物', cost: 'mid', code: '07124', point: 'アントシアニンを含む', howTo: 'ヨーグルトにのせる' },
     ],
     suggestions: ['画面を見る時は1時間に1回は遠くを見る', '緑黄色野菜を毎日1品', '青魚を週2回（缶詰でも）'],
   },
@@ -177,11 +177,11 @@ export const HEALTH_RECOMMENDATIONS = [
       '食物繊維には、水に溶ける「水溶性」と溶けない「不溶性」があり、両方をとるのが基本です。食物繊維を増やす時は水分も一緒にとりましょう。',
     foods: [
       food(F.oatmeal, '水溶性の食物繊維を手軽にとれる', '牛乳やお湯で1〜2分レンジ加熱'),
-      { name: 'ごぼう', unit: '本', category: '野菜・果物', cost: 'low', code: '06084', point: '不溶性の食物繊維が多い', howTo: '味噌汁やきんぴらに。水煮も便利' },
+      { name: 'ごぼう', unit: '本', category: '野菜', cost: 'low', code: '06084', point: '不溶性の食物繊維が多い', howTo: '味噌汁やきんぴらに。水煮も便利' },
       food(F.kiwi, '食物繊維とビタミンC', '半分に切ってスプーンで'),
       food(F.natto, '発酵食品で食物繊維も含む', 'オクラやめかぶと混ぜる'),
       food(F.wakame, '水溶性の食物繊維。日持ちする', '味噌汁やスープにひとつまみ'),
-      { name: 'さつまいも', unit: '本', category: '野菜・果物', cost: 'low', code: '02045', point: '食物繊維が多く続けやすい', howTo: 'レンジ加熱、皮ごと食べる' },
+      { name: 'さつまいも', unit: '本', category: '野菜', cost: 'low', code: '02045', point: '食物繊維が多く続けやすい', howTo: 'レンジ加熱、皮ごと食べる' },
     ],
     suggestions: ['朝食にオートミールやバナナを足す', '味噌汁に海藻やきのこを入れる', '食事のたびにコップ1杯の水'],
   },
@@ -226,10 +226,10 @@ export const HEALTH_RECOMMENDATIONS = [
     foods: [
       food(F.broccoli, 'ビタミンCが多い', 'レンジ蒸しで副菜に'),
       food(F.salmon, 'ビタミンDとたんぱく質', '焼き鮭、鮭フレーク'),
-      { name: 'しいたけ', unit: 'パック', category: '野菜・果物', cost: 'low', code: '08039', point: 'ビタミンDを含む', howTo: '味噌汁・炒め物に' },
+      { name: 'しいたけ', unit: 'パック', category: '野菜', cost: 'low', code: '08039', point: 'ビタミンDを含む', howTo: '味噌汁・炒め物に' },
       food(F.egg, 'たんぱく質・ビタミンA・D', '毎日1〜2個'),
       food(F.pork, '亜鉛とたんぱく質', '野菜と一緒に炒める'),
-      { name: 'みかん', unit: '袋', category: '野菜・果物', cost: 'low', code: '07027', point: 'ビタミンCを手軽に', howTo: '間食に' },
+      { name: 'みかん', unit: '袋', category: '果物', cost: 'low', code: '07027', point: 'ビタミンCを手軽に', howTo: '間食に' },
     ],
     suggestions: ['野菜か果物を毎食どこかに', '魚を週2回以上', 'たんぱく質を毎食'],
   },
@@ -256,11 +256,11 @@ export const HEALTH_RECOMMENDATIONS = [
     explanation:
       '亜鉛は男性ホルモンや生殖に関わるミネラルで、不足しがちな栄養素のひとつです。たんぱく質と、糖質をエネルギーに変えるビタミンB群もあわせてとりましょう。睡眠・運動・お酒を控えめにすることも大切です。気になる状態が続く時は医療機関（泌尿器科など）に相談を。',
     foods: [
-      { name: '牡蠣', unit: 'パック', category: '肉・魚', cost: 'mid', code: '10292', point: '亜鉛が特に多い', howTo: '鍋・ソテー・牡蠣フライに（加熱用は中まで火を通す）' },
-      { name: '豚ヒレ肉', unit: 'パック', category: '肉・魚', cost: 'mid', code: '11140', point: 'ビタミンB1が多く脂質が少ない', howTo: 'ソテー・ヒレカツに' },
+      { name: '牡蠣', unit: 'パック', category: '魚', cost: 'mid', code: '10292', point: '亜鉛が特に多い', howTo: '鍋・ソテー・牡蠣フライに（加熱用は中まで火を通す）' },
+      { name: '豚ヒレ肉', unit: 'パック', category: '肉', cost: 'mid', code: '11140', point: 'ビタミンB1が多く脂質が少ない', howTo: 'ソテー・ヒレカツに' },
       food(F.beef, '亜鉛とたんぱく質', '焼くだけ・炒め物に'),
-      { name: 'うなぎ（かば焼き）', unit: '尾', category: '肉・魚', cost: 'mid', code: '10070', point: 'ビタミンA・B1・B2・亜鉛', howTo: 'うな丼・ひつまぶしに（ときどきのごちそうに）' },
-      { name: 'にんにく', unit: '個', category: '野菜・果物', cost: 'low', code: '06223', point: '豚肉のビタミンB1と合わせると吸収されやすい', howTo: '豚肉の炒め物に少し' },
+      { name: 'うなぎ（かば焼き）', unit: '尾', category: '魚', cost: 'mid', code: '10070', point: 'ビタミンA・B1・B2・亜鉛', howTo: 'うな丼・ひつまぶしに（ときどきのごちそうに）' },
+      { name: 'にんにく', unit: '個', category: '野菜', cost: 'low', code: '06223', point: '豚肉のビタミンB1と合わせると吸収されやすい', howTo: '豚肉の炒め物に少し' },
       food(F.egg, 'たんぱく質と亜鉛', '毎日1〜2個'),
     ],
     suggestions: ['牡蠣や赤身肉を週に何回か', '豚肉にはにんにく・玉ねぎを合わせる', '寝る時間を確保し、お酒は控えめに'],
@@ -274,9 +274,9 @@ export const HEALTH_RECOMMENDATIONS = [
     foods: [
       food(F.chicken, '高たんぱく・低脂質', 'レンジ蒸しやそぎ切りで炒める'),
       food(F.tofu, '低カロリーでたんぱく質', 'ご飯の一部を豆腐に'),
-      { name: 'しめじ', unit: 'パック', category: '野菜・果物', cost: 'low', code: '08016', point: '低カロリーで食物繊維が多い', howTo: '炒め物・スープでかさ増し' },
-      { name: 'キャベツ', unit: '玉', category: '野菜・果物', cost: 'low', code: '06061', point: 'かさがあり、よく噛む', howTo: '食事の最初にせん切り' },
-      { name: 'もやし', unit: '袋', category: '野菜・果物', cost: 'low', code: '06291', point: 'とても安く、かさ増しに', howTo: 'レンジでナムル' },
+      { name: 'しめじ', unit: 'パック', category: '野菜', cost: 'low', code: '08016', point: '低カロリーで食物繊維が多い', howTo: '炒め物・スープでかさ増し' },
+      { name: 'キャベツ', unit: '玉', category: '野菜', cost: 'low', code: '06061', point: 'かさがあり、よく噛む', howTo: '食事の最初にせん切り' },
+      { name: 'もやし', unit: '袋', category: '野菜', cost: 'low', code: '06291', point: 'とても安く、かさ増しに', howTo: 'レンジでナムル' },
       food(F.wakame, 'ほぼカロリーなしで食物繊維', 'スープ・酢の物に'),
     ],
     suggestions: ['野菜・たんぱく質から先に食べる', 'ご飯を少し減らし、きのこや野菜でかさ増し', '甘い飲み物を水やお茶に'],
@@ -288,9 +288,9 @@ export const HEALTH_RECOMMENDATIONS = [
     explanation:
       '体の熱は食べた物から作られます。食事量が少なすぎない、たんぱく質をとる、温かい料理を選ぶ、が基本です。',
     foods: [
-      { name: 'しょうが', unit: '個', category: '野菜・果物', cost: 'low', code: '06103', point: '料理を温かく食べる工夫に', howTo: 'すりおろしてスープ・炒め物に' },
-      { name: 'かぼちゃ', unit: '個', category: '野菜・果物', cost: 'low', code: '06048', point: 'ビタミンE・βカロテン', howTo: 'レンジ蒸し、スープに' },
-      { name: '鶏もも肉', unit: 'パック', category: '肉・魚', cost: 'low', code: '11221', point: 'たんぱく質。鍋や煮込みに', howTo: '鍋・スープに' },
+      { name: 'しょうが', unit: '個', category: '野菜', cost: 'low', code: '06103', point: '料理を温かく食べる工夫に', howTo: 'すりおろしてスープ・炒め物に' },
+      { name: 'かぼちゃ', unit: '個', category: '野菜', cost: 'low', code: '06048', point: 'ビタミンE・βカロテン', howTo: 'レンジ蒸し、スープに' },
+      { name: '鶏もも肉', unit: 'パック', category: '肉', cost: 'low', code: '11221', point: 'たんぱく質。鍋や煮込みに', howTo: '鍋・スープに' },
       food(F.egg, 'たんぱく質', 'スープに落とす'),
       food(F.almond, 'ビタミンEが多い', 'ひとつかみ'),
       food(F.natto, '鉄とたんぱく質', '温かい味噌汁に入れても'),
@@ -305,11 +305,11 @@ export const HEALTH_RECOMMENDATIONS = [
       'カリウムは余分な塩分を体の外に出すのを助けます。あわせて塩分を控えめに。腎臓の病気などでカリウムを制限されている方は、医師の指示にしたがってください。',
     foods: [
       food(F.banana, 'カリウムが多い', 'そのまま'),
-      { name: 'アボカド', unit: '個', category: '野菜・果物', cost: 'mid', code: '07006', point: 'カリウムが多い', howTo: 'わさび醤油・サラダに' },
-      { name: 'きゅうり', unit: '本', category: '野菜・果物', cost: 'low', code: '06065', point: '水分とカリウム', howTo: '浅漬け（塩少なめ）・サラダ' },
+      { name: 'アボカド', unit: '個', category: '果物', cost: 'mid', code: '07006', point: 'カリウムが多い', howTo: 'わさび醤油・サラダに' },
+      { name: 'きゅうり', unit: '本', category: '野菜', cost: 'low', code: '06065', point: '水分とカリウム', howTo: '浅漬け（塩少なめ）・サラダ' },
       food(F.spinach, 'カリウムが多い', 'おひたし'),
       food(F.natto, 'カリウムとたんぱく質', 'ご飯にのせる'),
-      { name: 'じゃがいも', unit: '個', category: '野菜・果物', cost: 'low', code: '02017', point: 'カリウムを含む', howTo: 'レンジ蒸し、味噌汁に' },
+      { name: 'じゃがいも', unit: '個', category: '野菜', cost: 'low', code: '02017', point: 'カリウムを含む', howTo: 'レンジ蒸し、味噌汁に' },
     ],
     suggestions: ['汁物は具だくさんにして汁を少なめに', '加工食品・外食の塩分に注意', '野菜・果物を毎食'],
   },
@@ -322,7 +322,7 @@ export const HEALTH_RECOMMENDATIONS = [
     foods: [
       food(F.beef, '吸収されやすい鉄', '焼くだけ・炒め物に'),
       food(F.asari, '鉄とビタミンB12', '味噌汁・パスタに'),
-      { name: '鶏レバー', unit: 'パック', category: '肉・魚', cost: 'low', code: '11232', point: '鉄が特に多い（ビタミンAも多いので食べすぎに注意）', howTo: '甘辛煮を少量ずつ' },
+      { name: '鶏レバー', unit: 'パック', category: '肉', cost: 'low', code: '11232', point: '鉄が特に多い（ビタミンAも多いので食べすぎに注意）', howTo: '甘辛煮を少量ずつ' },
       food(F.komatsuna, '鉄とカルシウム', 'ビタミンCの多い食材と一緒に'),
       food(F.natto, '鉄と葉酸', 'ご飯にのせる'),
       food(F.kiwi, 'ビタミンCで鉄の吸収を助ける', '食後のデザートに'),
@@ -340,12 +340,134 @@ export const HEALTH_RECOMMENDATIONS = [
       food(F.yogurt, 'カルシウムとたんぱく質', '朝食や間食に'),
       food(F.komatsuna, 'カルシウムとビタミンK', '炒め物・味噌汁に'),
       food(F.salmon, 'ビタミンDが多い', '焼き鮭'),
-      { name: 'しらす', unit: 'パック', category: '肉・魚', cost: 'mid', code: '10055', point: 'カルシウムとビタミンD', howTo: 'ご飯・卵焼きに' },
+      { name: 'しらす', unit: 'パック', category: '魚', cost: 'mid', code: '10055', point: 'カルシウムとビタミンD', howTo: 'ご飯・卵焼きに' },
       food(F.natto, 'ビタミンKが多い', 'ご飯にのせる'),
     ],
     suggestions: ['乳製品を1日1〜2回', '魚を週2回以上', '日中に外を歩く'],
   },
 ];
+
+/**
+ * 栄養からのおすすめ（v1.11）。食事タブの「1日」の栄養が目標から外れている時に、食材の提案の上に出す。
+ * id は「栄養素-low / -high」。表示は気になることと同じ形（nutrients・explanation・foods・suggestions）
+ * @type {Record<string, Omit<HealthRecommendation, 'id'>>}
+ */
+const RICE = { name: 'ご飯（精白米）', unit: '袋', category: '米', cost: 'low', code: '01088' };
+const BREAD = { name: '食パン', unit: '袋', category: 'パン', cost: 'low', code: '01026' };
+const SWEET_POTATO = { name: 'さつまいも', unit: '本', category: '野菜', cost: 'low', code: '02006' };
+const SHIMEJI = { name: 'しめじ', unit: 'パック', category: '野菜', cost: 'low', code: '08016' };
+const ENOKI = { name: 'えのき', unit: '袋', category: '野菜', cost: 'low', code: '08001' };
+const AVOCADO = { name: 'アボカド', unit: '個', category: '果物', cost: 'mid', code: '07006' };
+const KONNYAKU = { name: 'こんにゃく', unit: '枚', category: 'その他', cost: 'low', code: '02003' };
+
+export const NUTRIENT_ADVICE = {
+  'energy-low': {
+    concern: 'エネルギーが足りない',
+    nutrients: ['エネルギー', '炭水化物', 'たんぱく質'],
+    explanation: '必要な量より少ない状態が続くと、疲れやすさや筋肉が減る原因になります。主食を抜かず、間食で足すのも手です。',
+    foods: [
+      food(RICE, '手軽にエネルギーをとれる', '毎食お茶わん1杯'),
+      food(F.banana, '間食で手軽に', '朝食や小腹がすいた時に'),
+      food(F.oatmeal, 'エネルギーと食物繊維', '牛乳をかけてレンジで'),
+      food(F.almond, '少量でエネルギーが多い', '間食にひとつかみ'),
+      food(F.egg, 'たんぱく質も一緒に', '1品足す'),
+      food(SWEET_POTATO, '腹持ちのよい炭水化物', 'ふかし芋・焼き芋に'),
+    ],
+    suggestions: ['主食を毎食とる', '間食にバナナやナッツ', 'おかずを1品足す'],
+  },
+  'energy-high': {
+    concern: 'エネルギーが多い',
+    nutrients: ['エネルギー', '脂質', '食物繊維'],
+    explanation: '必要な量より多い状態が続くと体重が増えやすくなります。量を減らすより、低エネルギーでかさのある食材に置き換えるのが続けやすい方法です。',
+    foods: [
+      food(F.broccoli, '低エネルギーでかさがある', '主食の前に食べる'),
+      food(SHIMEJI, 'ほぼエネルギーがなく食物繊維が多い', '炒め物・汁物のかさ増しに'),
+      food(ENOKI, 'かさ増しに使いやすい', 'スープ・鍋・ハンバーグに混ぜる'),
+      food(KONNYAKU, 'とてもエネルギーが少ない', '煮物・炒め物に'),
+      food(F.tofu, '肉の一部を置き換え', '豆腐ハンバーグ・麻婆豆腐に'),
+      food(F.chicken, '脂質の少ない肉に置き換え', '皮を除いて調理'),
+    ],
+    suggestions: ['野菜・きのこから先に食べる', '揚げ物を焼く・蒸すに', '飲み物の糖分に気をつける'],
+  },
+  'protein-low': {
+    concern: 'たんぱく質が足りない',
+    nutrients: ['たんぱく質'],
+    explanation: '筋肉・肌・髪などの材料になります。1日に分けて毎食とるのがよいとされています。',
+    foods: [
+      food(F.chicken, '安くて高たんぱく・低脂質', 'レンジ蒸し・サラダチキンに'),
+      food(F.egg, '調理が簡単', 'ゆで卵の作り置き'),
+      food(F.natto, '植物性たんぱく質', 'ご飯にのせる'),
+      food(F.saba, 'たんぱく質と良質な脂', 'そのまま・味噌汁に'),
+      food(F.tuna, '手軽に足せる', 'サラダ・おにぎりに'),
+      food(F.yogurt, '朝食や間食で足せる', '朝食に1個'),
+    ],
+    suggestions: ['朝・昼・夕それぞれにたんぱく質', '缶詰・卵・納豆を常備', '間食をヨーグルトに'],
+  },
+  'protein-high': {
+    concern: 'たんぱく質が多い',
+    nutrients: ['たんぱく質', '炭水化物'],
+    explanation: 'エネルギーのうちたんぱく質の割合が高すぎる状態です。主食や野菜とのバランスを見直しましょう。腎臓の病気がある方は医師に相談を。',
+    foods: [
+      food(RICE, '主食で炭水化物を足す', '毎食お茶わん1杯'),
+      food(F.broccoli, '野菜でバランスをとる', '付け合わせに'),
+      food(F.carrot, '野菜でバランスをとる', '炒め物・スープに'),
+      food(F.banana, '果物で炭水化物を足す', '朝食に'),
+    ],
+    suggestions: ['主食を抜かない', 'プロテイン飲料は量を見直す', '野菜のおかずを1品'],
+  },
+  'fat-low': {
+    concern: '脂質が足りない',
+    nutrients: ['脂質（エネルギー比20%以上）'],
+    explanation: '脂質はエネルギー源で、脂溶性ビタミンの吸収にも必要です。魚やナッツなど質のよい脂から足しましょう。',
+    foods: [
+      food(F.saba, '青魚の脂（DHA・EPA）', 'そのまま・パスタに'),
+      food(F.salmon, '魚の脂', '焼き鮭'),
+      food(F.almond, '植物性の脂', '間食にひとつかみ'),
+      food(AVOCADO, '植物性の脂', 'サラダ・トーストに'),
+      food(F.egg, '手軽に足せる', '1日1〜2個'),
+    ],
+    suggestions: ['魚を週2回以上', '間食をナッツに', 'サラダにオイルを少し'],
+  },
+  'fat-high': {
+    concern: '脂質が多い',
+    nutrients: ['脂質（エネルギー比30%まで）'],
+    explanation: '脂質はエネルギーが高いため、多いとエネルギーのとりすぎにつながります。脂の少ない食材や調理法に置き換えましょう。',
+    foods: [
+      food(F.chicken, '脂質の少ない肉', '皮を除いて'),
+      food(F.tofu, '肉の一部を置き換え', '豆腐ハンバーグに'),
+      food(F.broccoli, '低脂質でかさがある', '蒸す・ゆでる'),
+      food(SHIMEJI, '油を使わずかさ増し', '汁物・ホイル焼きに'),
+      food(F.yogurt, '間食の置き換えに', 'お菓子の代わりに'),
+    ],
+    suggestions: ['揚げ物を焼く・蒸す・ゆでるに', '肉は脂の少ない部位に', 'ドレッシング・マヨネーズは量を控えめに'],
+  },
+  'carb-low': {
+    concern: '炭水化物が足りない',
+    nutrients: ['炭水化物（エネルギー比50%以上）'],
+    explanation: '炭水化物は体や脳の主なエネルギー源です。足りないと疲れやすく、たんぱく質がエネルギーに使われてしまいます。',
+    foods: [
+      food(RICE, '主なエネルギー源', '毎食お茶わん1杯'),
+      food(BREAD, '朝食に手軽', 'トーストに'),
+      food(F.oatmeal, '食物繊維も多い', '牛乳をかけてレンジで'),
+      food(F.banana, '間食で足せる', '朝食や運動前に'),
+      food(SWEET_POTATO, '腹持ちがよい', 'ふかし芋に'),
+    ],
+    suggestions: ['主食を毎食とる', '間食に果物', '玄米・オートミールも取り入れる'],
+  },
+  'carb-high': {
+    concern: '炭水化物が多い',
+    nutrients: ['炭水化物（エネルギー比65%まで）', 'たんぱく質'],
+    explanation: '主食やお菓子・甘い飲み物にかたよっている状態です。主食の量はそのままに、たんぱく質や野菜のおかずを足してバランスをとりましょう。',
+    foods: [
+      food(F.chicken, 'たんぱく質のおかずを足す', 'レンジ蒸しに'),
+      food(F.egg, 'たんぱく質を手軽に', '1品足す'),
+      food(F.tofu, 'たんぱく質を手軽に', '冷奴・味噌汁に'),
+      food(F.broccoli, '野菜のおかずを足す', '付け合わせに'),
+      food(SHIMEJI, 'かさ増しに', '汁物・炒め物に'),
+    ],
+    suggestions: ['甘い飲み物をお茶・水に', '主食は適量、おかずを増やす', 'お菓子を果物・ヨーグルトに'],
+  },
+};
 
 export const HEALTH_DISCLAIMER =
   '一般的な栄養情報で、診断や治療の代わりにはなりません。持病・服薬中（例：ワルファリンと納豆）・妊娠中・アレルギーのある方は医師や管理栄養士に相談を。';

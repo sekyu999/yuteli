@@ -13,26 +13,26 @@
 // Common foods (so each one is written only once)
 const F = {
   egg: { name: 'Eggs', unit: 'pack', category: '卵', cost: 'low', code: '12004' },
-  natto: { name: 'Natto', unit: 'pack', category: '納豆・豆腐', cost: 'low', code: '04046' },
-  tofu: { name: 'Tofu', unit: 'block', category: '納豆・豆腐', cost: 'low', code: '04032' },
+  natto: { name: 'Natto', unit: 'pack', category: '豆類', cost: 'low', code: '04046' },
+  tofu: { name: 'Tofu', unit: 'block', category: '豆類', cost: 'low', code: '04032' },
   milk: { name: 'Milk', unit: 'carton', category: '乳製品', cost: 'low', code: '13003' },
   yogurt: { name: 'Yogurt', unit: 'tub', category: '乳製品', cost: 'low', code: '13025' },
-  banana: { name: 'Bananas', unit: 'bunch', category: '野菜・果物', cost: 'low', code: '07107' },
-  kiwi: { name: 'Kiwi', unit: 'piece', category: '野菜・果物', cost: 'low', code: '07054' },
-  broccoli: { name: 'Broccoli', unit: 'head', category: '野菜・果物', cost: 'low', code: '06263' },
-  komatsuna: { name: 'Komatsuna (Japanese mustard spinach)', unit: 'bag', category: '野菜・果物', cost: 'low', code: '06086' },
-  spinach: { name: 'Spinach', unit: 'bag', category: '野菜・果物', cost: 'low', code: '06267' },
-  carrot: { name: 'Carrots', unit: 'piece', category: '野菜・果物', cost: 'low', code: '06212' },
-  onion: { name: 'Onions', unit: 'piece', category: '野菜・果物', cost: 'low', code: '06153' },
-  chicken: { name: 'Chicken breast', unit: 'pack', category: '肉・魚', cost: 'low', code: '11220' },
-  pork: { name: 'Pork leg', unit: 'pack', category: '肉・魚', cost: 'mid', code: '11131' },
-  beef: { name: 'Lean beef (round)', unit: 'pack', category: '肉・魚', cost: 'mid', code: '11076' },
-  salmon: { name: 'Salmon', unit: 'fillet', category: '肉・魚', cost: 'mid', code: '10134' },
+  banana: { name: 'Bananas', unit: 'bunch', category: '果物', cost: 'low', code: '07107' },
+  kiwi: { name: 'Kiwi', unit: 'piece', category: '果物', cost: 'low', code: '07054' },
+  broccoli: { name: 'Broccoli', unit: 'head', category: '野菜', cost: 'low', code: '06263' },
+  komatsuna: { name: 'Komatsuna (Japanese mustard spinach)', unit: 'bag', category: '野菜', cost: 'low', code: '06086' },
+  spinach: { name: 'Spinach', unit: 'bag', category: '野菜', cost: 'low', code: '06267' },
+  carrot: { name: 'Carrots', unit: 'piece', category: '野菜', cost: 'low', code: '06212' },
+  onion: { name: 'Onions', unit: 'piece', category: '野菜', cost: 'low', code: '06153' },
+  chicken: { name: 'Chicken breast', unit: 'pack', category: '肉', cost: 'low', code: '11220' },
+  pork: { name: 'Pork leg', unit: 'pack', category: '肉', cost: 'mid', code: '11131' },
+  beef: { name: 'Lean beef (round)', unit: 'pack', category: '肉', cost: 'mid', code: '11076' },
+  salmon: { name: 'Salmon', unit: 'fillet', category: '魚', cost: 'mid', code: '10134' },
   saba: { name: 'Canned mackerel', unit: 'can', category: '缶詰', cost: 'low', code: '10164' },
   tuna: { name: 'Canned tuna', unit: 'can', category: '缶詰', cost: 'low', code: '10263' },
   asari: { name: 'Canned clams', unit: 'can', category: '缶詰', cost: 'mid', code: '10283' },
-  oatmeal: { name: 'Oatmeal', unit: 'bag', category: 'パン・米・麺', cost: 'low', code: '01004' },
-  brownRice: { name: 'Brown rice', unit: 'bag', category: 'パン・米・麺', cost: 'mid', code: '01085' },
+  oatmeal: { name: 'Oatmeal', unit: 'bag', category: '米', cost: 'low', code: '01004' },
+  brownRice: { name: 'Brown rice', unit: 'bag', category: '米', cost: 'mid', code: '01085' },
   almond: { name: 'Almonds', unit: 'bag', category: 'その他', cost: 'mid', code: '05001' },
   wakame: { name: 'Dried wakame seaweed', unit: 'bag', category: 'その他', cost: 'low', code: '09044' },
 };
@@ -93,7 +93,7 @@ export const HEALTH_RECOMMENDATIONS = [
       food(F.saba, 'An easy source of DHA and EPA', 'As is, or in miso soup or pasta'),
       food(F.egg, 'Contains lutein and vitamin A', 'Keep boiled eggs ready'),
       food(F.broccoli, 'Contains lutein and vitamin C', 'Steam in the microwave'),
-      { name: 'Frozen blueberries', unit: 'bag', category: '野菜・果物', cost: 'mid', code: '07124', point: 'Contain anthocyanins', howTo: 'On top of yogurt' },
+      { name: 'Frozen blueberries', unit: 'bag', category: '果物', cost: 'mid', code: '07124', point: 'Contain anthocyanins', howTo: 'On top of yogurt' },
     ],
     suggestions: [
       'When using screens, look into the distance at least once an hour',
@@ -184,11 +184,11 @@ export const HEALTH_RECOMMENDATIONS = [
       'Fiber comes in two types: soluble (dissolves in water) and insoluble (doesn’t). The basic idea is to get both. When you eat more fiber, drink more fluids too.',
     foods: [
       food(F.oatmeal, 'An easy source of soluble fiber', 'Microwave with milk or hot water for 1–2 min'),
-      { name: 'Burdock root', unit: 'piece', category: '野菜・果物', cost: 'low', code: '06084', point: 'Rich in insoluble fiber', howTo: 'In miso soup or a stir-fry; pre-boiled packs are handy' },
+      { name: 'Burdock root', unit: 'piece', category: '野菜', cost: 'low', code: '06084', point: 'Rich in insoluble fiber', howTo: 'In miso soup or a stir-fry; pre-boiled packs are handy' },
       food(F.kiwi, 'Fiber and vitamin C', 'Cut in half and scoop with a spoon'),
       food(F.natto, 'A fermented food that also has fiber', 'Mix with okra or seaweed'),
       food(F.wakame, 'Soluble fiber; keeps a long time', 'A pinch in miso soup or other soups'),
-      { name: 'Sweet potatoes', unit: 'piece', category: '野菜・果物', cost: 'low', code: '02045', point: 'High in fiber and easy to keep eating', howTo: 'Microwave and eat with the skin on' },
+      { name: 'Sweet potatoes', unit: 'piece', category: '野菜', cost: 'low', code: '02045', point: 'High in fiber and easy to keep eating', howTo: 'Microwave and eat with the skin on' },
     ],
     suggestions: [
       'Add oatmeal or a banana to breakfast',
@@ -245,10 +245,10 @@ export const HEALTH_RECOMMENDATIONS = [
     foods: [
       food(F.broccoli, 'Rich in vitamin C', 'Microwave-steamed as a side dish'),
       food(F.salmon, 'Vitamin D and protein', 'Grilled salmon or salmon flakes'),
-      { name: 'Shiitake mushrooms', unit: 'pack', category: '野菜・果物', cost: 'low', code: '08039', point: 'Contain vitamin D', howTo: 'In miso soup or stir-fries' },
+      { name: 'Shiitake mushrooms', unit: 'pack', category: '野菜', cost: 'low', code: '08039', point: 'Contain vitamin D', howTo: 'In miso soup or stir-fries' },
       food(F.egg, 'Protein, vitamins A and D', '1–2 a day'),
       food(F.pork, 'Zinc and protein', 'Stir-fry with vegetables'),
-      { name: 'Mandarin oranges', unit: 'bag', category: '野菜・果物', cost: 'low', code: '07027', point: 'An easy source of vitamin C', howTo: 'As a snack' },
+      { name: 'Mandarin oranges', unit: 'bag', category: '果物', cost: 'low', code: '07027', point: 'An easy source of vitamin C', howTo: 'As a snack' },
     ],
     suggestions: [
       'Vegetables or fruit somewhere in every meal',
@@ -283,11 +283,11 @@ export const HEALTH_RECOMMENDATIONS = [
     explanation:
       'Zinc is a mineral involved in male hormones and reproduction, and it’s one of the nutrients people tend to lack. Get protein and B vitamins (which help turn carbs into energy) too. Sleep, exercise and going easy on alcohol also matter. If something keeps bothering you, talk to a doctor (such as a urologist).',
     foods: [
-      { name: 'Oysters', unit: 'pack', category: '肉・魚', cost: 'mid', code: '10292', point: 'Especially high in zinc', howTo: 'In hot pot, sautéed or fried (cook oysters for cooking all the way through)' },
-      { name: 'Pork tenderloin', unit: 'pack', category: '肉・魚', cost: 'mid', code: '11140', point: 'Rich in vitamin B1 and low in fat', howTo: 'Sautéed or as a cutlet' },
+      { name: 'Oysters', unit: 'pack', category: '魚', cost: 'mid', code: '10292', point: 'Especially high in zinc', howTo: 'In hot pot, sautéed or fried (cook oysters for cooking all the way through)' },
+      { name: 'Pork tenderloin', unit: 'pack', category: '肉', cost: 'mid', code: '11140', point: 'Rich in vitamin B1 and low in fat', howTo: 'Sautéed or as a cutlet' },
       food(F.beef, 'Zinc and protein', 'Simply grilled or stir-fried'),
-      { name: 'Eel (kabayaki)', unit: 'piece', category: '肉・魚', cost: 'mid', code: '10070', point: 'Vitamins A, B1, B2 and zinc', howTo: 'Over rice, as an occasional treat' },
-      { name: 'Garlic', unit: 'bulb', category: '野菜・果物', cost: 'low', code: '06223', point: 'Helps your body absorb the vitamin B1 in pork', howTo: 'A little in pork stir-fries' },
+      { name: 'Eel (kabayaki)', unit: 'piece', category: '魚', cost: 'mid', code: '10070', point: 'Vitamins A, B1, B2 and zinc', howTo: 'Over rice, as an occasional treat' },
+      { name: 'Garlic', unit: 'bulb', category: '野菜', cost: 'low', code: '06223', point: 'Helps your body absorb the vitamin B1 in pork', howTo: 'A little in pork stir-fries' },
       food(F.egg, 'Protein and zinc', '1–2 a day'),
     ],
     suggestions: ['Oysters or lean red meat a few times a week', 'Pair pork with garlic or onion', 'Get enough sleep and go easy on alcohol'],
@@ -301,9 +301,9 @@ export const HEALTH_RECOMMENDATIONS = [
     foods: [
       food(F.chicken, 'High in protein, low in fat', 'Microwave-steam, or slice thin and stir-fry'),
       food(F.tofu, 'Low in calories, with protein', 'Swap some of your rice for tofu'),
-      { name: 'Shimeji mushrooms', unit: 'pack', category: '野菜・果物', cost: 'low', code: '08016', point: 'Low in calories and high in fiber', howTo: 'Bulk up stir-fries and soups' },
-      { name: 'Cabbage', unit: 'head', category: '野菜・果物', cost: 'low', code: '06061', point: 'Bulky and takes chewing', howTo: 'Shredded, at the start of a meal' },
-      { name: 'Bean sprouts', unit: 'bag', category: '野菜・果物', cost: 'low', code: '06291', point: 'Very cheap and adds bulk', howTo: 'Microwave and season as namul' },
+      { name: 'Shimeji mushrooms', unit: 'pack', category: '野菜', cost: 'low', code: '08016', point: 'Low in calories and high in fiber', howTo: 'Bulk up stir-fries and soups' },
+      { name: 'Cabbage', unit: 'head', category: '野菜', cost: 'low', code: '06061', point: 'Bulky and takes chewing', howTo: 'Shredded, at the start of a meal' },
+      { name: 'Bean sprouts', unit: 'bag', category: '野菜', cost: 'low', code: '06291', point: 'Very cheap and adds bulk', howTo: 'Microwave and season as namul' },
       food(F.wakame, 'Fiber with almost no calories', 'In soups or vinegared salads'),
     ],
     suggestions: [
@@ -319,9 +319,9 @@ export const HEALTH_RECOMMENDATIONS = [
     explanation:
       'Body heat is made from the food you eat. The basics: don’t eat too little, get enough protein, and choose warm dishes.',
     foods: [
-      { name: 'Ginger', unit: 'piece', category: '野菜・果物', cost: 'low', code: '06103', point: 'A way to make dishes warming', howTo: 'Grate into soups or stir-fries' },
-      { name: 'Kabocha squash', unit: 'piece', category: '野菜・果物', cost: 'low', code: '06048', point: 'Vitamin E and beta-carotene', howTo: 'Microwave-steamed or in soup' },
-      { name: 'Chicken thigh', unit: 'pack', category: '肉・魚', cost: 'low', code: '11221', point: 'Protein; good in hot pots and stews', howTo: 'In hot pots or soups' },
+      { name: 'Ginger', unit: 'piece', category: '野菜', cost: 'low', code: '06103', point: 'A way to make dishes warming', howTo: 'Grate into soups or stir-fries' },
+      { name: 'Kabocha squash', unit: 'piece', category: '野菜', cost: 'low', code: '06048', point: 'Vitamin E and beta-carotene', howTo: 'Microwave-steamed or in soup' },
+      { name: 'Chicken thigh', unit: 'pack', category: '肉', cost: 'low', code: '11221', point: 'Protein; good in hot pots and stews', howTo: 'In hot pots or soups' },
       food(F.egg, 'Protein', 'Crack into soup'),
       food(F.almond, 'Rich in vitamin E', 'A handful'),
       food(F.natto, 'Iron and protein', 'Can also go in warm miso soup'),
@@ -340,11 +340,11 @@ export const HEALTH_RECOMMENDATIONS = [
       'Potassium helps the body get rid of excess salt. Also keep salt on the low side. If you have been told to limit potassium (for example, because of kidney disease), follow your doctor’s advice.',
     foods: [
       food(F.banana, 'Rich in potassium', 'As is'),
-      { name: 'Avocados', unit: 'piece', category: '野菜・果物', cost: 'mid', code: '07006', point: 'Rich in potassium', howTo: 'With wasabi soy sauce, or in salads' },
-      { name: 'Cucumbers', unit: 'piece', category: '野菜・果物', cost: 'low', code: '06065', point: 'Water and potassium', howTo: 'Lightly pickled (go easy on salt) or in salads' },
+      { name: 'Avocados', unit: 'piece', category: '果物', cost: 'mid', code: '07006', point: 'Rich in potassium', howTo: 'With wasabi soy sauce, or in salads' },
+      { name: 'Cucumbers', unit: 'piece', category: '野菜', cost: 'low', code: '06065', point: 'Water and potassium', howTo: 'Lightly pickled (go easy on salt) or in salads' },
       food(F.spinach, 'Rich in potassium', 'Blanched as a side'),
       food(F.natto, 'Potassium and protein', 'Serve over rice'),
-      { name: 'Potatoes', unit: 'piece', category: '野菜・果物', cost: 'low', code: '02017', point: 'Contain potassium', howTo: 'Microwave-steamed or in miso soup' },
+      { name: 'Potatoes', unit: 'piece', category: '野菜', cost: 'low', code: '02017', point: 'Contain potassium', howTo: 'Microwave-steamed or in miso soup' },
     ],
     suggestions: [
       'Load soups with ingredients and keep the broth small',
@@ -361,7 +361,7 @@ export const HEALTH_RECOMMENDATIONS = [
     foods: [
       food(F.beef, 'Easily absorbed iron', 'Just grill it, or stir-fry'),
       food(F.asari, 'Iron and vitamin B12', 'In miso soup or pasta'),
-      { name: 'Chicken liver', unit: 'pack', category: '肉・魚', cost: 'low', code: '11232', point: 'Very rich in iron (also high in vitamin A, so don’t overdo it)', howTo: 'Simmer in sweet soy sauce; eat a little at a time' },
+      { name: 'Chicken liver', unit: 'pack', category: '肉', cost: 'low', code: '11232', point: 'Very rich in iron (also high in vitamin A, so don’t overdo it)', howTo: 'Simmer in sweet soy sauce; eat a little at a time' },
       food(F.komatsuna, 'Iron and calcium', 'With foods rich in vitamin C'),
       food(F.natto, 'Iron and folate', 'Serve over rice'),
       food(F.kiwi, 'Vitamin C helps iron absorption', 'As dessert after a meal'),
@@ -383,12 +383,130 @@ export const HEALTH_RECOMMENDATIONS = [
       food(F.yogurt, 'Calcium and protein', 'At breakfast or as a snack'),
       food(F.komatsuna, 'Calcium and vitamin K', 'In stir-fries or miso soup'),
       food(F.salmon, 'Rich in vitamin D', 'Grilled'),
-      { name: 'Shirasu (whitebait)', unit: 'pack', category: '肉・魚', cost: 'mid', code: '10055', point: 'Calcium and vitamin D', howTo: 'On rice or in rolled omelets' },
+      { name: 'Shirasu (whitebait)', unit: 'pack', category: '魚', cost: 'mid', code: '10055', point: 'Calcium and vitamin D', howTo: 'On rice or in rolled omelets' },
       food(F.natto, 'Rich in vitamin K', 'Serve over rice'),
     ],
     suggestions: ['Dairy 1–2 times a day', 'Fish at least twice a week', 'Walk outside during the day'],
   },
 ];
+
+/** Nutrition-based suggestions (same ids, codes and order as the Japanese version) */
+const RICE = { name: 'Rice (white)', unit: 'bag', category: '米', cost: 'low', code: '01088' };
+const BREAD = { name: 'Sliced bread', unit: 'bag', category: 'パン', cost: 'low', code: '01026' };
+const SWEET_POTATO = { name: 'Sweet potato', unit: 'pc', category: '野菜', cost: 'low', code: '02006' };
+const SHIMEJI = { name: 'Shimeji mushrooms', unit: 'pack', category: '野菜', cost: 'low', code: '08016' };
+const ENOKI = { name: 'Enoki mushrooms', unit: 'bag', category: '野菜', cost: 'low', code: '08001' };
+const AVOCADO = { name: 'Avocado', unit: 'pc', category: '果物', cost: 'mid', code: '07006' };
+const KONNYAKU = { name: 'Konnyaku', unit: 'block', category: 'その他', cost: 'low', code: '02003' };
+
+export const NUTRIENT_ADVICE = {
+  'energy-low': {
+    concern: 'Not enough energy',
+    nutrients: ['Energy', 'Carbs', 'Protein'],
+    explanation: 'Eating less than you need for a long time can leave you tired and lose muscle. Don’t skip staple foods, and snacks can help.',
+    foods: [
+      food(RICE, 'An easy source of energy', 'A bowl at each meal'),
+      food(F.banana, 'An easy snack', 'At breakfast or when peckish'),
+      food(F.oatmeal, 'Energy and fiber', 'Microwave with milk'),
+      food(F.almond, 'Lots of energy in a small amount', 'A handful as a snack'),
+      food(F.egg, 'Adds protein too', 'Add one dish'),
+      food(SWEET_POTATO, 'Filling carbs', 'Steamed or baked'),
+    ],
+    suggestions: ['Eat a staple at every meal', 'Snack on bananas or nuts', 'Add one more side dish'],
+  },
+  'energy-high': {
+    concern: 'Too much energy',
+    nutrients: ['Energy', 'Fat', 'Fiber'],
+    explanation: 'Eating more than you need over time tends to add weight. Swapping in bulky, low-energy foods is easier to keep up than eating less.',
+    foods: [
+      food(F.broccoli, 'Low in energy, filling', 'Eat it before your staple'),
+      food(SHIMEJI, 'Almost no energy, lots of fiber', 'Bulk up stir-fries and soups'),
+      food(ENOKI, 'Easy to bulk up dishes', 'In soups, hot pot or patties'),
+      food(KONNYAKU, 'Very low in energy', 'Simmered or stir-fried'),
+      food(F.tofu, 'Replace some of the meat', 'Tofu patties or mapo tofu'),
+      food(F.chicken, 'Switch to lower-fat meat', 'Remove the skin'),
+    ],
+    suggestions: ['Start with vegetables and mushrooms', 'Grill or steam instead of frying', 'Watch the sugar in drinks'],
+  },
+  'protein-low': {
+    concern: 'Not enough protein',
+    nutrients: ['Protein'],
+    explanation: 'Protein builds muscle, skin and hair. Spreading it across every meal is considered a good approach.',
+    foods: [
+      food(F.chicken, 'Cheap, high in protein, low in fat', 'Microwave-steamed or as salad chicken'),
+      food(F.egg, 'Easy to cook', 'Keep boiled eggs ready'),
+      food(F.natto, 'Plant protein', 'Serve over rice'),
+      food(F.saba, 'Protein and healthy fats', 'As is, or in miso soup'),
+      food(F.tuna, 'Easy to add', 'In salads or rice balls'),
+      food(F.yogurt, 'Add at breakfast or as a snack', 'One at breakfast'),
+    ],
+    suggestions: ['Protein at breakfast, lunch and dinner', 'Keep cans, eggs and natto on hand', 'Snack on yogurt'],
+  },
+  'protein-high': {
+    concern: 'Too much protein',
+    nutrients: ['Protein', 'Carbs'],
+    explanation: 'Protein makes up too large a share of your energy. Rebalance with staples and vegetables. If you have kidney disease, ask your doctor.',
+    foods: [
+      food(RICE, 'Add carbs with a staple', 'A bowl at each meal'),
+      food(F.broccoli, 'Balance with vegetables', 'As a side'),
+      food(F.carrot, 'Balance with vegetables', 'Stir-fried or in soup'),
+      food(F.banana, 'Add carbs with fruit', 'At breakfast'),
+    ],
+    suggestions: ['Don’t skip staples', 'Check how much protein shake you drink', 'Add a vegetable side dish'],
+  },
+  'fat-low': {
+    concern: 'Not enough fat',
+    nutrients: ['Fat (20%+ of energy)'],
+    explanation: 'Fat is a source of energy and helps you absorb fat-soluble vitamins. Add it from good sources like fish and nuts.',
+    foods: [
+      food(F.saba, 'Oily fish (DHA, EPA)', 'As is, or in pasta'),
+      food(F.salmon, 'Fish oil', 'Grilled'),
+      food(F.almond, 'Plant fat', 'A handful as a snack'),
+      food(AVOCADO, 'Plant fat', 'In salads or on toast'),
+      food(F.egg, 'Easy to add', '1–2 a day'),
+    ],
+    suggestions: ['Fish at least twice a week', 'Snack on nuts', 'A little oil on salads'],
+  },
+  'fat-high': {
+    concern: 'Too much fat',
+    nutrients: ['Fat (up to 30% of energy)'],
+    explanation: 'Fat is high in energy, so too much leads to excess energy. Switch to leaner foods and cooking methods.',
+    foods: [
+      food(F.chicken, 'Low-fat meat', 'Remove the skin'),
+      food(F.tofu, 'Replace some of the meat', 'Tofu patties'),
+      food(F.broccoli, 'Low in fat, filling', 'Steamed or boiled'),
+      food(SHIMEJI, 'Bulk up without oil', 'In soups or foil-baked'),
+      food(F.yogurt, 'Swap for snacks', 'Instead of sweets'),
+    ],
+    suggestions: ['Grill, steam or boil instead of frying', 'Choose leaner cuts', 'Go easy on dressing and mayo'],
+  },
+  'carb-low': {
+    concern: 'Not enough carbs',
+    nutrients: ['Carbs (50%+ of energy)'],
+    explanation: 'Carbs are the main fuel for your body and brain. Without enough, you tire easily and protein gets used for energy.',
+    foods: [
+      food(RICE, 'Main source of energy', 'A bowl at each meal'),
+      food(BREAD, 'Easy at breakfast', 'As toast'),
+      food(F.oatmeal, 'High in fiber too', 'Microwave with milk'),
+      food(F.banana, 'Easy as a snack', 'At breakfast or before exercise'),
+      food(SWEET_POTATO, 'Filling', 'Steamed'),
+    ],
+    suggestions: ['Eat a staple at every meal', 'Fruit as a snack', 'Try brown rice or oatmeal'],
+  },
+  'carb-high': {
+    concern: 'Too many carbs',
+    nutrients: ['Carbs (up to 65% of energy)', 'Protein'],
+    explanation: 'Your diet leans toward staples, sweets or sugary drinks. Keep the staple, and add protein and vegetable sides for balance.',
+    foods: [
+      food(F.chicken, 'Add a protein side', 'Microwave-steamed'),
+      food(F.egg, 'Easy protein', 'Add one dish'),
+      food(F.tofu, 'Easy protein', 'Chilled or in miso soup'),
+      food(F.broccoli, 'Add a vegetable side', 'As a side'),
+      food(SHIMEJI, 'Bulk up dishes', 'In soups or stir-fries'),
+    ],
+    suggestions: ['Swap sugary drinks for tea or water', 'Normal staple, more sides', 'Swap sweets for fruit or yogurt'],
+  },
+};
 
 export const HEALTH_DISCLAIMER =
   'General nutrition information, not a substitute for diagnosis or treatment. If you have a medical condition, take medication (e.g. warfarin and natto), are pregnant, or have allergies, ask a doctor or registered dietitian.';

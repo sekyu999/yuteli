@@ -1,6 +1,6 @@
 // ③ 店舗・価格
 // 上部の切り替えで「価格比較」と「店舗」を行き来する。
-// 価格比較：商品ごとの最安店舗 → タップで店舗別の比較と履歴
+// 価格比較：商品ごとの最安店舗 → タップで店舗ごとの価格（店舗ごとに1件）
 // 店舗：店舗の登録・名前変更・売り場順の設定・削除
 import { watch } from '../ui/live.js';
 import { openSheet } from '../ui/sheet.js';
@@ -17,12 +17,12 @@ import {
   getOrderedCategories,
   saveShelfOrder,
 } from '../data/storeRepo.js';
-import { listAllRecords, listByProduct, deletePriceRecord } from '../data/priceRepo.js';
-import { compareStores, daysSince, STALE_DAYS, UNIT_BASE } from '../domain/pricing.js';
+import { listAllRecords, listByProduct, deleteStorePrice } from '../data/priceRepo.js';
+import { compareStores, UNIT_BASE } from '../domain/pricing.js';
 import { makeSortable, dragHandle } from '../ui/sortable.js';
 import { openPriceSheet } from './priceSheet.js';
-import { esc, todayLocal } from '../lib/util.js';
-import { t, money, dateShort, dateLong } from '../lib/i18n.js';
+import { esc } from '../lib/util.js';
+import { t, money } from '../lib/i18n.js';
 
 export const title = '店舗・価格';
 
@@ -107,7 +107,6 @@ function renderCompare(body) {
         if (!byProduct.has(r.productId)) byProduct.set(r.productId, []);
         byProduct.get(r.productId).push(r);
       }
-      const today = todayLocal();
       const rows = products.map((p) => ({ p, cmp: compareStores(byProduct.get(p.id) ?? []) }));
       const withData = rows.filter((r) => r.cmp.mode !== 'none');
       const without = rows.filter((r) => r.cmp.mode === 'none');
@@ -119,7 +118,6 @@ function renderCompare(body) {
         }
         const best = cmp.rows.filter((r) => r.cheapest);
         const top = best[0];
-        const days = daysSince(top.record.purchasedAt, today);
         const value =
           cmp.mode === 'unit'
             ? `${esc(unitLabel(top.unit))} ${money(top.unit.value)}`
@@ -128,7 +126,6 @@ function renderCompare(body) {
           <span class="grow">
             <span class="item-name item-name-sm">${esc(p.name)}</span>
             <span class="price-line">${t('最安')} <strong>${best.map((b) => esc(storeName.get(b.storeId) ?? t('削除された店舗'))).join(t('・'))}</strong> ${value}</span>
-            <span class="note ${days > STALE_DAYS ? 'stale' : ''}">${esc(t('{date}・{n}店舗の比較', { date: dateLabel(top.record.purchasedAt, today), n: cmp.rows.length }))}</span>
           </span>
           <span class="note">›</span></button></li>`;
       };
@@ -157,14 +154,14 @@ async function openProductPriceSheet(productId) {
       openPriceSheet({ productId });
       return;
     }
-    const edit = e.target.closest('[data-record-edit]');
+    const edit = e.target.closest('[data-store-edit]');
     if (edit) {
-      openPriceSheet({ recordId: edit.dataset.recordEdit });
+      openPriceSheet({ productId, storeId: edit.dataset.storeEdit });
       return;
     }
-    const del = e.target.closest('[data-record-del]');
-    if (del && window.confirm(t('この価格記録を削除しますか？') + '\n' + t('（入力ミスの修正用です。履歴として残す場合は削除しないでください）'))) {
-      await deletePriceRecord(del.dataset.recordDel);
+    const del = e.target.closest('[data-store-del]');
+    if (del && window.confirm(t('この店舗の価格を削除しますか？'))) {
+      await deleteStorePrice(productId, del.dataset.storeDel);
       toast(t('削除しました'));
     }
   });
@@ -176,7 +173,6 @@ async function openProductPriceSheet(productId) {
       const unit = esc(t(p.inventoryUnit));
       const storeName = new Map(stores.map((s) => [s.id, s.name]));
       const cmp = compareStores(records);
-      const today = todayLocal();
 
       const modeNote =
         cmp.mode === 'unit'
@@ -193,48 +189,27 @@ async function openProductPriceSheet(productId) {
             ? `<p class="placeholder">${t('まだ記録がありません。')}</p>`
             : `
           <section>
-            <h3 class="section-title">${t('店舗ごとの最新価格')}</h3>
+            <h3 class="section-title">${t('店舗ごとの価格')}</h3>
             <ul class="list">
               ${cmp.rows
                 .map((r) => {
-                  const days = daysSince(r.record.purchasedAt, today);
                   const main = cmp.mode === 'unit' ? money(r.unit.value) : money(r.perItem);
                   const mainLabel = cmp.mode === 'unit' ? esc(unitLabel(r.unit)) : t('1{unit}あたり', { unit });
-                  return `<li class="compare-row ${r.cheapest ? 'is-cheapest' : ''}">
-                    <span class="grow">
-                      <span class="item-name item-name-sm">${esc(storeName.get(r.storeId) ?? t('削除された店舗'))}
-                        ${r.cheapest ? `<span class="badge">${t('最安')}</span>` : ''}</span>
-                      <span class="note">${recordLabel(r.record, unit)}</span>
-                      <span class="note ${days > STALE_DAYS ? 'stale' : ''}">${esc(dateLabel(r.record.purchasedAt, today))}${
-                        days > STALE_DAYS ? t('・古い価格です') : ''
-                      }</span>
-                    </span>
-                    <span class="compare-price"><small>${mainLabel}</small>${main}</span>
+                  const name = storeName.get(r.storeId) ?? t('削除された店舗');
+                  return `<li class="compare-row record-row ${r.cheapest ? 'is-cheapest' : ''}">
+                    <button type="button" class="row-button grow" data-store-edit="${esc(r.storeId)}" aria-label="${esc(t('{store}の価格を直す', { store: name }))}">
+                      <span class="grow compare-main">
+                        <span class="item-name item-name-sm">${esc(name)}${r.cheapest ? `<span class="badge">${t('最安')}</span>` : ''}</span>
+                        <span class="note">${recordLabel(r.record, unit)}</span>
+                      </span>
+                      <span class="compare-price"><small>${mainLabel}</small>${main}</span>
+                    </button>
+                    <button type="button" class="icon-btn" data-store-del="${esc(r.storeId)}" aria-label="${esc(t('{store}の価格を削除', { store: name }))}">${t('削除')}</button>
                   </li>`;
                 })
                 .join('')}
             </ul>
             <p class="note" style="margin-top:6px">${modeNote}</p>
-          </section>
-          <section>
-            <h3 class="section-title">${t('履歴（{n}件）', { n: records.length })}</h3>
-            <ul class="list">
-              ${records
-                .map(
-                  (r) => `<li class="record-row">
-                    <button type="button" class="row-button grow" data-record-edit="${r.id}"
-                            aria-label="${esc(t('{date}の記録を直す', { date: dateLong(r.purchasedAt) }))}">
-                      <span class="grow">
-                        <span>${esc(t('{date}　{store}', { date: dateLong(r.purchasedAt), store: storeName.get(r.storeId) ?? t('削除された店舗') }))}</span>
-                        <span class="note" style="display:block">${recordLabel(r, unit)}</span>
-                      </span>
-                      <span class="chev" aria-hidden="true">›</span>
-                    </button>
-                    <button type="button" class="icon-btn" data-record-del="${r.id}" aria-label="${t('この記録を削除')}">${t('削除')}</button>
-                  </li>`
-                )
-                .join('')}
-            </ul>
           </section>`
         }`;
     }
@@ -247,20 +222,12 @@ function unitLabel(u) {
   return base === 1 ? t('1{unit}あたり', { unit: t(u.unit) }) : t('{amount}{unit}あたり', { amount: base, unit: t(u.unit) });
 }
 
-/** 「228円（2パック・500g）」。unit はエスケープ済みの管理単位 */
+/** 「1パック 228円・500g」。unit はエスケープ済みの管理単位。v1.10 までの記録（合計＋数量）は1つあたりに直す */
 function recordLabel(r, unit) {
   const content = r.packageContent
     ? t('・{amount}{unit}', { amount: r.packageContent.toLocaleString('ja-JP'), unit: esc(t(r.packageContentUnit)) })
     : '';
-  return t('{price}（{qty}{unit}{content}）', { price: money(r.price), qty: r.quantity, unit, content });
-}
-
-function dateLabel(date, today) {
-  const d = daysSince(date, today);
-  const date2 = dateShort(date);
-  if (d === 0) return t('{date}（今日）', { date: date2 });
-  if (d === 1) return t('{date}（昨日）', { date: date2 });
-  return t('{date}（{n}日前）', { date: date2, n: d });
+  return t('1{unit} {price}{content}', { unit, price: money(Math.round(r.price / (r.quantity || 1))), content });
 }
 
 // ===================== 店舗 =====================

@@ -1,5 +1,6 @@
 // ④ 健康・食材提案
 // 悩みを選ぶ → 栄養素・おすすめ食材・取り入れ方を表示 → 気に入った食材だけ手動でリスト・在庫へ追加
+// 上には「栄養からのおすすめ」：毎日食べる物の栄養（食事タブの1日）が目標から外れている項目を出し、選ぶと同じ形で表示
 // 在庫に追加する時は、成分表の栄養データも一緒に入れる（毎日食べる量は在庫画面で設定）
 import { watch } from '../ui/live.js';
 import { toast } from '../ui/toast.js';
@@ -10,6 +11,12 @@ import { listItems, addManualItem } from '../data/shoppingRepo.js';
 import { listProducts, createProduct } from '../data/productRepo.js';
 import { loadFoods } from '../data/foodDb.js';
 import { nameKey } from '../domain/product.js';
+import { listGroups } from '../data/groupRepo.js';
+import { getMeta, META } from '../data/metaRepo.js';
+import { combineConsumption } from '../domain/groups.js';
+import { isDaily } from '../domain/consumption.js';
+import { sumNutrients, targetsFor, evaluate, SHOWN_NUTRIENTS, NUTRIENTS } from '../domain/nutrition.js';
+import { openProfileSheet } from './profileSheet.js';
 import { esc } from '../lib/util.js';
 import { t, lang } from '../lib/i18n.js';
 
@@ -17,7 +24,12 @@ import { t, lang } from '../lib/i18n.js';
 function content() {
   return lang === 'en' ? contentEn : contentJa;
 }
-const { HEALTH_RECOMMENDATIONS, HEALTH_DISCLAIMER } = content();
+const { HEALTH_RECOMMENDATIONS, HEALTH_DISCLAIMER, NUTRIENT_ADVICE } = content();
+
+/** 選んでいる提案（気になること、または「栄養素-low/high」） */
+function findRec(id) {
+  return HEALTH_RECOMMENDATIONS.find((r) => r.id === id) ?? (NUTRIENT_ADVICE[id] ? { id, ...NUTRIENT_ADVICE[id] } : null);
+}
 
 export const title = '食材の提案';
 
@@ -29,6 +41,7 @@ const COST_LABEL = { low: '安い', mid: 'ふつう' };
 export function mount(el) {
   el.innerHTML = `
     <div class="stack">
+      <section id="nutri-advice"></section>
       <section>
         <h2 class="section-title">${t('気になること')}</h2>
         <div class="concern-grid" role="radiogroup">
@@ -42,15 +55,19 @@ export function mount(el) {
     </div>
   `;
   const recEl = el.querySelector('#recommendation');
+  const adviceEl = el.querySelector('#nutri-advice');
+  /** 栄養の状態：null＝計算できない理由、配列＝目標から外れている項目 */
+  let nutriState = null;
   let categories = [];
   let inList = new Set();
   let inStock = new Set();
 
   function render() {
+    renderAdvice();
     el.querySelectorAll('[data-concern]').forEach((b) =>
       b.setAttribute('aria-checked', String(b.dataset.concern === selectedId))
     );
-    const rec = HEALTH_RECOMMENDATIONS.find((r) => r.id === selectedId);
+    const rec = findRec(selectedId);
     if (!rec) {
       recEl.innerHTML = '';
       return;
@@ -91,7 +108,34 @@ export function mount(el) {
     `;
   }
 
+  /** 栄養からのおすすめ（気になることの上） */
+  function renderAdvice() {
+    let inner;
+    if (!nutriState) {
+      inner = '';
+    } else if (nutriState.reason === 'no-profile') {
+      inner = `<p class="note">${t('からだの情報を設定すると、毎日食べる物の栄養からおすすめを出します。')}</p>
+        <button type="button" class="chip-btn" data-act="profile" style="margin-top:6px">${t('からだの情報')}</button>`;
+    } else if (nutriState.reason === 'no-daily') {
+      inner = `<p class="note">${t('食事タブで毎日食べる物を登録すると、栄養からおすすめを出します。')}</p>`;
+    } else if (!nutriState.off.length) {
+      inner = `<p class="note">${t('エネルギー・たんぱく質・脂質・炭水化物は目標の範囲です。')}</p>`;
+    } else {
+      inner = `<div class="advice-list">${nutriState.off
+        .map(
+          (o) => `<button type="button" class="advice-btn" data-concern="${o.id}" role="radio">
+            <span>${esc(findRec(o.id).concern)}</span><span class="note">${esc(t('目標の{pct}%', { pct: o.pct }))}</span></button>`
+        )
+        .join('')}</div>`;
+    }
+    adviceEl.innerHTML = inner ? `<h2 class="section-title">${t('栄養からのおすすめ')}</h2>${inner}` : '';
+  }
+
   el.addEventListener('click', async (e) => {
+    if (e.target.closest('[data-act="profile"]')) {
+      openProfileSheet();
+      return;
+    }
     const c = e.target.closest('[data-concern]');
     if (c) {
       selectedId = c.dataset.concern;
@@ -101,13 +145,13 @@ export function mount(el) {
     }
     const toStock = e.target.closest('[data-stock]');
     if (toStock) {
-      const rec = HEALTH_RECOMMENDATIONS.find((r) => r.id === selectedId);
+      const rec = findRec(selectedId);
       await addToStock(rec.foods[Number(toStock.dataset.stock)]);
       return;
     }
     const add = e.target.closest('[data-food]');
     if (add) {
-      const rec = HEALTH_RECOMMENDATIONS.find((r) => r.id === selectedId);
+      const rec = findRec(selectedId);
       const food = rec.foods[Number(add.dataset.food)];
       const cat = findCategory(food.category);
       const r = await addManualItem({
@@ -166,13 +210,38 @@ export function mount(el) {
   render();
 
   // 買い物リスト・在庫が変わったら「リスト済」「在庫済」の表示を更新する
+  // 毎日食べる物・からだの情報が変わったら「栄養からのおすすめ」も更新する
   return watch(
-    () => Promise.all([listCategories(), listItems(), listProducts()]),
-    ([cats, items, products]) => {
+    () => Promise.all([listCategories(), listItems(), listProducts(), listGroups(), getMeta(META.profile)]),
+    ([cats, items, products, groups, profile]) => {
       categories = cats;
       inList = new Set(items.map((i) => nameKey(i.name)));
       inStock = new Set(products.map((p) => nameKey(p.name)));
+      nutriState = nutritionOff(products, groups, profile);
       render();
     }
   );
+}
+
+/**
+ * 1日の栄養が目標から外れている項目（エネルギー・たんぱく質・脂質・炭水化物）。食事タブと同じ計算
+ * @returns {{reason:'no-profile'|'no-daily'} | {off:Array<{id:string, pct:number}>}}
+ */
+function nutritionOff(products, groups, profile) {
+  const targets = targetsFor(profile);
+  if (!targets) return { reason: 'no-profile' };
+  const daily = combineConsumption(products, groups).products.filter(isDaily);
+  if (!daily.length) return { reason: 'no-daily' };
+  const sum = sumNutrients(daily, null);
+  const off = [];
+  for (const key of SHOWN_NUTRIENTS) {
+    if (!NUTRIENTS.some((n) => n.key === key) || !targets[key]) continue;
+    const ev = evaluate(sum.totals[key], targets[key]);
+    if (ev.status === 'ok') continue;
+    // 少ない時は下限、多い時は上限に対して何%か
+    const tg = targets[key];
+    const base = ev.status === 'low' ? (tg.low ?? tg.value) : (tg.high ?? tg.upper ?? tg.value * 1.1);
+    off.push({ id: `${key}-${ev.status}`, pct: Math.round((sum.totals[key] / base) * 100) });
+  }
+  return { off };
 }

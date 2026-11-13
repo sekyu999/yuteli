@@ -971,3 +971,18 @@ input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .stock-row .stock-meta { flex-wrap: nowrap; overflow: hidden; white-space: nowrap; }
 .stock-row .stock-meta > * { flex: none; }
 .stock-row .stock-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* 食材の提案：栄養からのおすすめ（気になることとは別の、上の一覧） */
+.advice-list { display: grid; gap: 6px; }
+.advice-btn {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: var(--row-h);
+  padding: 0 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface);
+  color: var(--text); font-size: var(--fz-row); text-align: left;
+}
+.advice-btn::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--warn-bar); }
+.advice-btn > span:first-of-type { flex: 1; }
+.advice-btn[aria-checked="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+/* 価格の店舗ごとの行：名前・内容量（左）と価格（右）を横に */
+.compare-row .row-button.grow { flex-direction: row; align-items: center; gap: 8px; text-align: left; }
+.compare-row .compare-main { flex: 1; min-width: 0; }
+.compare-row .compare-main .badge { margin-left: 6px; }
+.compare-row .icon-btn { min-height: 36px; }

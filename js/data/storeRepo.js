@@ -55,8 +55,10 @@ export async function deleteStore(id) {
   });
 }
 
-export function countPriceRecordsOfStore(id) {
-  return db.priceRecords.where('storeId').equals(id).count();
+export async function countPriceRecordsOfStore(id) {
+  // 商品ごとに1件として数える（v1.10 までの履歴が残っていても重ねて数えない）
+  const list = await db.priceRecords.where('storeId').equals(id).toArray();
+  return new Set(list.map((r) => r.productId)).size;
 }
 
 /** その店舗の売り場順の生データ */

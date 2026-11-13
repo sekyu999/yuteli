@@ -2,7 +2,7 @@
 import Dexie from '../../vendor/dexie.mjs';
 import { newId, todayLocal } from '../lib/util.js';
 import { CURRENT_SCHEMA_VERSION } from '../domain/backupFormat.js';
-import { DEFAULT_CATEGORIES, splitCategories, mergeCategories } from '../domain/categories.js';
+import { DEFAULT_CATEGORIES, splitCategories, mergeCategories, reorganizeCategories } from '../domain/categories.js';
 
 /** データ構造の版（バックアップにも記録する） */
 export const SCHEMA_VERSION = CURRENT_SCHEMA_VERSION;
@@ -63,6 +63,26 @@ db.version(4)
       ['categories', r.categories],
       ['storeShelfOrders', r.storeShelfOrders],
       ['products', prods],
+      ['shoppingListItems', r.shoppingListItems],
+    ]) {
+      await tx.table(name).clear();
+      await tx.table(name).bulkAdd(rows);
+    }
+  });
+
+// 版5：カテゴリを組み直す（野菜／果物／豆類…の17種類と並び。v1.12）
+db.version(5)
+  .stores({})
+  .upgrade(async (tx) => {
+    const [categories, storeShelfOrders, products, shoppingListItems] = await Promise.all(
+      ['categories', 'storeShelfOrders', 'products', 'shoppingListItems'].map((t) => tx.table(t).toArray())
+    );
+    if (!categories.length) return; // 初めて開いた時は初期カテゴリを入れる処理に任せる
+    const r = reorganizeCategories({ categories, storeShelfOrders, products, shoppingListItems }, newId);
+    for (const [name, rows] of [
+      ['categories', r.categories],
+      ['storeShelfOrders', r.storeShelfOrders],
+      ['products', r.products],
       ['shoppingListItems', r.shoppingListItems],
     ]) {
       await tx.table(name).clear();

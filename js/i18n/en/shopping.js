@@ -162,4 +162,12 @@ export default {
   '{name}の1回の量': 'Serving size of {name}',
   このグループを削除: 'Delete this group',
   '「{name}」を削除しますか？（食品自体は消えません）': 'Delete “{name}”? (The foods themselves stay.)',
+  // ---- 価格（v1.11：店舗ごとに1件）----
+  '1つあたりの金額（税込）': 'Price per item (incl. tax)',
+  '1{unit}あたりの金額（税込）': 'Price per {unit} (incl. tax)',
+  'この店舗の価格を削除しますか？': 'Delete the price for this store?',
+  店舗ごとの価格: 'Price by store',
+  '{store}の価格を直す': 'Edit the price at {store}',
+  '{store}の価格を削除': 'Delete the price at {store}',
+  '1{unit} {price}{content}': '{price} per {unit}{content}',
 };

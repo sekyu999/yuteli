@@ -9,6 +9,7 @@ import { MEALS, isDaily, intakeUnit } from '../domain/consumption.js';
 import { combineConsumption, groupOnly, GROUP_UNITS } from '../domain/groups.js';
 import {
   NUTRIENTS,
+  SHOWN_NUTRIENTS,
   sumNutrients,
   nutrientsOf,
   targetsFor,
@@ -27,13 +28,12 @@ import { t, money } from '../lib/i18n.js';
 
 export const title = '食事';
 
-/** 主な栄養素（いつも表示）。それ以外は「ビタミン・ミネラル」に折りたたむ */
-const MAIN = ['energy', 'protein', 'fat', 'carb', 'fiber', 'salt'];
+/** 表示する栄養素（エネルギー・たんぱく質・脂質・炭水化物） */
+const MAIN = SHOWN_NUTRIENTS;
 
 /** 画面を離れても覚えておく表示状態 */
 let tab = 'daily';
 let meal = 'all';
-let moreOpen = false;
 
 export function mount(el) {
   el.innerHTML = `
@@ -95,9 +95,6 @@ function mountDaily(el) {
         break;
     }
   });
-  el.addEventListener('toggle', (e) => {
-    if (e.target.matches('.more-nutri')) moreOpen = e.target.open;
-  }, true);
 
   function render() {
     if (!state) return;
@@ -158,10 +155,6 @@ function mountDaily(el) {
             }</button>
           </div>
           ${nutriRows(MAIN, sum, showTargets, targets)}
-          <details class="more-nutri" ${moreOpen ? 'open' : ''}>
-            <summary>${t('ビタミン・ミネラル')}</summary>
-            ${nutriRows(NUTRIENTS.map((n) => n.key).filter((k) => !MAIN.includes(k)), sum, showTargets, targets)}
-          </details>
           ${problemsHtml(sum, issues)}
         </section>
 

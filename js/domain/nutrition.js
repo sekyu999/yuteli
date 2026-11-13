@@ -20,7 +20,13 @@ export const NUTRIENTS = [
 ];
 
 /** パッケージ表示で入力する主な5項目（日本の栄養成分表示の義務項目） */
-export const LABEL_NUTRIENTS = ['energy', 'protein', 'fat', 'carb', 'salt'];
+/**
+ * 画面に出す・パッケージ表示から入力する栄養素（v1.11）。
+ * 食物繊維・食塩相当量・ビタミン・ミネラルはパッケージに書かれていないことが多いため出さない
+ * （成分表の値は商品に保存したまま。計算は全項目で行う）
+ */
+export const SHOWN_NUTRIENTS = ['energy', 'protein', 'fat', 'carb'];
+export const LABEL_NUTRIENTS = SHOWN_NUTRIENTS;
 
 /**
  * 入力単位1つあたりの重さ（g）。g・ml はそのまま1（ml は水と同じ重さとみなす）。

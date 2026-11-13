@@ -8,13 +8,13 @@
 //   "data": { "categories": [...], "products": [...], … }
 // }
 
-import { splitCategories, mergeCategories } from './categories.js';
+import { splitCategories, mergeCategories, reorganizeCategories } from './categories.js';
 import { newId } from '../lib/util.js';
 
 export const APP_ID = 'kesela';
 /** 以前のアプリ名（この名前のバックアップも読み込める） */
 export const OLD_APP_IDS = ['yuteli'];
-export const CURRENT_SCHEMA_VERSION = 4;
+export const CURRENT_SCHEMA_VERSION = 5;
 
 /**
  * 読み込み失敗の結果。error は日本語の文（テスト・ログ用）、
@@ -129,6 +129,21 @@ const MIGRATIONS = {
     });
     const sorted = [...r.products].sort((x, y) => String(x.name).localeCompare(String(y.name), 'ja'));
     b.data.products = sorted.map((p, i) => ({ ...p, sortOrder: p.sortOrder ?? i + 1 }));
+    return b;
+  },
+  // 版4 → 版5：カテゴリを組み直す（v1.12）
+  5: (b) => {
+    if (!Array.isArray(b.data.categories) || !b.data.categories.length) return b;
+    const r = reorganizeCategories(
+      {
+        categories: b.data.categories,
+        storeShelfOrders: b.data.storeShelfOrders ?? [],
+        products: b.data.products ?? [],
+        shoppingListItems: b.data.shoppingListItems ?? [],
+      },
+      newId
+    );
+    Object.assign(b.data, r);
     return b;
   },
 };

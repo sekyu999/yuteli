@@ -91,4 +91,10 @@ export default {
   '「{name}」をリストに追加しました': 'Added “{name}” to the list',
   '「{name}」を在庫に追加しました': 'Added “{name}” to stock',
   追加できませんでした: 'Couldn’t add',
+  // ---- 栄養からのおすすめ（health.js）----
+  'からだの情報を設定すると、毎日食べる物の栄養からおすすめを出します。': 'Set your body info to get suggestions based on the nutrition of what you eat daily.',
+  '食事タブで毎日食べる物を登録すると、栄養からおすすめを出します。': 'Add what you eat daily in the Meals tab to get suggestions based on nutrition.',
+  'エネルギー・たんぱく質・脂質・炭水化物は目標の範囲です。': 'Energy, protein, fat and carbs are all within your targets.',
+  '目標の{pct}%': '{pct}% of target',
+  栄養からのおすすめ: 'Based on your nutrition',
 };
